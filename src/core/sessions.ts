@@ -1,0 +1,257 @@
+import { EventEmitter } from 'node:events'
+import { randomUUID } from 'node:crypto'
+import { existsSync, mkdirSync, appendFileSync } from 'node:fs'
+import path from 'node:path'
+import os from 'node:os'
+import type { IPty } from 'node-pty'
+import type { SessionStartOptions, SessionStartResult, SessionExitPayload } from './types'
+import { buildInteractiveArgs, getCommandExecutable, normalizeCwd } from './cli'
+
+export type PtySpawnFn = (command: string, args: string[], options: {
+  cwd: string
+  cols: number
+  rows: number
+  env: NodeJS.ProcessEnv
+}) => IPty
+
+type SessionRecord = {
+  id: string
+  terminal?: IPty
+  command: string
+  args: string[]
+  cwd: string
+  mock: boolean
+  transcriptPath: string
+  mockTimer?: NodeJS.Timeout
+}
+
+export type SessionEvents = {
+  'session:data': [sessionId: string, data: string]
+  'session:exit': [payload: SessionExitPayload]
+  'session:error': [sessionId: string, error: Error]
+}
+
+export class CoreSessionManager extends EventEmitter<SessionEvents> {
+  private readonly sessions = new Map<string, SessionRecord>()
+  private readonly ptyFactory?: PtySpawnFn
+
+  constructor(ptyFactory?: PtySpawnFn) {
+    super()
+    this.ptyFactory = ptyFactory
+  }
+
+  start(options: SessionStartOptions): SessionStartResult {
+    const id = randomUUID()
+    const command = getCommandExecutable(options.commandExecutable)
+    const cwd = normalizeCwd(options.cwd)
+    const args = buildInteractiveArgs(options)
+    const transcriptPath = this.createTranscriptPath(id)
+
+    const record: SessionRecord = {
+      id,
+      command,
+      args,
+      cwd,
+      mock: Boolean(options.useMock),
+      transcriptPath
+    }
+
+    this.sessions.set(id, record)
+
+    if (options.useMock) {
+      this.startMock(record)
+    } else if (this.ptyFactory) {
+      this.startPty(record, options.cols ?? 120, options.rows ?? 34)
+    } else {
+      this.emitData(record, '\r\n\x1b[31mNo PTY factory configured. Real sessions require a PTY provider.\x1b[0m\r\n')
+      this.emitExit(record, 1, null)
+      this.sessions.delete(record.id)
+    }
+
+    return { id, command, args, cwd, mock: record.mock, transcriptPath }
+  }
+
+  write(id: string, data: string): void {
+    const record = this.sessions.get(id)
+    if (!record) return
+
+    if (record.mock) {
+      this.writeMock(record, data)
+      return
+    }
+
+    record.terminal?.write(data)
+  }
+
+  resize(id: string, cols: number, rows: number): void {
+    const record = this.sessions.get(id)
+    if (!record?.terminal) return
+
+    const safeCols = Math.max(40, Math.min(400, Math.floor(cols)))
+    const safeRows = Math.max(10, Math.min(120, Math.floor(rows)))
+    record.terminal.resize(safeCols, safeRows)
+  }
+
+  stop(id: string): void {
+    const record = this.sessions.get(id)
+    if (!record) return
+
+    if (record.mock) {
+      this.writeMock(record, '/exit\r')
+      return
+    }
+
+    record.terminal?.write('\x03')
+  }
+
+  forceKill(id: string): void {
+    const record = this.sessions.get(id)
+    if (!record) return
+
+    if (record.mock) {
+      if (record.mockTimer) clearTimeout(record.mockTimer)
+      this.emitExit(record, 0, null)
+      this.sessions.delete(id)
+      return
+    }
+
+    try {
+      record.terminal?.kill()
+    } finally {
+      this.sessions.delete(id)
+    }
+  }
+
+  killAll(): void {
+    for (const id of this.sessions.keys()) {
+      this.forceKill(id)
+    }
+  }
+
+  private startPty(record: SessionRecord, cols: number, rows: number): void {
+    if (!this.ptyFactory) return
+
+    const terminal = this.ptyFactory(record.command, record.args, {
+      cwd: record.cwd,
+      cols,
+      rows,
+      env: {
+        ...process.env,
+        TERM_PROGRAM: 'CommandCodeGUI',
+        COLORTERM: process.env.COLORTERM || 'truecolor',
+        FORCE_COLOR: process.env.FORCE_COLOR || '1'
+      }
+    })
+
+    record.terminal = terminal
+
+    terminal.onData((data) => {
+      this.appendTranscript(record, data)
+      this.emit('session:data', record.id, data)
+    })
+
+    terminal.onExit(({ exitCode, signal }) => {
+      this.emitExit(record, exitCode ?? null, signal ?? null)
+      this.sessions.delete(record.id)
+    })
+  }
+
+  private startMock(record: SessionRecord): void {
+    const banner = [
+      '\x1b[35mCommand Code GUI mock session\x1b[0m',
+      '',
+      `cwd: ${record.cwd}`,
+      `binary: ${record.command}`,
+      `args: ${record.args.join(' ') || '(none)'}`,
+      '',
+      'Type /help, /plan, /design, /exit, or any prompt. Mock mode never touches your files.',
+      ''
+    ].join('\r\n')
+
+    this.emitData(record, banner + '\r\n> ')
+  }
+
+  private writeMock(record: SessionRecord, data: string): void {
+    const normalized = data.replace(/\r/g, '\n')
+    if (!normalized.includes('\n')) {
+      this.emitData(record, data)
+      return
+    }
+
+    const prompt = normalized.trim()
+    if (!prompt) {
+      this.emitData(record, '\r\n> ')
+      return
+    }
+
+    this.emitData(record, `\r\n\x1b[2mreceived:\x1b[0m ${prompt}\r\n`)
+
+    if (prompt === '/exit') {
+      this.emitData(record, '\x1b[35mclosing mock session\x1b[0m\r\n')
+      this.emitExit(record, 0, null)
+      this.sessions.delete(record.id)
+      return
+    }
+
+    const response = this.mockResponse(prompt)
+    record.mockTimer = setTimeout(() => {
+      this.emitData(record, response + '\r\n> ')
+    }, 300)
+  }
+
+  private mockResponse(prompt: string): string {
+    if (prompt.startsWith('/help')) {
+      return [
+        '\x1b[1mMock slash commands\x1b[0m',
+        '/plan <task>     enter planning posture',
+        '/design surface  run a design-surface pass',
+        '/model           switch models',
+        '/rewind          checkpoint browser in the real CLI',
+        '/exit            close this mock session'
+      ].join('\r\n')
+    }
+
+    if (prompt.startsWith('/plan')) {
+      return [
+        '\x1b[34mPlan mode\x1b[0m',
+        '1. Preserve the CLI as the execution source of truth.',
+        '2. Wrap interactive sessions with a PTY.',
+        '3. Use headless mode for structured one-shot jobs.',
+        '4. Add state only behind stable outputs or official APIs.'
+      ].join('\r\n')
+    }
+
+    if (prompt.startsWith('/design')) {
+      return [
+        '\x1b[35mDesign surface pass\x1b[0m',
+        'Keep the interface dense but calm: black grid, single accent family, explicit modes, no nested cards.'
+      ].join('\r\n')
+    }
+
+    return 'Mock agent: I would send this prompt to Command Code in a real session.'
+  }
+
+  private emitData(record: SessionRecord, data: string): void {
+    this.appendTranscript(record, data)
+    this.emit('session:data', record.id, data)
+  }
+
+  private emitExit(record: SessionRecord, exitCode: number | null, signal: number | string | null): void {
+    const payload: SessionExitPayload = { sessionId: record.id, exitCode, signal }
+    this.emit('session:exit', payload)
+  }
+
+  private createTranscriptPath(id: string): string {
+    const dir = path.join(os.homedir(), '.commandcode-gui-starter', 'transcripts')
+    if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
+    return path.join(dir, `${new Date().toISOString().replace(/[:.]/g, '-')}-${id}.ansi`)
+  }
+
+  private appendTranscript(record: SessionRecord, data: string): void {
+    try {
+      appendFileSync(record.transcriptPath, data)
+    } catch {
+      // Transcript persistence should never crash the session.
+    }
+  }
+}

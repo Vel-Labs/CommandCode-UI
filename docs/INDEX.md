@@ -1,0 +1,49 @@
+# Docs Index
+
+---
+
+## Architecture (`docs/architecture/`)
+
+| File | Description |
+|---|---|
+| [ARCHITECTURE.md](architecture/ARCHITECTURE.md) | Two-path integration model (interactive PTY vs headless spawn), state model, session lifecycle, security posture |
+| [CROSS_PLATFORM_STRATEGY.md](architecture/CROSS_PLATFORM_STRATEGY.md) | Why Electron is a shell, not the engine. Localhost server strategy for macOS, Linux, WSL, and native Windows. Phase-by-phase pivot plan |
+| [SECURITY.md](architecture/SECURITY.md) | Security principles: no renderer Node.js, narrow IPC, argument assembly from UI controls, risky-mode visibility, recommended hardening |
+
+---
+
+## Guides (`docs/guides/`)
+
+| File | Description |
+|---|---|
+| [DESIGN_STYLE_GUIDE.md](guides/DESIGN_STYLE_GUIDE.md) | Visual design system: black grid, purple glow, monospace pills, mode visibility. UI rules for controls, terminals, and operator panels |
+
+---
+
+## Reference (`docs/reference/`)
+
+| File | Description |
+|---|---|
+| [CLI_REFERENCE.md](reference/CLI_REFERENCE.md) | Exhaustive Command Code CLI index: every `cmd` subcommand, flag, slash command, keyboard shortcut, exit ladder, doctor checks, and Windows notes |
+| [CLI_INTEGRATION_NOTES.md](reference/CLI_INTEGRATION_NOTES.md) | How Command Code CLI flags and subcommands map to GUI controls. Important limitations of headless mode vs interactive |
+| [ISSUE_MAP.md](reference/ISSUE_MAP.md) | Current upstream Command Code issues that directly influence GUI design decisions. Used as requirements, not blockers |
+| [KNOWN_LIMITATIONS.md](reference/KNOWN_LIMITATIONS.md) | Current limitations: no bundled CLI, no internal state parsing, `node-pty` rebuilds, Windows `cmd` ambiguity, headless isolation |
+| [REFERENCE_LINKS.md](reference/REFERENCE_LINKS.md) | Curated links to Command Code docs, GitHub issues, and relevant resources |
+
+---
+
+## Reports (`docs/reports/`)
+
+| File | Description |
+|---|---|
+| [SMOKE_TEST_REPORT.md](reports/SMOKE_TEST_REPORT.md) | Environment details and pass/fail results for mock mode, real CLI, typecheck, tests, and graceful shutdown |
+| [TEST_PLAN.md](reports/TEST_PLAN.md) | Unit test coverage, manual smoke matrix (macOS/Windows/Linux), and real Command Code smoke sequence |
+
+---
+
+## Root
+
+| File | Description |
+|---|---|
+| [ROADMAP.md](../ROADMAP.md) | Full implementation plan across 9 phases — from starter stabilization through core extraction, local server, CLI entry point, Electron-as-shell, and daily-driver features |
+| [README.md](../README.md) | Project overview, prerequisites, run/build instructions, architecture diagram, design decisions, and smoke checks |
