@@ -33,7 +33,9 @@ export type SessionEvents = {
 
 export class CoreSessionManager extends EventEmitter<SessionEvents> {
   private readonly sessions = new Map<string, SessionRecord>()
+  private readonly replayBuffers = new Map<string, string>()
   private readonly ptyFactory?: PtySpawnFn
+  private static readonly MAX_REPLAY_BYTES = 262_144 // 256KB
 
   constructor(ptyFactory?: PtySpawnFn) {
     super()
@@ -101,6 +103,18 @@ export class CoreSessionManager extends EventEmitter<SessionEvents> {
       return
     }
 
+    record.terminal?.write('/exit\r')
+  }
+
+  interrupt(id: string): void {
+    const record = this.sessions.get(id)
+    if (!record) return
+
+    if (record.mock) {
+      this.emitData(record, '\r\n\x1b[33mInterrupt received. Use Force Stop to kill.\x1b[0m\r\n')
+      return
+    }
+
     record.terminal?.write('\x03')
   }
 
@@ -110,6 +124,7 @@ export class CoreSessionManager extends EventEmitter<SessionEvents> {
 
     if (record.mock) {
       if (record.mockTimer) clearTimeout(record.mockTimer)
+      this.replayBuffers.delete(id)
       this.emitExit(record, 0, null)
       this.sessions.delete(id)
       return
@@ -119,7 +134,16 @@ export class CoreSessionManager extends EventEmitter<SessionEvents> {
       record.terminal?.kill()
     } finally {
       this.sessions.delete(id)
+      this.replayBuffers.delete(id)
     }
+  }
+
+  getReplay(id: string): string | undefined {
+    const buffer = this.replayBuffers.get(id)
+    if (buffer && buffer.length > 0) {
+      return buffer
+    }
+    return undefined
   }
 
   killAll(): void {
@@ -152,7 +176,6 @@ export class CoreSessionManager extends EventEmitter<SessionEvents> {
 
     terminal.onExit(({ exitCode, signal }) => {
       this.emitExit(record, exitCode ?? null, signal ?? null)
-      this.sessions.delete(record.id)
     })
   }
 
@@ -189,7 +212,6 @@ export class CoreSessionManager extends EventEmitter<SessionEvents> {
     if (prompt === '/exit') {
       this.emitData(record, '\x1b[35mclosing mock session\x1b[0m\r\n')
       this.emitExit(record, 0, null)
-      this.sessions.delete(record.id)
       return
     }
 
@@ -233,11 +255,20 @@ export class CoreSessionManager extends EventEmitter<SessionEvents> {
 
   private emitData(record: SessionRecord, data: string): void {
     this.appendTranscript(record, data)
+    // Append to replay buffer (ring-buffer truncation from the front)
+    let buffer = this.replayBuffers.get(record.id) || ''
+    buffer += data
+    if (buffer.length > CoreSessionManager.MAX_REPLAY_BYTES) {
+      buffer = buffer.slice(buffer.length - CoreSessionManager.MAX_REPLAY_BYTES)
+    }
+    this.replayBuffers.set(record.id, buffer)
     this.emit('session:data', record.id, data)
   }
 
   private emitExit(record: SessionRecord, exitCode: number | null, signal: number | string | null): void {
     const payload: SessionExitPayload = { sessionId: record.id, exitCode, signal }
+    this.sessions.delete(record.id)
+    this.replayBuffers.delete(record.id)
     this.emit('session:exit', payload)
   }
 

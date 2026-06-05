@@ -1,9 +1,10 @@
 {
-  "name": "command-code-gui-starter",
+  "name": "command-code-gui",
   "version": "0.1.0",
-  "description": "Electron + React starter for wrapping the Command Code CLI in a desktop GUI.",
+  "description": "Native desktop workbench for wrapping the Command Code CLI.",
   "main": "out/main/index.js",
   "private": true,
+  "author": "Vel Labs",
   "license": "MIT",
   "scripts": {
     "dev": "electron-vite dev",
@@ -11,21 +12,30 @@
     "preview": "electron-vite preview",
     "dist": "npm run build && electron-builder",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "doctor": "tsx scripts/check-command-code.ts",
-    "smoke:headless": "tsx scripts/smoke-headless.ts"
+    "doctor": "tsx src/cli/ccgui.ts doctor",
+    "serve": "npm run build && tsx src/cli/ccgui.ts serve",
+    "dev:server": "tsx src/cli/ccgui.ts serve",
+    "dev:web": "vite --config vite.web.config.ts",
+    "smoke:headless": "tsx scripts/smoke-headless.ts",
+    "smoke:server": "tsx scripts/smoke-server.ts",
+    "smoke:browser": "tsx scripts/smoke-browser.ts",
+    "smoke:pty": "tsx scripts/smoke-pty.ts"
   },
   "dependencies": {
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/addon-web-links": "^0.11.0",
     "@xterm/xterm": "^5.5.0",
-    "node-pty": "^1.0.0",
+    "lucide-react": "^1.17.0",
+    "node-pty": "^1.2.0-beta.13",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "ws": "^8.21.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
     "@types/react": "^19.0.2",
     "@types/react-dom": "^19.0.2",
+    "@types/ws": "^8.18.1",
     "@vitejs/plugin-react": "^4.3.4",
     "electron": "^34.0.0",
     "electron-builder": "^25.1.8",
@@ -36,21 +46,25 @@
     "vitest": "^4.1.8"
   },
   "build": {
-    "appId": "ai.commandcode.gui.starter",
-    "productName": "Command Code GUI Starter",
+    "appId": "ai.commandcode.gui",
+    "productName": "Command Code",
     "files": [
       "out/**",
       "package.json"
     ],
+    "icon": "build/icon.png",
     "mac": {
-      "category": "public.app-category.developer-tools"
+      "category": "public.app-category.developer-tools",
+      "icon": "build/icon.icns"
     },
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "build/icon.ico"
     },
     "linux": {
       "target": "AppImage",
-      "category": "Development"
+      "category": "Development",
+      "icon": "build/icon.png"
     }
   }
 }

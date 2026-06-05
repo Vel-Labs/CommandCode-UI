@@ -1,29 +1,53 @@
-# Command Code GUI Starter
+# Command Code
 
-A desktop starter for wrapping the Command Code CLI in a GUI that feels like Command Code: dark, gridded, focused, fast, and terminal-native underneath.
+Command Code is a native-feeling desktop workbench for a terminal-first coding agent.
 
-This is intentionally an adapter, not a fork. The app runs the installed `cmd` CLI in a background pseudo-terminal for interactive sessions and uses `cmd --print` for one-shot headless jobs.
+It keeps Command Code CLI as the execution engine, then adds the parts that make daily operation easier: a calm composer, project picker, visible permission modes, PTY health, session tabs, headless runs, transcripts, runtime diagnostics, and settings that feel like a desktop app instead of a stack of command-line flags.
 
-## What is included
+![Command Code home screen](docs/assets/command-code-home.png)
+
+## Why This Exists
+
+Command Code is powerful as a CLI and as a headless harness. That power also creates friction for normal use: operators need to remember command flags, choose code locations, understand when a real PTY is healthy, and keep risky permission states visible while work is running.
+
+This app turns that workflow into a small desktop cockpit:
+
+- **Start from intent:** type what you want done, then pick project, mode, model, and permissions from the composer row.
+- **Keep the CLI honest:** interactive work runs through a PTY, and one-shot automation runs through `cmd --print`.
+- **Make risk visible:** `standard`, `plan`, `auto-accept`, and `trust` states stay on-screen instead of being hidden in configuration.
+- **Support headless work:** run non-interactive prompts from the GUI while preserving receipts and exit status.
+- **Expose health:** PTY, auth, IDE, model, and command binary checks are inspectable without scraping terminal output.
+
+This is intentionally an adapter, not a fork. The GUI does not own model semantics, tool permissions, taste learning, checkpoint internals, or private Command Code APIs. Command Code remains the engine and source of execution truth.
+
+## Dogfood Story
+
+This interface was created predominantly with **DeepSeek running through Command Code's harness**, then refined with **Codex** for UX polish, documentation, validation, and packaging checks.
+
+That matters because the app is not just a wrapper around a CLI. It is a proof loop for the thing it presents: a headless/terminal agent can help build the native surface that makes the same agent easier to use. The result is a desktop UI that preserves the CLI's power while reducing the operator burden around session setup, runtime mode, and safety visibility.
+
+## Screenshots
+
+Appearance themes are selectable from Settings so the app can keep the Command Code visual identity without forcing a single high-intensity presentation.
+
+![Command Code appearance settings](docs/assets/command-code-appearance.png)
+
+The default theme uses the Command Code spectral grid. The Blueprint theme keeps the same layout but cools the color system for longer work sessions.
+
+![Command Code blueprint theme](docs/assets/command-code-blueprint-theme.png)
+
+## What Is Included
 
 - Electron + React + TypeScript desktop shell
 - PTY-backed interactive Command Code session runner
 - Headless `cmd --print` runner for non-interactive jobs
 - Mock mode so the interface can be explored before Command Code is installed
-- Command palette buttons for common slash commands
-- Project picker, model override, permission mode, trust, and onboarding toggles
-- Visual system inspired by Command Code's black grid, white type, purple glow, and pill controls
-- Command Code project memory, commands, and starter skill under `.commandcode/`
-
-## How hard is this?
-
-**MVP difficulty: moderate.** A credible first version is mostly a PTY wrapper plus a polished renderer. A strong production version becomes harder because you need resilient session lifecycle handling, cross-platform PTY quirks, terminal scroll behavior, exit handling, permissions visibility, IDE handoff, and a way to surface useful state without scraping fragile terminal output.
-
-A practical split:
-
-1. **Weekend MVP**: Electron shell, embedded terminal, spawn `cmd`, project picker, slash-command buttons, headless runner, mock mode.
-2. **Useful daily driver**: session persistence, multiple tabs, transcripts, crash recovery, model/permission state, command history, safe file picker, external-editor handoff.
-3. **Polished app**: diff viewer, checkpoint browser, IDE integration diagnostics, memory/taste/skills managers, cost/usage visibility, and native update flow.
+- Composer-first new session flow with project, mode, model, and permission chips
+- Settings page with profile, runtime, appearance, usage, integrations, and advanced sections
+- Selectable appearance themes with local persistence
+- Runtime checks for CLI and PTY health
+- Files drawer, docs sidecar, advanced drawer, command history, and headless run history
+- Product icon assets for macOS, Windows, and Linux packaging
 
 ## Prerequisites
 
@@ -33,7 +57,7 @@ cmd --version
 cmd status --json
 ```
 
-On Windows, the executable name `cmd` can collide with the Windows command shell. If the app launches the wrong binary, set the **Command binary** field in the UI to the full npm shim path or to another working Command Code binary name if your installation exposes one.
+On Windows, the executable name `cmd` can collide with the Windows command shell. If the app launches the wrong binary, set the command binary in Settings to the full npm shim path or to another working Command Code binary name if your installation exposes one.
 
 ## Run
 
@@ -42,45 +66,46 @@ npm install
 npm run dev
 ```
 
-Use **Mock mode** first if you only want to validate the GUI.
+Use **Mock** mode first if you only want to validate the GUI. Switch to **Real session** after `cmd --version`, `cmd status --json`, and the PTY health check pass.
 
-## Build
+The browser-mode server is also available for lightweight local testing:
+
+```bash
+npm run dev:server
+```
+
+## Build And Package
 
 ```bash
 npm run build
 npm run dist
 ```
 
-Native packages such as `node-pty` may need an Electron rebuild on some systems. If the app fails during install or launch, run:
+Native packages such as `node-pty` may need an Electron rebuild on some systems:
 
 ```bash
 npm rebuild node-pty --runtime=electron --target=$(node -p "require('electron/package.json').version") --disturl=https://electronjs.org/headers
 ```
 
+For unsigned macOS packaging checks during local development:
 
-## Distribution strategy
-
-This starter should be treated as **Electron shell first**, not **Electron-only**. For the broadest TAM, evolve it into a shared local Command Code bridge with two front doors:
-
-- a packaged Electron desktop app for users who want native app behavior;
-- a localhost browser mode for users who prefer `npx ccgui serve`, WSL, Linux, devcontainers, or lighter installation.
-
-The important boundary is the CLI bridge: PTY sessions, headless `cmd --print` runs, transcripts, and safety checks should live in a reusable core that can be reached through Electron IPC or a localhost WebSocket/HTTP server. See [docs/architecture/CROSS_PLATFORM_STRATEGY.md](docs/architecture/CROSS_PLATFORM_STRATEGY.md).
+```bash
+CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --dir --config.npmRebuild=false
+```
 
 ## Architecture
 
 ```text
 Renderer React UI
-  ├─ terminal surface via xterm.js
-  ├─ command palette buttons
-  ├─ headless runner panel
-  └─ project/model/mode controls
+  ├─ composer, settings, drawers, session tabs
+  ├─ xterm.js terminal surface
+  └─ project/model/mode/permission controls
         │ secure IPC only
         ▼
 Preload bridge
         │ validates channel shape, no node integration
         ▼
-Electron main process
+Electron main process / local server
   ├─ PTY SessionManager -> cmd [interactive]
   ├─ child_process runner -> cmd --print [headless]
   ├─ command-code doctor/status/list-models helpers
@@ -90,40 +115,31 @@ Electron main process
 Installed Command Code CLI
 ```
 
-## Key design decisions
+## Design Decisions
 
-- **Do not parse the TUI as the source of truth.** Display it faithfully in xterm first. Add structured state only when Command Code exposes stable JSON or API hooks.
-- **Treat headless and interactive as separate paths.** Headless is clean for automation but cannot use interactive slash commands or keyboard shortcuts.
-- **Use a PTY for interactive sessions.** A normal `child_process.spawn` pipe will not behave like a real terminal for a CLI/TUI app.
-- **Keep permissions explicit.** Standard, plan, auto-accept, trust, and yolo-style choices should be impossible to miss.
-- **Fail closed.** Never expose arbitrary shell execution from the renderer. The only spawned command should be the configured Command Code binary with controlled arguments.
+- **Do not parse the TUI as the source of truth.** Display terminal output faithfully and add structured state only through stable CLI/API surfaces.
+- **Treat headless and interactive as separate paths.** Headless is clean for automation; interactive sessions need a real PTY.
+- **Keep permissions explicit.** Risky modes should be visible in the composer and active-session header.
+- **Fail closed.** The renderer does not get broad shell capability. Main process spawning is scoped to the configured Command Code binary and controlled arguments.
+- **Keep desktop comfort separate from runtime ownership.** Settings, themes, and project pickers improve operation without changing Command Code semantics.
+
+## Validation
+
+```bash
+npm run typecheck
+npx vitest run
+npm run build
+npm run smoke:pty
+```
 
 ## Docs
 
-All documentation lives under `docs/`. See [docs/INDEX.md](docs/INDEX.md) for a full listing with descriptions.
+All documentation lives under `docs/`. See [docs/INDEX.md](docs/INDEX.md) for the full index.
 
 | Section | Contents |
 |---|---|
 | [Architecture](docs/architecture/) | App architecture, cross-platform strategy, security |
 | [Guides](docs/guides/) | Visual design style guide |
-| [Reference](docs/reference/) | CLI reference, CLI integration notes, issue map, known limitations, reference links |
-| [Reports](docs/reports/) | Smoke test reports, test plans |
-| [Roadmap](ROADMAP.md) | Full 9-phase implementation plan |
-
-
-## Smoke checks
-
-```bash
-npm run typecheck
-npm run doctor
-```
-
-Then open the app, choose a project, start Mock mode, and run:
-
-```text
-/help
-/plan Build a GUI wrapper around Command Code
-/design surface src/renderer/src/App.tsx
-```
-
-Switch Mock mode off after `cmd --version` and `cmd status --json` work in your terminal.
+| [Reference](docs/reference/) | CLI reference, component reference, known limitations |
+| [Reports](docs/reports/) | Smoke test reports, hardening gates, test plans |
+| [Roadmap](ROADMAP.md) | Implementation plan and remaining work |

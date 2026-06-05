@@ -12,6 +12,14 @@ import type {
 } from './types'
 
 const DEFAULT_TIMEOUT_MS = 10 * 60 * 1000
+const MAX_OUTPUT_BYTES = 1_048_576 // 1MB
+
+function cappedAppend(current: string, chunk: string, maxBytes: number): string {
+  const next = current + chunk
+  if (next.length <= maxBytes) return next
+  if (current.length >= maxBytes) return current
+  return current + chunk.slice(0, maxBytes - current.length)
+}
 
 export function getCommandExecutable(input?: string): string {
   return input?.trim() || process.env.COMMAND_CODE_BIN || 'cmd'
@@ -138,11 +146,11 @@ export function runProcess(command: string, args: string[], cwd: string, timeout
     }, timeoutMs)
 
     child.stdout?.on('data', (data: Buffer) => {
-      stdout += data.toString('utf8')
+      stdout = cappedAppend(stdout, data.toString('utf8'), MAX_OUTPUT_BYTES)
     })
 
     child.stderr?.on('data', (data: Buffer) => {
-      stderr += data.toString('utf8')
+      stderr = cappedAppend(stderr, data.toString('utf8'), MAX_OUTPUT_BYTES)
     })
 
     child.on('error', (error) => {

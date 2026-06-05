@@ -1,40 +1,21 @@
 import { useState } from 'react'
 import type { JSX } from 'react'
-import type { HeadlessRunResult, PermissionMode } from '../../../shared/types'
 
 type HeadlessRunnerProps = {
-  cwd: string
-  commandExecutable: string
-  model: string
-  permissionMode: PermissionMode
-  trust: boolean
-  skipOnboarding: boolean
+  onRun: (prompt: string, maxTurns: number, yolo: boolean) => Promise<void>
+  useMock: boolean
 }
 
-export function HeadlessRunner(props: HeadlessRunnerProps): JSX.Element {
+export function HeadlessRunner({ onRun, useMock }: HeadlessRunnerProps): JSX.Element {
   const [prompt, setPrompt] = useState('Summarize this project and suggest the next safest GUI integration step.')
   const [maxTurns, setMaxTurns] = useState(10)
   const [yolo, setYolo] = useState(false)
   const [running, setRunning] = useState(false)
-  const [result, setResult] = useState<HeadlessRunResult | null>(null)
 
   const run = async (): Promise<void> => {
     setRunning(true)
-    setResult(null)
     try {
-      const next = await window.commandCode.runHeadless({
-        cwd: props.cwd,
-        commandExecutable: props.commandExecutable,
-        prompt,
-        model: props.model || undefined,
-        permissionMode: props.permissionMode,
-        maxTurns,
-        yolo,
-        trust: props.trust,
-        skipOnboarding: props.skipOnboarding,
-        timeoutMs: 10 * 60 * 1000
-      })
-      setResult(next)
+      await onRun(prompt, maxTurns, yolo)
     } finally {
       setRunning(false)
     }
@@ -43,7 +24,12 @@ export function HeadlessRunner(props: HeadlessRunnerProps): JSX.Element {
   return (
     <section className="headless-card">
       <div>
-        <div className="section-heading">Headless run</div>
+        <div className="section-heading">
+          Headless run
+          <span className={`status-pill ${useMock ? 'status-pill--purple' : ''}`} style={{ marginLeft: '8px', fontSize: '10px', padding: '2px 6px' }}>
+            {useMock ? 'Mock' : 'Real CLI'}
+          </span>
+        </div>
         <p className="muted">Runs <code>cmd --print</code> and exits. Good for automation and structured one-shot tasks.</p>
       </div>
 
@@ -60,16 +46,6 @@ export function HeadlessRunner(props: HeadlessRunnerProps): JSX.Element {
         </label>
         <button className="primary-button" onClick={run} disabled={running || !prompt.trim()}>{running ? 'Running…' : 'Run headless'}</button>
       </div>
-
-      {result && (
-        <div className="headless-result">
-          <div className="result-meta">
-            exit={String(result.exitCode)} signal={String(result.signal)} duration={result.durationMs}ms timeout={String(result.timedOut)}
-          </div>
-          <pre>{result.stdout || '(no stdout)'}</pre>
-          {result.stderr && <pre className="stderr">{result.stderr}</pre>}
-        </div>
-      )}
     </section>
   )
 }

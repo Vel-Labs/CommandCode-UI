@@ -1,14 +1,14 @@
-import type { JSX } from 'react'
+import type { JSX, ReactNode } from 'react'
 import type { PermissionMode } from '../../../shared/types'
 import { StatusPill } from './StatusPill'
 
 type ControlPanelProps = {
+  collapsed: boolean
+  onToggleCollapsed: () => void
   cwd: string
   setCwd: (cwd: string) => void
   commandExecutable: string
   setCommandExecutable: (value: string) => void
-  model: string
-  setModel: (value: string) => void
   permissionMode: PermissionMode
   setPermissionMode: (mode: PermissionMode) => void
   trust: boolean
@@ -24,9 +24,8 @@ type ControlPanelProps = {
   onStartSession: () => void
   onStopSession: () => void
   onCheck: () => void
-  onStatus: () => void
-  onListModels: () => void
   onSlash: (command: string) => void
+  children?: ReactNode
 }
 
 const quickCommands = [
@@ -41,21 +40,65 @@ const quickCommands = [
 ]
 
 export function ControlPanel(props: ControlPanelProps): JSX.Element {
+  if (props.collapsed) {
+    return (
+      <aside className="control-panel control-panel--collapsed" aria-label="Collapsed configuration panel">
+        <button
+          className="rail-expand-button"
+          onClick={props.onToggleCollapsed}
+          aria-label="Expand configuration panel"
+          title="Expand configuration panel"
+        >
+          <span className="rail-expand-glyph">Config</span>
+        </button>
+        <div className="collapsed-status-stack">
+          <StatusPill label={props.activeSessionId ? 'live' : 'idle'} tone={props.activeSessionId ? 'good' : 'default'} />
+          <StatusPill label={props.useMock ? 'mock' : 'real'} tone={props.useMock ? 'purple' : 'warn'} />
+        </div>
+      </aside>
+    )
+  }
+
   return (
     <aside className="control-panel">
-      <div className="brand-block">
-        <div className="brand-kicker">Desktop Adapter</div>
-        <h1>Command Code with a cockpit.</h1>
-        <p>Run the terminal agent as the engine. Give operators a sharper surface.</p>
+      <div className="panel-topline">
+        <div className="app-identity">
+          <div className="app-mark">CC</div>
+          <div>
+            <div className="app-name">Command Code</div>
+            <div className="app-subtitle">{props.useMock ? 'Mock runtime' : 'Real CLI runtime'}</div>
+          </div>
+        </div>
+        <button
+          className="ghost-button panel-collapse-button"
+          onClick={props.onToggleCollapsed}
+          aria-label="Collapse configuration panel"
+          title="Collapse configuration panel"
+        >
+          Collapse
+        </button>
+      </div>
+
+      <div className="primary-session-actions">
+        <button className="primary-button new-session-button" onClick={props.onStartSession} disabled={Boolean(props.activeSessionId)}>
+          New session
+        </button>
+        <button className={props.stopRequested ? 'danger-button warning' : 'danger-button'} onClick={props.onStopSession} disabled={!props.activeSessionId}>
+          {props.stopRequested ? 'Force stop' : 'Stop'}
+        </button>
       </div>
 
       <div className="panel-section">
         <div className="section-heading">Project</div>
         <label className="field-label" htmlFor="cwd">Working directory</label>
-        <div className="inline-field">
+        <div className="inline-field project-picker-row">
           <input id="cwd" value={props.cwd} onChange={(event) => props.setCwd(event.target.value)} placeholder="/path/to/project" />
           <button className="ghost-button" onClick={props.onChooseProject}>Choose</button>
         </div>
+      </div>
+
+      <div className="panel-section">
+        <div className="section-heading">Runtime</div>
 
         <label className="field-label" htmlFor="command-bin">Command binary</label>
         <input id="command-bin" value={props.commandExecutable} onChange={(event) => props.setCommandExecutable(event.target.value)} placeholder="cmd" />
@@ -63,8 +106,6 @@ export function ControlPanel(props: ControlPanelProps): JSX.Element {
 
       <div className="panel-section">
         <div className="section-heading">Session</div>
-        <label className="field-label" htmlFor="model">Model override</label>
-        <input id="model" value={props.model} onChange={(event) => props.setModel(event.target.value)} placeholder="optional, e.g. claude-sonnet-4-6" />
 
         <div className="segmented" role="group" aria-label="Permission mode">
           {(['standard', 'plan', 'auto-accept'] as PermissionMode[]).map((mode) => (
@@ -90,21 +131,14 @@ export function ControlPanel(props: ControlPanelProps): JSX.Element {
           <input type="checkbox" checked={props.useMock} onChange={(event) => props.setUseMock(event.target.checked)} />
           Mock mode
         </label>
-
-        <div className="button-grid">
-          <button className="primary-button" onClick={props.onStartSession} disabled={Boolean(props.activeSessionId)}>Start</button>
-          <button className={props.stopRequested ? 'danger-button warning' : 'danger-button'} onClick={props.onStopSession} disabled={!props.activeSessionId}>
-            {props.stopRequested ? 'Force Stop' : 'Stop'}
-          </button>
-        </div>
       </div>
+
+      {props.children}
 
       <div className="panel-section">
         <div className="section-heading">Doctor</div>
-        <div className="button-grid three">
+        <div className="button-grid">
           <button className="ghost-button" onClick={props.onCheck}>Version</button>
-          <button className="ghost-button" onClick={props.onStatus}>Status</button>
-          <button className="ghost-button" onClick={props.onListModels}>Models</button>
         </div>
         <div className="status-line">{props.statusLine || 'No checks run yet.'}</div>
       </div>

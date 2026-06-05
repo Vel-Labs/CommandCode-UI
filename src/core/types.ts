@@ -53,6 +53,7 @@ export type HeadlessRunOptions = {
   skipOnboarding?: boolean
   addDirs?: string[]
   timeoutMs?: number
+  useMock?: boolean
 }
 
 export type HeadlessRunResult = {
@@ -84,4 +85,89 @@ export type SessionExitPayload = {
   sessionId: string
   exitCode: number | null
   signal: number | string | null
+}
+
+export type FileEntry = {
+  name: string
+  path: string
+  isDirectory: boolean
+  size?: number
+}
+
+export type IdeStatusResult = {
+  ok: boolean
+  stdout: string
+  stderr: string
+  lines: string[]
+  error?: string
+}
+
+export type CliExecResult = {
+  ok: boolean
+  stdout: string
+  stderr: string
+  exitCode: number | null
+  error?: string
+}
+
+export type DiscoveredSession = {
+  id: string
+  timestamp: string
+  transcriptPath: string
+  sizeBytes: number
+  cwd?: string
+  model?: string
+}
+
+export type UsageSummary = {
+  totalTokens: number
+  totalCost: number
+  totalRuns: number
+  raw: string
+  parsed: boolean
+}
+
+export type TastePackage = {
+  path: string
+  name: string
+  categories: TasteCategory[]
+}
+
+export type TasteCategory = {
+  name: string
+  confidence: number
+  learnings: string[]
+}
+
+export type AgentConfig = {
+  path: string
+  name: string
+  rawContent: string
+  systemPrompt?: string
+  description?: string
+}
+
+export type McpServer = {
+  name: string
+  status: string
+  toolCount?: number
+  raw: string
+}
+
+export type SkillEntry = {
+  path: string
+  name: string
+  content: string
+  description?: string
+}
+
+export type MemoryFile = {
+  path: string
+  content: string
+  name: string
+}
+
+export type WriteFileResult = {
+  ok: boolean
+  error?: string
 }

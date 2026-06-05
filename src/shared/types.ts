@@ -8,5 +8,17 @@ export type {
   HeadlessRunResult,
   ModelListResult,
   DirectoryPickResult,
-  SessionExitPayload
+  SessionExitPayload,
+  FileEntry,
+  IdeStatusResult,
+  CliExecResult,
+  DiscoveredSession,
+  UsageSummary,
+  TastePackage,
+  TasteCategory,
+  AgentConfig,
+  McpServer,
+  SkillEntry,
+  MemoryFile,
+  WriteFileResult
 } from '../core/types'

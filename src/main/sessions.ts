@@ -1,3 +1,9 @@
+/**
+ * Legacy IPC-based session manager.
+ * @deprecated Session transport now routes through the HTTP/WebSocket server
+ *   in src/server/index.ts. This file is kept as a reference for the node-pty
+ *   factory pattern but is not used in the current architecture.
+ */
 import type { WebContents } from 'electron'
 import { spawn as ptySpawn } from 'node-pty'
 import { CoreSessionManager } from '../core/sessions'

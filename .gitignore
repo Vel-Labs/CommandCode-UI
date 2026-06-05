@@ -1,15 +1,26 @@
 node_modules/
 dist/
 out/
+.vite/
+coverage/
+.nyc_output/
 .DS_Store
+*.tsbuildinfo
 *.log
 .env
 .env.*
 !.env.example
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# Codex kickoff prompts — kept for context, not committed
+# Local agent/taste state and scratch prompts
+.commandcode/taste/
 CODEX_KICKOFF_PROMPT.md
 CODEX_CROSS_PLATFORM_PIVOT_PROMPT.md
+CODEX_DOGFOOD_UPDATE_PROMPT.md
+ROADMAP_DOGFOOD_UPDATE.md
 
 # Electron build artifacts
 *.dmg
@@ -17,3 +28,5 @@ CODEX_CROSS_PLATFORM_PIVOT_PROMPT.md
 *.AppImage
 *.snap
 release/
+build/*.zip
+build/icon.iconset/

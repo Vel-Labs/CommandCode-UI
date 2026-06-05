@@ -1,35 +1,163 @@
 # Architecture
 
-The starter uses a two-path integration model.
+The Command Code GUI wraps the `cmd` CLI in an Electron + React desktop shell with a localhost HTTP/WebSocket server as the transport layer. The architecture cleanly separates the GUI shell from the CLI engine — the app is an adapter, not a fork.
 
-## Interactive path
+## System overview
 
-```text
-React UI -> preload IPC -> Electron main -> node-pty -> cmd -> xterm.js
+```
+┌────────────────────────────────────────────────────────────────┐
+│  Renderer Process (React)                                      │
+│  ┌──────────┐ ┌──────────┐ ┌───────────┐ ┌──────────────────┐ │
+│  │ Terminal  │ │ Headless │ │ Control   │ │ Advanced Panel  │ │
+│  │ (xterm)   │ │ Runner   │ │ Panel     │ │ (7 tabs)        │ │
+│  └─────┬─────┘ └────┬─────┘ └─────┬─────┘ └───────┬──────────┘ │
+│        │             │             │               │            │
+│  ┌─────┴─────────────┴─────────────┴───────────────┴──────────┐│
+│  │                    TransportAPI                              ││
+│  │  (browserAdapter.ts creates fetch+WS transport,             ││
+│  │   useTransport.ts overlays Electron native APIs)            ││
+│  └──────────────────────────┬──────────────────────────────────┘│
+└─────────────────────────────┼───────────────────────────────────┘
+                              │ HTTP + WebSocket
+                              ▼
+┌────────────────────────────────────────────────────────────────┐
+│  Server Process (Node.js HTTP + WS)                            │
+│  ┌────────────┐ ┌─────────────┐ ┌───────────────────────────┐ │
+│  │ Route      │ │ WebSocket   │ │ Auth (cookie/header/query  │ │
+│  │ Dispatcher │ │ Server      │ │  /bearer token ladder)    │ │
+│  └─────┬──────┘ └──────┬──────┘ └───────────────────────────┘ │
+│        │                │                                       │
+│  ┌─────┴────────────────┴─────────────────────────────────────┐│
+│  │                    Server Modules                            ││
+│  │  ┌─────────┐ ┌─────────┐ ┌──────────────────────────────┐  ││
+│  │  │ Sessions│ │ CLI      │ │ Discovery                   │  ││
+│  │  │ Manager │ │ (cli.ts) │ │ (sessions, usage, taste,    │  ││
+│  │  │         │ │          │ │  agents, MCP, skills, mem)  │  ││
+│  │  └────┬────┘ └────┬─────┘ └──────────────┬───────────────┘  ││
+│  └───────┴───────────┴──────────────────────┴──────────────────┘│
+└─────────────────────────────┼───────────────────────────────────┘
+                              │ child_process.spawn / node-pty
+                              ▼
+               ┌──────────────────────────┐
+               │   Installed `cmd` CLI     │
+               │   (Command Code)          │
+               └──────────────────────────┘
 ```
 
-This path is for normal Command Code use. It gives the CLI a real pseudo-terminal so interactive UI, slash commands, prompts, ANSI output, and keyboard interaction behave like a terminal.
+## Two deployment modes
 
-## Headless path
+### Electron (production)
 
-```text
-React UI -> preload IPC -> Electron main -> child_process.spawn -> cmd --print
+```
+Electron shell
+  └─ Electron sets cookie (ccgui-token) via session.defaultSession.cookies.set()
+  └─ BrowserWindow loads http://127.0.0.1:{port}
+  └─ Renderer uses same-origin cookie for auth
 ```
 
-This path is for one-shot automation. It captures stdout, stderr, exit code, signal, timeout state, and duration. It should be used for tasks like summarization, audits, or CI-like checks where a standalone invocation is acceptable.
+The preload bridge (`src/preload/index.ts`) exposes only three native IPC methods:
+- `cc:choose-directory` — native folder picker dialog
+- `cc:open-external` — guarded URL opener (http/https only)
+- `cc:reveal-transcript` — show file in Finder/Explorer
+- `cc:get-server-info` — returns port and token
 
-## State model
+### Browser (dev / WSL / Linux / headless)
 
-For the MVP, the terminal is display-only state. The GUI does not parse Command Code's TUI to infer internal agent state. Structured cards should only be built from documented JSON outputs, stable files, or future official APIs.
+```
+npx vite (port 5174)
+  └─ Vite proxy: /api→127.0.0.1:{PORT}, /ws→ws://127.0.0.1:{PORT}
+  └─ Auth via X-Auth-Token header (set by applyAuth in browserAdapter.ts)
+```
+
+Run `npm run dev:web` for browser dev, or `npm run serve` for the built version served from the same process.
+
+## Transport layer
+
+### `TransportAPI` (interface)
+
+Defined in `src/core/transport.ts`. The renderer never directly imports server modules — it only talks through this interface. Two implementations exist:
+
+1. **`browserAdapter.ts`**: Creates fetch/WebSocket calls to the local server. Used in both Electron and browser mode. Electron mode overlays `chooseDirectory`, `openExternal`, and `revealTranscript` with native IPC.
+
+2. **`useTransport.ts`**: Returns the appropriate transport implementation based on whether `window.commandCode` (preload bridge) exists.
+
+### API endpoints (22 total)
+
+All endpoints are POST (except `/health` GET) and require authentication. See [API Reference](reference/API_REFERENCE.md) for full request/response shapes.
+
+**Session lifecycle:**
+- `POST /api/sessions` — start a new interactive session
+- `POST /api/sessions/:id/write` — send data to session PTY
+- `POST /api/sessions/:id/resize` — resize terminal
+- `DELETE /api/sessions/:id` — stop/kill session
+- `WS /ws/sessions/:id` — stream PTY output (data + exit events)
+
+**CLI introspection:**
+- `POST /api/check` — `cmd --version`
+- `POST /api/status` — `cmd status --json`
+- `POST /api/models` — `cmd --list-models`
+- `POST /api/headless` — `cmd --print <prompt>`
+- `POST /api/ide-status` — `cmd --ide-status`
+
+**File system:**
+- `POST /api/files/list` — list directory entries
+- `POST /api/files/read` — read file contents
+
+**Discovery & management (Phase 8):**
+- `POST /api/sessions/discover` — scan `~/.commandcode/` for past sessions
+- `POST /api/usage` — `cmd /usage --json` headless invocation
+- `POST /api/taste/list` — parse taste.md files
+- `POST /api/agents/list` — list agent configs
+- `POST /api/agents/save` — save agent config
+- `POST /api/mcp/list` — `cmd mcp list`
+- `POST /api/mcp/action` — `cmd mcp connect|disconnect <name>`
+- `POST /api/skills/list` — scan skill directories
+- `POST /api/memories/list` — read project memory files
+- `POST /api/memories/save` — save memory file
 
 ## Session lifecycle
 
-- Start creates a session id and PTY.
-- Renderer subscribes to `cc:session-data:<id>` and `cc:session-exit:<id>`.
-- Data is written to xterm and appended to an ANSI transcript file.
-- Stop kills the PTY.
-- Future hardening should add Ctrl-C, graceful `/exit`, timeout, and force-kill stages.
+```
+Start → startSession() → POST /api/sessions → server spawns PTY
+  │
+  ├─ Mock mode: server emits banner text, echo loop with mockResponse()
+  ├─ Real mode: server calls node-pty, streams PTY output via WS
+  │
+  └─ On data:
+      ├─ Server appends to ANSI transcript file
+      ├─ Server emits 'session:data' event
+      └─ WS broadcasts to renderer → xterm.js displays
+
+Stop ladder:
+  1. User clicks "Stop"  → POST /api/sessions/:id/write { data: "\x03" } → Ctrl-C
+  2. PTY exits           → server emits 'session:exit' → WS broadcasts
+  3. Force Stop           → POST /api/sessions/:id/kill → PTY kill()
+```
+
+## Auth model
+
+The server generates a random 64-char hex token on startup. The auth ladder checks four sources in order:
+
+1. **Cookie** (`ccgui-token` in `Cookie` header) — primary for same-origin Electron
+2. **Custom header** (`X-Auth-Token`) — dev mode Vite proxy (cookies don't cross ports)
+3. **Query param** (`?token=...`) — initial page load, drops after cookie is set
+4. **Bearer** (`Authorization: Bearer ...`) — programmatic API access
+
+The server sets the cookie on every response, so the query param disappears after the first request.
+
+## Renderer component tree
+
+See [Components Reference](reference/COMPONENTS.md) for the full component tree and state management.
+
+## Mock mode
+
+Mock mode spawns no PTY — the server responds with pre-canned text for common slash commands (`/help`, `/plan`, `/design`, `/exit`). This allows the entire UI to be explored and tested before Command Code is installed.
 
 ## Security posture
 
-The renderer never receives Node.js integration and only talks through a narrow preload bridge. The main process only spawns the configured Command Code executable with controlled argument arrays.
+- Renderer never receives Node.js integration (`contextIsolation: true`, `nodeIntegration: false`)
+- Preload bridge exposes only four IPC methods, all guarded
+- Main process only spawns the configured `cmd` binary with controlled argument arrays
+- No arbitrary shell execution from renderer
+- Permission mode is always visible (mode rail, top-bar status pills)
+- External URLs opened from renderer are validated (http/https only)

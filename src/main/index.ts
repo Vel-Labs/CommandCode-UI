@@ -1,10 +1,10 @@
-import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, shell, session } from 'electron'
 import path from 'node:path'
-import { checkCommandCode, commandCodeStatus, listModels, runHeadless } from './cli'
-import { SessionManager } from './sessions'
-import type { HeadlessRunOptions, SessionStartOptions } from '../shared/types'
+import { createAppServer } from '../server/index'
 
-const sessionManager = new SessionManager()
+let serverToken = ''
+let serverPort = 0
+let mainWindow: BrowserWindow | null = null
 
 function createWindow(): BrowserWindow {
   const win = new BrowserWindow({
@@ -12,8 +12,10 @@ function createWindow(): BrowserWindow {
     height: 860,
     minWidth: 1060,
     minHeight: 720,
-    backgroundColor: '#050505',
-    title: 'Command Code GUI Starter',
+    backgroundColor: '#101010',
+    title: 'Command Code',
+    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
+    trafficLightPosition: process.platform === 'darwin' ? { x: 18, y: 18 } : undefined,
     webPreferences: {
       preload: path.join(__dirname, '../preload/index.js'),
       contextIsolation: true,
@@ -22,31 +24,57 @@ function createWindow(): BrowserWindow {
     }
   })
 
-  if (process.env.ELECTRON_RENDERER_URL) {
-    win.loadURL(process.env.ELECTRON_RENDERER_URL)
-  } else {
-    win.loadFile(path.join(__dirname, '../renderer/index.html'))
-  }
-
+  mainWindow = win
   return win
 }
 
-app.whenReady().then(() => {
-  app.setAppUserModelId('ai.commandcode.gui.starter')
-  createWindow()
+app.whenReady().then(async () => {
+  app.setAppUserModelId('ai.commandcode.gui')
+  app.setName('Command Code')
+  const window = createWindow()
+
+  // Start the local server, serving static files from the renderer build output
+  const staticDir = path.join(__dirname, '../../out/renderer')
+  const server = createAppServer(0, '127.0.0.1', { staticDir })
+  await server.start()
+
+  serverToken = server.token
+  const addr = server.httpServer.address()
+  serverPort = typeof addr === 'object' && addr ? addr.port : 0
+
+  // Set the auth cookie on the server origin
+  await session.defaultSession.cookies.set({
+    url: `http://127.0.0.1:${serverPort}`,
+    name: 'ccgui-token',
+    value: serverToken,
+    path: '/',
+    httpOnly: true,
+    sameSite: 'strict'
+  })
+
+  // Inject token and server port before any JS executes so renderer has them at boot
+  window.webContents.executeJavaScript(`
+    window.__CCGUI__ = { token: '${serverToken}', port: ${serverPort} }
+    // Also set fetch base URL via config injection
+    window.__CCGUI_API_BASE__ = 'http://127.0.0.1:${serverPort}'
+  `)
+
+  window.loadURL(`http://127.0.0.1:${serverPort}`)
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
-})
 
-app.on('before-quit', () => {
-  sessionManager.killAll()
+  app.on('before-quit', async () => {
+    await server.stop()
+  })
 })
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
 })
+
+// IPC kept only for window management and native dialogs — no session transport
 
 ipcMain.handle('cc:choose-directory', async () => {
   const result = await dialog.showOpenDialog({
@@ -60,46 +88,6 @@ ipcMain.handle('cc:choose-directory', async () => {
   }
 })
 
-ipcMain.handle('cc:check', async (_event, commandExecutable?: string) => {
-  return checkCommandCode(commandExecutable)
-})
-
-ipcMain.handle('cc:status', async (_event, commandExecutable?: string, cwd?: string) => {
-  return commandCodeStatus(commandExecutable, cwd)
-})
-
-ipcMain.handle('cc:list-models', async (_event, commandExecutable?: string, cwd?: string) => {
-  return listModels(commandExecutable, cwd)
-})
-
-ipcMain.handle('cc:start-session', (event, options: SessionStartOptions) => {
-  return sessionManager.start(event.sender, options)
-})
-
-ipcMain.handle('cc:write', (_event, sessionId: string, data: string) => {
-  sessionManager.write(sessionId, data)
-})
-
-ipcMain.handle('cc:resize', (_event, sessionId: string, cols: number, rows: number) => {
-  sessionManager.resize(sessionId, cols, rows)
-})
-
-ipcMain.handle('cc:stop', (_event, sessionId: string) => {
-  sessionManager.stop(sessionId)
-})
-
-ipcMain.handle('cc:force-kill', (_event, sessionId: string) => {
-  sessionManager.forceKill(sessionId)
-})
-
-ipcMain.handle('cc:kill', (_event, sessionId: string) => {
-  sessionManager.stop(sessionId)
-})
-
-ipcMain.handle('cc:run-headless', async (_event, options: HeadlessRunOptions) => {
-  return runHeadless(options)
-})
-
 ipcMain.handle('cc:open-external', async (_event, url: string) => {
   const allowed = new URL(url)
   if (!['https:', 'http:'].includes(allowed.protocol)) {
@@ -110,4 +98,8 @@ ipcMain.handle('cc:open-external', async (_event, url: string) => {
 
 ipcMain.handle('cc:reveal-transcript', async (_event, transcriptPath: string) => {
   shell.showItemInFolder(transcriptPath)
+})
+
+ipcMain.handle('cc:get-server-info', () => {
+  return { port: serverPort, token: serverToken }
 })
