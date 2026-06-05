@@ -68,10 +68,28 @@ npm run dev
 
 Use **Mock** mode first if you only want to validate the GUI. Switch to **Real session** after `cmd --version`, `cmd status --json`, and the PTY health check pass.
 
-The browser-mode server is also available for lightweight local testing:
+## Localhost Browser Mode
+
+For operators who do not want to run the Electron shell, Command Code can run as a localhost web UI against the same guarded local bridge. After the package is published to npm, the one-line path is:
 
 ```bash
-npm run dev:server
+npx command-code-gui@latest serve --open
+```
+
+The server binds to `127.0.0.1`, prints an auth token, and opens a tokenized URL when `--open` is provided. The browser UI uses the same PTY/session/headless endpoints as the desktop shell.
+
+From a source checkout, the equivalent command is:
+
+```bash
+npm run serve -- --open
+```
+
+Useful localhost commands:
+
+```bash
+npx command-code-gui@latest doctor
+npx command-code-gui@latest serve --port 5183 --open
+npx command-code-gui@latest serve --dir /path/to/out/renderer
 ```
 
 ## Build And Package
@@ -91,6 +109,13 @@ For unsigned macOS packaging checks during local development:
 
 ```bash
 CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --dir --config.npmRebuild=false
+```
+
+For npm packaging checks:
+
+```bash
+npm pack
+npx --package ./command-code-gui-0.1.0.tgz ccgui doctor
 ```
 
 ## Architecture

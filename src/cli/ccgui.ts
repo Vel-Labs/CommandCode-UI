@@ -14,15 +14,32 @@ function usage(): void {
     'Usage: ccgui <command>',
     '',
     'Commands:',
-    '  serve [--port <n>] [--dir <path>]  Start local server with web UI',
-    '  doctor                             Check environment readiness',
-    '  open [--port <n>]                  Open browser to local server',
+    '  serve [--port <n>] [--dir <path>] [--open]  Start local server with web UI',
+    '  doctor                                      Check environment readiness',
+    '  open [--port <n>]                           Open browser to local server',
     ''
   ].join('\n'))
 }
 
-async function startServe(port: number, staticDir?: string): Promise<void> {
-  const resolvedDir = staticDir ? resolve(staticDir) : undefined
+function defaultStaticDir(): string {
+  const cwdOut = resolve('out/renderer')
+  if (existsSync(cwdOut)) return cwdOut
+  return path.resolve(__dirname, '../renderer')
+}
+
+function openUrl(url: string): void {
+  const platform = process.platform
+  const cmd = platform === 'darwin'
+    ? `open "${url}"`
+    : platform === 'win32'
+      ? `start "" "${url}"`
+      : `xdg-open "${url}"`
+
+  exec(cmd)
+}
+
+async function startServe(port: number, staticDir?: string, shouldOpen = false): Promise<void> {
+  const resolvedDir = staticDir ? resolve(staticDir) : defaultStaticDir()
 
   if (resolvedDir && !existsSync(resolvedDir)) {
     console.error(`Static directory not found: ${resolvedDir}`)
@@ -36,7 +53,7 @@ async function startServe(port: number, staticDir?: string): Promise<void> {
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === 'EADDRINUSE') {
       console.error(`Port ${port} is already in use.`)
-      console.error(`Try: npm run serve -- --port ${port + 1}`)
+      console.error(`Try: ccgui serve --port ${port + 1}`)
       process.exit(1)
     }
     throw err
@@ -48,6 +65,10 @@ async function startServe(port: number, staticDir?: string): Promise<void> {
   console.log(`API token: ${app.token}`)
   console.log(`Server URL: ${app.url}`)
   console.log(`Browser URL: ${app.authUrl}`)
+
+  if (shouldOpen) {
+    openUrl(app.authUrl)
+  }
 
   // Graceful shutdown
   const shutdown = async () => {
@@ -166,15 +187,7 @@ async function runDoctor(): Promise<void> {
 async function openBrowser(port: number): Promise<void> {
   const url = `http://127.0.0.1:${port}`
   console.log(`Opening: ${url} (append ?token=<token> from server output)`)
-
-  const platform = process.platform
-  const cmd = platform === 'darwin'
-    ? `open "${url}"`
-    : platform === 'win32'
-      ? `start "" "${url}"`
-      : `xdg-open "${url}"`
-
-  exec(cmd)
+  openUrl(url)
 }
 
 // Main
@@ -201,7 +214,7 @@ if (isNaN(port) || port < 1 || port > 65535) {
 
 switch (command) {
   case 'serve':
-    startServe(port, getArg('--dir') || resolve('out/renderer'))
+    startServe(port, getArg('--dir'), args.includes('--open'))
     break
 
   case 'doctor':

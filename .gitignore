@@ -27,6 +27,7 @@ ROADMAP_DOGFOOD_UPDATE.md
 *.exe
 *.AppImage
 *.snap
+*.tgz
 release/
 build/*.zip
 build/icon.iconset/
