@@ -959,3 +959,17 @@ Scope: added a pure model-routing preview contract for compaction, title generat
 | Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
 
 Scope: added tested command/workflow palette search and preview-only recipes for interactive, headless, plan, design, resume, continue, configure models, MCP setup, hook setup, notification setup, and agent creation. Executable command rows still use the existing `runCommand(item)` path. This did not add prompt rewriting, helper execution semantics, config writes, renderer IPC, file access, CLI argument changes, or session lifecycle behavior. Real CLI path was not retested for this renderer-only palette slice.
+
+### 2026-06-06 Phase 5 design helper preview
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `120/120` |
+| Build | Pass | `npm run build`; renderer assets `index-DhV-rzOP.js` and `index-D0pnBW39.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57376`; token proof returned `302`, cookie-authenticated `/` served built assets `index-DhV-rzOP.js` and `index-D0pnBW39.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:58884` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
+
+Scope: added a tested `/design` command preview builder and preview-only Settings > Design helper. It includes documented mode and target in the command and keeps goal/selected-element context visible but outside the command. This did not add active-session send behavior, hidden prompt rewriting, config writes, renderer IPC, file access, CLI argument changes, or session lifecycle behavior. Real CLI path was not retested for this renderer-only helper slice.

@@ -4429,6 +4429,10 @@ input[type="range"]::-webkit-slider-thumb {
   font-size: 13px;
 }
 
+.settings-control-row--stacked {
+  align-items: start;
+}
+
 .settings-control-row select {
   min-width: 0;
   padding: 8px 10px;
@@ -4440,6 +4444,16 @@ input[type="range"]::-webkit-slider-thumb {
 
 .settings-control-row small {
   color: #a0a0a6;
+}
+
+.design-helper {
+  display: grid;
+  gap: 14px;
+}
+
+.design-helper-textarea {
+  min-height: 92px;
+  resize: vertical;
 }
 
 .settings-actions-row {

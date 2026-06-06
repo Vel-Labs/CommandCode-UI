@@ -25,7 +25,6 @@ import {
 } from './CoreSettings'
 import {
   AboutSettingsReadOnly,
-  DesignSettingsReadOnly,
   HooksSettingsReadOnly,
   KeyboardSettingsReadOnly,
   NotificationsSettings,
@@ -33,6 +32,7 @@ import {
 } from './ReferenceSettings'
 import { ModelsSettings } from './ModelsSettings'
 import { settingsItem } from './settingsRegistry'
+import { DesignHelper } from '../workflows/DesignHelper'
 
 const implementedSettingsSections: SettingsSection[] = [
   'profile',
@@ -213,7 +213,7 @@ export function SettingsRoute(props: SettingsRouteProps): JSX.Element {
     case 'models':
       return <SettingsFrame title="Models"><ModelsSettings model={model} onConfigureModels={openConfigureModels} openRuntimeSettings={() => openSection('runtime')} /></SettingsFrame>
     case 'design':
-      return <SettingsFrame title="Design"><DesignSettingsReadOnly /></SettingsFrame>
+      return <SettingsFrame title="Design"><DesignHelper /></SettingsFrame>
     case 'hooks':
       return <SettingsFrame title="Hooks"><HooksSettingsReadOnly transport={transport} cwd={cwd} /></SettingsFrame>
     case 'about':
