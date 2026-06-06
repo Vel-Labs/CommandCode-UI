@@ -117,6 +117,7 @@ export function SessionsSettingsReadOnly({
 export function McpSettingsReadOnly({ transport, commandExecutable }: { transport: TransportAPI; commandExecutable: string }): JSX.Element {
   const [servers, setServers] = useState<Array<{ name: string; status: string; toolCount?: number; raw: string }>>([])
   const [loading, setLoading] = useState(false)
+  const [actionResult, setActionResult] = useState('')
 
   const load = async (): Promise<void> => {
     setLoading(true)
@@ -129,11 +130,24 @@ export function McpSettingsReadOnly({ transport, commandExecutable }: { transpor
     }
   }
 
+  const runMcpAction = async (action: 'connect' | 'disconnect', serverName: string): Promise<void> => {
+    setActionResult(`${action === 'connect' ? 'Connecting' : 'Disconnecting'} ${serverName}...`)
+    try {
+      const result = await transport.mcpAction(commandExecutable || undefined, action, serverName)
+      const output = (result.stdout || result.stderr || result.error || '').trim()
+      setActionResult(`${serverName}: ${result.ok ? 'ok' : 'failed'}${output ? ` - ${output}` : ''}`)
+      await load()
+    } catch (error) {
+      setActionResult(`${serverName}: ${error instanceof Error ? error.message : 'MCP action failed'}`)
+    }
+  }
+
   useEffect(() => { void load() }, [commandExecutable])
 
   return (
     <SettingsReadOnlyCard title={`MCP servers (${servers.length})`} loading={loading} onRefresh={load}>
-      <p className="settings-muted">Read-only `cmd mcp list` view. Connect, disconnect, add, remove, and auth actions remain in Advanced until scopes and confirmation flows are implemented.</p>
+      <p className="settings-muted">MCP remains Command Code-owned. Connect and disconnect run the previewed `cmd mcp ...` command; add, remove, and auth actions remain gated.</p>
+      {actionResult && <p className="settings-muted">{actionResult}</p>}
       {servers.map((server) => (
         <div key={server.name} className="settings-readonly-row">
           <strong>{server.name}</strong>
@@ -145,6 +159,10 @@ export function McpSettingsReadOnly({ transport, commandExecutable }: { transpor
           <div className="settings-command-preview">
             <span>Disconnect preview</span>
             <code>{mcpCommandPreview(commandExecutable, 'disconnect', server.name)}</code>
+          </div>
+          <div className="settings-inline-actions">
+            <button className="ghost-button native-ghost settings-inline-action" onClick={() => void runMcpAction('connect', server.name)} disabled={server.status === 'connected'}>Connect</button>
+            <button className="ghost-button native-ghost settings-inline-action" onClick={() => void runMcpAction('disconnect', server.name)} disabled={server.status !== 'connected'}>Disconnect</button>
           </div>
         </div>
       ))}
