@@ -6,6 +6,8 @@ Retrieved: 2026-06-06
 
 ## Hooks
 
+Focused local page: `hooks.md`
+
 Source pages:
 
 - https://commandcode.ai/docs/hooks
@@ -114,7 +116,7 @@ GUI implications:
 
 Suggested next local docs:
 
-- `hooks.md`
+- `hooks.md` (started)
 - `mcp.md`
 - `design.md`
 - `tools.md`

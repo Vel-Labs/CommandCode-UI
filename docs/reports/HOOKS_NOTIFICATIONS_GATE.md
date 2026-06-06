@@ -25,6 +25,7 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 - Settings > Hooks includes a scoped read-only Hook logs viewer with source diagnostics, refresh, bounded read action, and raw preview output.
 - `src/core/hooksPayload.ts` and Settings > Hooks `Sample payload` controls build explicitly marked dry-run JSON samples without executing hook commands or starting sessions.
 - `src/core/hooksDryRun.ts`, `/api/hooks/dry-run`, `transport.dryRunHook(...)`, and Settings > Hooks `Dry-run test` controls return sample payload evidence, matcher applicability, and `execution: not-run` without executing hook commands or starting sessions.
+- `docs/reference/command-code-docs/hooks.md` documents current hook boundaries and a project-scoped Stop-hook notification/audio recipe compatible with `command-code-bonk --sound done`.
 - `src/renderer/src/services/sessionReadiness.ts` adds a pure session readiness reducer for background, unread, response-ready, and input-required state.
 - The readiness reducer keeps attach, replay, and foreground transitions non-notifying, separates live background output from response-ready state, and emits notification intent only for explicit background `assistant-ready` or `input-required` events.
 - Session data callbacks include `live` versus `replay` metadata, and active tabs/sidebar rows display reducer-backed unread/readiness state without firing toast, audio, or OS notifications.
@@ -72,6 +73,7 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 - Authenticated `/api/hooks/apply-edit` proof against isolated temp project with sibling backup
 - Authenticated `/api/hooks/logs` and `/api/hooks/logs/read` proof against isolated temp project with `audit.log` listed/read, outside path rejected, and unsupported `.md` rejected
 - Authenticated `/api/hooks/dry-run` proof with matching and mismatched sample tools; both returned `execution: not-run`
+- Local docs link/content checks for `docs/reference/command-code-docs/hooks.md`
 - Built browser route token proof at `http://127.0.0.1:5227/`
 - Built browser route token proof at `http://127.0.0.1:56188/` with assets `index-B7vaMBRP.js` and `index-Df7RZjIk.css`
 - Built browser route token proof at `http://127.0.0.1:56853/` with assets `index-u1BdDkr0.js` and `index-Df7RZjIk.css`

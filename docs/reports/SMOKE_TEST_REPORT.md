@@ -663,6 +663,16 @@ Scope: scoped read-only hook log diagnostics package. Added `src/core/hooksLogs.
 
 Scope: dry-run test runner package for Settings > Hooks. Added `src/core/hooksDryRun.ts`, `/api/hooks/dry-run`, `transport.dryRunHook(...)`, and Settings `Dry-run test` controls that return sample payload evidence, matcher applicability, and `execution: not-run`. The route does not read hook config, does not write files, does not start a session, does not spawn a process, and does not execute hook commands. Real hook execution, real-session test payloads, OS notifications, audio behavior, and Command Code runtime mutation remain gated.
 
+### 2026-06-06 Phase 3 Stop-hook recipe docs
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Local docs links | Pass | `rg -n -e "Focused local page" -e "hooks\\.md.*started" docs/reference/command-code-docs/README.md` |
+| Recipe boundary | Pass | `rg -n "command-code-bonk|execution: not-run|ccgui_dry_run|does not execute hook commands" docs/reference/command-code-docs/hooks.md` |
+
+Scope: docs-only Stop-hook recipe package. Added `docs/reference/command-code-docs/hooks.md` with current Settings > Hooks capabilities, dry-run test runner semantics, non-implemented execution boundaries, and a project-scoped `command-code-bonk --sound done` Stop-hook recipe. No runtime code, server routes, renderer IPC, settings persistence, hook execution, OS notification, audio behavior, or Command Code settings mutation was added.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |
