@@ -141,3 +141,16 @@ Scope: behavior-preserving renderer extraction of existing settings workspace pr
 | Browser screenshot automation | Not run | Playwright is not installed in this project; no new dependency was added for this architecture-only extraction |
 
 Scope: behavior-preserving renderer extraction of existing popover presentation into `src/renderer/src/components/AppPopovers.tsx` and release-note presentation into `src/renderer/src/components/ReleaseNotesModal.tsx`. Command execution, update checks, release-note state, and popover state transitions remain owned by `App.tsx`.
+
+### 2026-06-06 Phase 1 command constants and popover hook extraction
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5191`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:61625` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; no new dependency was added for this architecture-only extraction |
+
+Scope: behavior-preserving extraction of command palette/release-note constants into `src/renderer/src/commandPalette.ts` and outside-click/Escape popover dismissal into `src/renderer/src/hooks/useDismissiblePopover.ts`. Runtime health, session lifecycle, app preference, and project preference hooks remain deferred behind hard gates because they affect runtime truth, transport/session lifecycle, or shared settings persistence.

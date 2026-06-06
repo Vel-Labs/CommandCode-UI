@@ -19,11 +19,12 @@ import { SessionWorkspace } from './workspaces/SessionWorkspace'
 import { SettingsWorkspace } from './workspaces/SettingsWorkspace'
 import { AppPopovers } from './components/AppPopovers'
 import { ReleaseNotesModal } from './components/ReleaseNotesModal'
+import { commandGroups, commandPaletteItems, releaseNotes } from './commandPalette'
+import { useDismissiblePopover } from './hooks/useDismissiblePopover'
 import type {
   AppearanceTheme,
   CommandPaletteItem,
   PopoverKey,
-  ReleaseNote,
   RightInspector,
   RuntimeMode,
   SessionTab,
@@ -49,38 +50,7 @@ const INSPECTOR_MAX_WIDTH = 720
 const INSPECTOR_COLLAPSE_WIDTH = 280
 const DEFAULT_INSPECTOR_WIDTH = 420
 const PTY_KEYSTROKE_DELAY_MS = 20
-const commandPaletteItems: CommandPaletteItem[] = [
-  { id: 'help', label: 'Help', command: '/help', group: 'Session', description: 'Show available Command Code commands.' },
-  { id: 'status', label: 'Status', command: '/status', group: 'Session', description: 'Inspect current runtime and authentication state.' },
-  { id: 'clear', label: 'Clear', command: '/clear', group: 'Session', description: 'Clear the interactive conversation view.' },
-  { id: 'exit', label: 'Exit', command: '/exit', group: 'Session', description: 'Ask the current session to exit cleanly.' },
-  { id: 'plan', label: 'Create a plan', command: '/plan', group: 'Planning', description: 'Enter Command Code plan mode for the current task.' },
-  { id: 'headless', label: 'Run headless', command: 'cmd --print', group: 'Planning', description: 'Run the current prompt once with cmd --print and record the result.', action: 'run-headless' },
-  { id: 'design', label: 'Design surface', command: '/design surface', group: 'Design', description: 'Run a design-surface pass for UI and product work.' },
-  { id: 'agents', label: 'Agents', command: '/agents', group: 'Agents', description: 'Manage Command Code agent configurations.' },
-  { id: 'skills', label: 'Skills', command: '/skills', group: 'Agents', description: 'Browse and use available skills.' },
-  { id: 'model', label: 'Model', command: '/model', group: 'Runtime', description: 'Switch or inspect the active model.' },
-  { id: 'configure-models', label: 'Configure models', command: '/configure-models', group: 'Runtime', description: 'Route background tasks like compaction and session titles to specific models.' },
-  { id: 'usage', label: 'Usage', command: '/usage', group: 'Runtime', description: 'Show credits and usage information.' },
-  { id: 'context', label: 'Context', command: '/context', group: 'Runtime', description: 'Inspect context window usage.' },
-  { id: 'memory', label: 'Memory', command: '/memory', group: 'Project', description: 'Manage project memory files.' },
-  { id: 'taste', label: 'Taste', command: '/taste', group: 'Project', description: 'Manage taste learning packages.' },
-  { id: 'mcp', label: 'MCP', command: '/mcp', group: 'Project', description: 'Manage MCP servers.' }
-]
-const commandGroups: CommandPaletteItem['group'][] = ['Session', 'Planning', 'Design', 'Agents', 'Runtime', 'Project']
-const releaseNotes: Record<string, ReleaseNote> = {
-  '0.32.3': {
-    eyebrow: 'New in v0.32.3',
-    title: '/configure-models',
-    body: 'Routes background requests to a model of your choice, so the expensive work and the lightweight housekeeping work can use different models.',
-    bullets: [
-      'Run compaction on MiniMax M2.5.',
-      'Assign session titles with DeepSeek V4 Flash.',
-      'Pick a model for each task, then press r to reset.'
-    ],
-    command: '/configure-models'
-  }
-}
+
 function loadAppearanceTheme(): AppearanceTheme {
   const stored = localStorage.getItem(APPEARANCE_KEY)
   if (stored === 'terminal-minimal' || stored === 'blueprint' || stored === 'high-contrast') return stored
@@ -240,7 +210,6 @@ export function App(): JSX.Element {
   const [updateDetails, setUpdateDetails] = useState('')
   const [releaseNoteVersion, setReleaseNoteVersion] = useState<string | undefined>()
   const jobCounter = useRef(1)
-  const popoverRef = useRef<HTMLDivElement | null>(null)
   const startupUpdateCheckStarted = useRef(false)
   const appPreferencesHydrated = useRef(false)
   const appPreferenceSaveTimer = useRef<number | undefined>(undefined)
@@ -255,6 +224,7 @@ export function App(): JSX.Element {
   const riskyPermission = isRiskyPermission(permissionMode, trust)
   const showPlanSuggestion = looksPlanLike(composerPrompt) && !composerPrompt.trim().startsWith('/plan')
   const visibleRecentChats = showAllRecentChats ? projectSessions : projectSessions.slice(0, 4)
+  const popoverRef = useDismissiblePopover(openPopover, setOpenPopover)
 
   const refreshPtyHealth = useCallback(async (): Promise<PtyDoctorResult> => {
     const result = await transport.ptyHealth()
@@ -370,29 +340,6 @@ export function App(): JSX.Element {
       setStatusLine(ptyHealth.error || 'PTY unavailable. Using Demo mode.')
     }
   }, [ptyHealth, runtimeMode])
-
-  useEffect(() => {
-    if (!openPopover) return
-
-    const onPointerDown = (event: PointerEvent): void => {
-      const target = event.target
-      if (target instanceof Node && popoverRef.current?.contains(target)) return
-      setOpenPopover(null)
-    }
-
-    const onKeyDown = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') {
-        setOpenPopover(null)
-      }
-    }
-
-    document.addEventListener('pointerdown', onPointerDown, true)
-    document.addEventListener('keydown', onKeyDown)
-    return () => {
-      document.removeEventListener('pointerdown', onPointerDown, true)
-      document.removeEventListener('keydown', onKeyDown)
-    }
-  }, [openPopover])
 
   useEffect(() => {
     setTerminalInputEnabled(false)

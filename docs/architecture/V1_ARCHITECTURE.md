@@ -84,7 +84,15 @@ Current extraction status on 2026-06-06:
 - `src/renderer/src/inspectors/RightInspectorPanel.tsx` owns right-inspector presentation and environment display.
 - `src/renderer/src/components/AppPopovers.tsx` owns existing project, runtime, permission, model, and slash-command popover presentation.
 - `src/renderer/src/components/ReleaseNotesModal.tsx` owns release-note modal presentation.
-- `src/renderer/src/App.tsx` still owns runtime state coordination, transport calls, session lifecycle, terminal input state, app/project preference persistence, settings section selection, popover state transitions, release-note state, and command palette item handling until later Phase 1 slices move those boundaries.
+- `src/renderer/src/commandPalette.ts` owns command palette item and release-note metadata.
+- `src/renderer/src/hooks/useDismissiblePopover.ts` owns outside-click and Escape-key popover dismissal.
+- `src/renderer/src/App.tsx` still owns runtime state coordination, transport calls, session lifecycle, terminal input state, app/project preference persistence, settings section selection, popover state transitions, release-note state, and command execution handling until later gated packages move those boundaries.
+
+Deferred Phase 1 hook boundaries:
+
+- Session lifecycle hooks are deferred because they affect transport/session lifecycle truth.
+- Runtime health hooks are deferred because they affect runtime truth and PTY availability claims.
+- App and project preference hooks are deferred because they affect shared settings persistence.
 
 ## Settings Center
 
