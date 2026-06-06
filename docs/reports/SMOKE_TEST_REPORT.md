@@ -1312,3 +1312,18 @@ Scope: transcript readability UI package. `TranscriptPreview` now renders parsed
 | Browser plugin navigation | Not available | The Browser navigation tool was not exposed; route-level and built-asset receipts were used instead |
 
 Scope: transcript artifact preview package. Transcript previews now show explicit referenced-artifact chips detected by a browser-safe helper, and clicking a chip opens the existing right-inspector `FileViewer`. Actual file content reads still use the existing guarded `transport.readFile()` and `/api/files/read` route with workspace-root, symlink, size, and directory checks covered by existing server-security tests. This did not add renderer IPC, server routes, new filesystem capability, auto-open behavior, config writes, CLI arguments, transcript mutation, runtime/session lifecycle changes, response-ready inference, or Command Code settings mutation.
+
+### 2026-06-06 Phase 8 resume receipts
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `159/159` |
+| Build | Pass | `npm run build`; renderer assets `index-C0-eDGSd.js` and `index-BWNvK0UU.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57396`; token proof returned `302`, cookie-authenticated `/` served built assets `index-C0-eDGSd.js` and `index-BWNvK0UU.css` |
+| Built asset UI proof | Pass | `rg -n "Resume receipt|Source file|Session id|Latest result|resume-receipt" out/renderer/assets/index-C0-eDGSd.js out/renderer/assets/index-BWNvK0UU.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:64212` |
+| Browser plugin navigation | Not available | The Browser navigation tool was not exposed; route-level and built-asset receipts were used instead |
+
+Scope: read-only resume receipt UI package. Transcript workspaces now show source file, session id, project, model, timestamp, and latest result/failure using existing transcript metadata and status state. This did not change resume command construction, session lifecycle, transport behavior, renderer IPC, file access, config writes, transcript mutation, response-ready inference, or Command Code invocation behavior.

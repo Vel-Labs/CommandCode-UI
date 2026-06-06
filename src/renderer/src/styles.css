@@ -2749,6 +2749,49 @@ input[type="range"]::-webkit-slider-thumb {
   background: rgba(249, 115, 22, 0.09);
 }
 
+.resume-receipt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 8px;
+}
+
+.resume-receipt-item {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.035);
+}
+
+.resume-receipt-item--warn {
+  border-color: rgba(249, 115, 22, 0.24);
+  background: rgba(249, 115, 22, 0.08);
+}
+
+.resume-receipt-item span {
+  color: #8f8f96;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.resume-receipt-item strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #e4e4e7;
+  font-size: 12px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resume-receipt-mono {
+  font-family: "JetBrains Mono", SFMono-Regular, Menlo, Consolas, monospace;
+}
+
 .work-evidence-list {
   display: grid;
   gap: 8px;

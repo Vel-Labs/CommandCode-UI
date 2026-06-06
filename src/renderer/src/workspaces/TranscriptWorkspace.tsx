@@ -48,6 +48,14 @@ export function TranscriptWorkspace({
         </div>
       </header>
       {resumeFailure && <div className="resume-failure">{resumeFailure}</div>}
+      <div className="resume-receipt-grid" aria-label="Resume receipt">
+        <ResumeReceiptItem label="Source file" value={session.transcriptPath} mono />
+        <ResumeReceiptItem label="Session id" value={session.id} mono />
+        <ResumeReceiptItem label="Project" value={session.cwd || cwd || 'Current selected project'} mono />
+        <ResumeReceiptItem label="Model" value={modelIdentity.label} />
+        <ResumeReceiptItem label="Timestamp" value={new Date(session.timestamp).toLocaleString()} />
+        <ResumeReceiptItem label="Latest result" value={resumeFailure ? `Failed: ${resumeFailure}` : statusLine || 'Ready to resume'} tone={resumeFailure ? 'warn' : 'default'} />
+      </div>
       <div className="work-evidence-list">
         {(workEvents.length ? workEvents : [{ id: 'empty', label: 'Context loaded', detail: statusLine || 'Ready to inspect or resume this session.' }]).map((event) => (
           <div key={event.id} className={`work-evidence work-evidence--${event.tone || 'default'}`}>
@@ -60,6 +68,15 @@ export function TranscriptWorkspace({
         <TranscriptPreview transport={transport} session={session} cwd={session.cwd || cwd} onOpenArtifact={onOpenArtifact} compact />
       </div>
     </section>
+  )
+}
+
+function ResumeReceiptItem({ label, value, mono = false, tone = 'default' }: { label: string; value: string; mono?: boolean; tone?: 'default' | 'warn' }): JSX.Element {
+  return (
+    <div className={`resume-receipt-item resume-receipt-item--${tone}`}>
+      <span>{label}</span>
+      <strong className={mono ? 'resume-receipt-mono' : ''}>{value}</strong>
+    </div>
   )
 }
 

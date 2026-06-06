@@ -267,6 +267,7 @@ Current Phase 8 status on 2026-06-06:
 - Invalid JSONL is represented as an error entry instead of dropping surrounding transcript entries.
 - `src/core/artifactDetection.ts` is a pure detector for already-provided terminal/transcript text. It accepts explicit allowed roots, resolves relative paths against an explicit workspace root, rejects outside-root paths and symlink escapes, and returns accepted/rejected candidates without reading file contents or revealing files.
 - `src/renderer/src/workspaces/TranscriptWorkspace.tsx` renders parsed transcript timeline entries through the existing guarded `transport.readTranscript()` route. It exposes kind filters and keeps raw transcript/raw-entry disclosures for debugging.
+- Transcript workspaces show read-only resume receipts from existing session metadata and status state: source file, session id, selected project, model, timestamp, and latest result/failure.
 - `src/renderer/src/services/transcriptArtifacts.ts` provides browser-safe artifact suggestions for transcript UI only. It does not perform filesystem checks and is not an access-control boundary; the existing `FileViewer` and `/api/files/read` route remain the file-read enforcement path.
 - Transcript artifact chips open the existing right-inspector file preview after explicit user action. They do not auto-open files, add server routes, add renderer IPC, or broaden filesystem capability.
 - Safe rendered HTML preview, file reveal actions from artifact chips, session restoration, and response-ready state remain planned or gated.
