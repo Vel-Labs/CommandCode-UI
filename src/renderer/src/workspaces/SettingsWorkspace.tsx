@@ -37,7 +37,6 @@ export function SettingsWorkspace({
   runCheck,
   openConfigureModels,
   openDocs,
-  openAdvanced,
   openSection,
   onResumeSession
 }: {
@@ -70,7 +69,6 @@ export function SettingsWorkspace({
   runCheck: () => Promise<void>
   openConfigureModels: () => Promise<void>
   openDocs: () => void
-  openAdvanced: () => void
   openSection: (section: SettingsSection) => void
   onResumeSession: (session: DiscoveredSession) => Promise<void>
 }): JSX.Element {
@@ -107,7 +105,6 @@ export function SettingsWorkspace({
           runCheck={runCheck}
           openConfigureModels={openConfigureModels}
           openDocs={openDocs}
-          openAdvanced={openAdvanced}
           openSection={openSection}
           onResumeSession={onResumeSession}
         />

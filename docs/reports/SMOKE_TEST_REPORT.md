@@ -375,6 +375,20 @@ Scope: Settings Memory write package. Memory now exposes edit/save using existin
 
 Scope: Settings Agents boundary package. Project agents are now discoverable through `/api/agents/list` with `cwd`, editable in Settings, and saved through the existing scoped save route. User/global agents remain visible but read-only. No renderer IPC expansion, new save route, hidden config write, or Command Code settings mutation was added.
 
+### 2026-06-06 Phase 2 Advanced Settings hub
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5217`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets `index-Dn4EJrEA.js` and `index-B3iP_G8E.css` |
+| In-app Browser route | Pass | Authenticated `http://127.0.0.1:5217/` loaded Settings, clicked Advanced, showed `Diagnostics and scoped tools`, and did not show `Open Advanced tools` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:51469` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project/runtime; no new dependency was added for this settings package |
+
+Scope: Settings Advanced presentation package. Settings Advanced now routes to explicit diagnostics and scoped-tool sections instead of opening the generic Advanced modal. No renderer IPC expansion, server routes, config writes, file access changes, transport/session lifecycle changes, or Command Code settings mutation was added.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |

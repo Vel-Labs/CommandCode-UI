@@ -88,7 +88,6 @@ export type SettingsRouteProps = {
   runCheck: () => Promise<void>
   openConfigureModels: () => Promise<void>
   openDocs: () => void
-  openAdvanced: () => void
   openSection: (section: SettingsSection) => void
   onResumeSession: (session: DiscoveredSession) => Promise<void>
 }
@@ -124,7 +123,6 @@ export function SettingsRoute(props: SettingsRouteProps): JSX.Element {
     runCheck,
     openConfigureModels,
     openDocs,
-    openAdvanced,
     openSection,
     onResumeSession
   } = props
@@ -191,7 +189,7 @@ export function SettingsRoute(props: SettingsRouteProps): JSX.Element {
     case 'integrations':
       return <IntegrationsSettings openDocs={openDocs} transport={transport} openSection={openSection} />
     case 'advanced':
-      return <AdvancedSettings openAdvanced={openAdvanced} />
+      return <AdvancedSettings openSection={openSection} />
     case 'data':
       return <SettingsFrame title="Data"><ProjectStateSettings transport={transport} cwd={cwd} /></SettingsFrame>
     case 'sessions':

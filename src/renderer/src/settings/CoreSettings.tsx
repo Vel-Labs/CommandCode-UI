@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
-import { Activity, Bot, Braces, CreditCard, Database, GitBranch, History, Keyboard, MemoryStick, Monitor, Plug, Settings, Sparkles, Terminal, Wrench } from 'lucide-react'
+import { Bot, Braces, CreditCard, Database, GitBranch, History, Keyboard, MemoryStick, Monitor, Plug, Settings, Sparkles, Terminal, Wrench } from 'lucide-react'
 import type { PermissionMode } from '../../../shared/types'
 import type { PtyDoctorResult } from '../../../core/ptyDoctor'
 import type { TransportAPI } from '../../../core/transport'
@@ -388,6 +388,22 @@ const integrationSections: Array<{
   { section: 'taste', label: 'Taste', description: 'Inspect taste profile discovery without editing internals.', icon: <Sparkles size={16} /> }
 ]
 
+const advancedDiagnosticSections: Array<{
+  section: SettingsSection
+  label: string
+  description: string
+  icon: JSX.Element
+}> = [
+  { section: 'data', label: 'Project state', description: 'Inspect project .commandcode paths and local adapter state.', icon: <Database size={16} /> },
+  { section: 'sessions', label: 'Sessions', description: 'Review discovered sessions, resume project transcripts, and reveal transcript files.', icon: <History size={16} /> },
+  { section: 'usage', label: 'Usage', description: 'Read local headless history and Command Code usage summaries.', icon: <CreditCard size={16} /> },
+  { section: 'mcp', label: 'MCP', description: 'Inspect MCP servers and run explicit connect/disconnect commands.', icon: <Plug size={16} /> },
+  { section: 'agents', label: 'Agents', description: 'Inspect user agents and edit project-scoped agent files.', icon: <Bot size={16} /> },
+  { section: 'skills', label: 'Skills', description: 'Preview installed skills and source paths.', icon: <MemoryStick size={16} /> },
+  { section: 'memory', label: 'Memory', description: 'Inspect and edit scoped project memory files.', icon: <MemoryStick size={16} /> },
+  { section: 'taste', label: 'Taste', description: 'Inspect taste discovery without editing Command Code internals.', icon: <Sparkles size={16} /> }
+]
+
 export function IntegrationsSettings({
   openDocs,
   transport,
@@ -423,13 +439,24 @@ export function IntegrationsSettings({
   )
 }
 
-export function AdvancedSettings({ openAdvanced }: { openAdvanced: () => void }): JSX.Element {
+export function AdvancedSettings({ openSection }: { openSection: (section: SettingsSection) => void }): JSX.Element {
   return (
     <div className="settings-detail-page">
       <div className="settings-page-title">Advanced</div>
-      <div className="settings-card">
-        <button className="ghost-button native-ghost settings-inline-action" onClick={openAdvanced}><Activity size={16} /> Open Advanced tools</button>
-        <div className="settings-muted"><GitBranch size={16} /> Advanced surfaces include MCP servers, skills, memory, agents, usage, and command history.</div>
+      <div className="settings-card settings-card--wide">
+        <div className="settings-readonly-header">
+          <strong>Diagnostics and scoped tools</strong>
+        </div>
+        <div className="settings-action-grid">
+          {advancedDiagnosticSections.map((item) => (
+            <button key={item.section} className="settings-action-tile" onClick={() => openSection(item.section)}>
+              <span>{item.icon}</span>
+              <strong>{item.label}</strong>
+              <small>{item.description}</small>
+            </button>
+          ))}
+        </div>
+        <div className="settings-muted"><GitBranch size={16} /> These routes replace the generic Advanced modal as the primary path for diagnostics, local state, and scoped project file editors.</div>
       </div>
     </div>
   )

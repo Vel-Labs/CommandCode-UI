@@ -37,3 +37,5 @@ Do not remove `AdvancedPanel` until:
 Keep `AdvancedPanel` available until the removal rules are closed.
 
 Settings is now the primary navigation home for configuration and diagnostics, including project-scoped session resume, transcript reveal, MCP connect/disconnect execution, project-scoped agent writes, and project-scoped memory writes. Advanced no longer has an exclusive action, but removal remains gated by direct Browser/Electron reachability receipts and roadmap/doc closeout.
+
+The Settings Advanced page no longer opens the generic Advanced modal. It now routes to explicit diagnostics sections for Project state, Sessions, Usage, MCP, Agents, Skills, Memory, and Taste. The legacy modal remains available from non-Settings entry points until this removal gate is closed.

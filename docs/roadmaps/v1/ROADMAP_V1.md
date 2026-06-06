@@ -384,6 +384,8 @@ Twenty-fourth memory-write package added Settings Memory edit/save using existin
 
 Twenty-fifth agent-boundary package aligned Settings agent discovery with the project-scoped save route. `/api/agents/list` now accepts `cwd`, includes agents from `<project>/.commandcode/agents/`, marks project agents editable, and marks user/global agents read-only. This fixes the prior mismatch where Settings could list user/global agent files while the server save route correctly rejected those paths. No new renderer IPC, new save route, hidden config write, or Command Code settings mutation was added. Validation receipts: `npm run typecheck`, `npx vitest run` -> `57/57`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5216/`, in-app Browser route load for authenticated `Command Code` shell, and Electron dev startup with embedded app server `http://127.0.0.1:51274`.
 
+Twenty-sixth Advanced Settings hub package replaced the Settings Advanced page's generic `Open Advanced tools` modal launcher with explicit Settings navigation to Project state, Sessions, Usage, MCP, Agents, Skills, Memory, and Taste. This moves diagnostics and scoped project tools into Settings as first-class routes while leaving the legacy Advanced modal available outside Settings until `docs/reports/ADVANCED_PANEL_REMOVAL_GATE.md` is closed. No renderer IPC, server routes, config writes, file access changes, transport/session lifecycle changes, or Command Code settings mutation was added. Validation receipts: `npm run typecheck`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5217/`, in-app Browser click-through to Settings Advanced showing `Diagnostics and scoped tools` and no `Open Advanced tools`, and Electron dev startup with embedded app server `http://127.0.0.1:51469`.
+
 ### Scope
 
 - Fold AdvancedPanel content into Settings as first-class sections. Replacement coverage is implemented for AdvancedPanel sections; AdvancedPanel removal remains gated by `docs/reports/ADVANCED_PANEL_REMOVAL_GATE.md`.
@@ -429,6 +431,7 @@ Likely new files:
 
 - Settings search filters sections and visible rows.
 - Settings navigation reaches every formerly advanced section.
+- Settings Advanced routes to explicit diagnostics sections instead of opening the generic Advanced modal.
 - Settings Sessions includes project-session resume and transcript reveal actions; direct real CLI resume/reveal click-through remains to be exercised before removing the Advanced modal entirely.
 - Settings MCP includes connect/disconnect execution with visible command previews; real MCP action click-through remains to be exercised against a safe server before removing the Advanced modal entirely.
 - Settings Agents includes project-scoped discovery and edit/save with visible destination paths; server tests now cover that listed project agents use the same scoped root as the save route. Direct Settings save click-through remains to be exercised against a safe project agent before removing the Advanced modal entirely.
