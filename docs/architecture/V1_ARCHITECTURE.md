@@ -85,6 +85,11 @@ Current extraction status on 2026-06-06:
 - `src/renderer/src/components/AppPopovers.tsx` owns existing project, runtime, permission, model, and slash-command popover presentation.
 - `src/renderer/src/components/ReleaseNotesModal.tsx` owns release-note modal presentation.
 - `src/renderer/src/commandPalette.ts` owns command palette item and release-note metadata.
+- `src/renderer/src/commandPalette/search.ts` owns command/workflow/settings/project/docs search scoring for the slash popover.
+- `src/renderer/src/commandPalette/workflowRecipes.ts` owns declarative workflow recipes and explicit Settings route targets for Settings-backed recipes.
+- `src/renderer/src/commandPalette/commandPreview.ts` owns display-only execution labels for existing command rows: active-session send, composer insert, and headless run.
+- `src/renderer/src/commandPalette/docs.ts` owns local docs topic metadata for palette discoverability.
+- `src/renderer/src/workflows/DesignHelper.tsx` and `src/renderer/src/workflows/AgentHelper.tsx` own preview-only guided helper presentation for `/design` and agent drafts.
 - `src/renderer/src/hooks/useDismissiblePopover.ts` owns outside-click and Escape-key popover dismissal.
 - `src/renderer/src/App.tsx` still owns runtime state coordination, transport calls, session lifecycle, terminal input state, app/project preference persistence, settings section selection, popover state transitions, release-note state, and command execution handling until later gated packages move those boundaries.
 
@@ -207,6 +212,15 @@ Guided helpers should follow one pattern:
 5. Show receipt: command, scope, path, exit code, transcript, or config diff.
 
 This applies to `/configure-models`, `/agents`, `/design`, `/mcp`, hooks, skills, memory, and future features.
+
+Current workflow-helper status on 2026-06-06:
+
+- Phase 5 Workflow Helpers is complete and validated for the current V1 contract.
+- The slash popover searches executable commands, workflow recipes, Settings sections, recent projects, and local docs topics. Empty state shows only commands and workflow recipes so the popover does not duplicate the Settings sidebar.
+- Settings-backed workflow recipes route to their explicit Settings sections; runtime-start recipes remain preview-only and do not start sessions from recipe rows.
+- Command rows show display-only execution semantics for `send-active-session`, `insert-composer`, and `headless-run` while preserving the existing `runCommand(item)` execution path.
+- `/design` and Agent Draft helpers render explicit previews without hidden prompt rewriting, file writes, renderer IPC expansion, or Command Code settings mutation.
+- Session-result search remains deferred behind a session lifecycle gate because direct resume/start actions affect runtime truth.
 
 ## Validation Expectations
 
