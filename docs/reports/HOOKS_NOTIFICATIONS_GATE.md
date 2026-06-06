@@ -19,6 +19,7 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 - `/api/hooks/preview-toggle` and Settings > Hooks `Preview enable/disable` controls return formatted JSON for a scoped hook toggle without writing the source file.
 - `/api/hooks/apply-toggle` and Settings > Hooks `Apply preview` write only previewed enable/disable toggles to derived user/project `settings.json` paths after writing a sibling `.ccgui.bak` backup.
 - `updateHookCommand` and `removeHookCommand` provide pure broader-edit scaffolding for future command, matcher, timeout, and delete previews without file reads, writes, routes, or UI controls.
+- `/api/hooks/preview-edit` and `transport.previewHookEdit(...)` return scoped command/matcher/timeout/delete previews for the same derived project/user settings paths without writing files.
 - `src/core/hooksPayload.ts` and Settings > Hooks `Sample payload` controls build explicitly marked dry-run JSON samples without executing hook commands or starting sessions.
 - `src/renderer/src/services/sessionReadiness.ts` adds a pure session readiness reducer for background, unread, response-ready, and input-required state.
 - The readiness reducer keeps attach, replay, and foreground transitions non-notifying, separates live background output from response-ready state, and emits notification intent only for explicit background `assistant-ready` or `input-required` events.
@@ -27,7 +28,7 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 ## Not Implemented
 
 - Broader hook creation, import/export, write routes, and UI controls are not implemented.
-- Broader hook deletion, command editing, matcher editing, and timeout editing are available only as pure helper scaffolding, not as renderer/server behavior.
+- Broader hook deletion, command editing, matcher editing, and timeout editing are available as scoped preview-only server behavior, not as write-capable UI behavior.
 - No arbitrary hook config path is accepted from the renderer.
 - No renderer IPC or broad file access permission was added.
 - No hook command execution or real-session test-payload runner was added.
@@ -55,12 +56,13 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 ## Validation Receipts
 
 - `npm run typecheck`
-- `npx vitest run` -> `86/86`
+- `npx vitest run` -> `89/89`
 - `npm run build`
 - `npm run smoke:browser`
 - Built browser route token proof at `http://127.0.0.1:5224/`
 - Authenticated `/api/hooks/configs` proof against isolated temp project
 - Authenticated `/api/hooks/preview-toggle` proof against isolated temp project with unchanged source file
 - Authenticated `/api/hooks/apply-toggle` proof against isolated temp project with sibling backup
+- Authenticated `/api/hooks/preview-edit` proof against isolated temp project with unchanged source file
 - Built browser route token proof at `http://127.0.0.1:5227/`
 - Electron dev startup with embedded server `http://127.0.0.1:54048`

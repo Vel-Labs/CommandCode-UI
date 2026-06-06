@@ -33,7 +33,11 @@ import {
 import {
   mergeHookConfigs,
   parseHookSettingsJson,
+  removeHookCommand,
   setHookCommandEnabled,
+  updateHookCommand,
+  type HookCommandUpdate,
+  type HookConfigEditPreviewResult,
   type HookConfigTogglePreviewResult,
   type HookConfigSourceResult,
   type HookScope
@@ -459,6 +463,70 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
         error: err instanceof Error ? err.message : 'Failed to preview hook config change'
       }
     }
+  }
+
+  function buildHookEditPreview(body: {
+    cwd?: string
+    sourceScope?: string
+    event?: string
+    command?: string
+    action?: string
+    update?: HookCommandUpdate
+  }): HookConfigEditPreviewResult {
+    const { cwd, sourceScope, event, command, action, update } = body
+    if (sourceScope !== 'project' && sourceScope !== 'user') {
+      return { ok: false, error: 'sourceScope must be project or user' }
+    }
+    if (!event || !command || (action !== 'update' && action !== 'remove')) {
+      return { ok: false, error: 'Missing event, command, or edit action' }
+    }
+
+    const source = hookConfigPathForScope(sourceScope, cwd)
+    if (!source.sourcePath) return { ok: false, error: source.error || 'Access denied — project root is required' }
+    if (!existsSync(source.sourcePath)) return { ok: false, sourceScope, sourcePath: source.sourcePath, error: 'Hook config file not found' }
+
+    try {
+      const stat = statSync(source.sourcePath)
+      if (stat.isDirectory()) return { ok: false, sourceScope, sourcePath: source.sourcePath, error: 'Hook config path is a directory' }
+      if (stat.size > MAX_FILE_READ_BYTES) return { ok: false, sourceScope, sourcePath: source.sourcePath, error: 'Hook config exceeds 1MB read limit' }
+
+      const raw = readFileSync(source.sourcePath, 'utf8')
+      const result = action === 'remove'
+        ? removeHookCommand(raw, event, command)
+        : updateHookCommand(raw, event, command, sanitizeHookCommandUpdate(update))
+      return {
+        ...result,
+        sourceScope,
+        sourcePath: source.sourcePath,
+        event,
+        command,
+        action,
+        update: action === 'update' ? sanitizeHookCommandUpdate(update) : undefined
+      }
+    } catch (err) {
+      return {
+        ok: false,
+        sourceScope,
+        sourcePath: source.sourcePath,
+        event,
+        command,
+        action,
+        update,
+        error: err instanceof Error ? err.message : 'Failed to preview hook config edit'
+      }
+    }
+  }
+
+  function sanitizeHookCommandUpdate(input: unknown): HookCommandUpdate {
+    if (!input || typeof input !== 'object') return {}
+    const raw = input as Record<string, unknown>
+    const update: HookCommandUpdate = {}
+    if (typeof raw.command === 'string') update.command = raw.command
+    if (typeof raw.matcher === 'string') update.matcher = raw.matcher
+    if (raw.timeoutSeconds === null || typeof raw.timeoutSeconds === 'number') {
+      update.timeoutSeconds = raw.timeoutSeconds
+    }
+    return update
   }
 
   function sanitizeStringArray(input: unknown, maxItems: number): string[] | undefined {
@@ -950,6 +1018,17 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
       event?: string
       command?: string
       enabled?: boolean
+    })
+  })
+
+  addRoute('POST', '/api/hooks/preview-edit', async ({ body }) => {
+    return buildHookEditPreview(body as {
+      cwd?: string
+      sourceScope?: string
+      event?: string
+      command?: string
+      action?: string
+      update?: HookCommandUpdate
     })
   })
 

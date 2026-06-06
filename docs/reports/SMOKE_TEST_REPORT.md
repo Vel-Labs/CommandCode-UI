@@ -595,6 +595,18 @@ Scope: Settings reference copy alignment for Phase 3. Notifications now distingu
 
 Scope: pure hook edit-helper package for future broader hook editor previews. Added `updateHookCommand` and `removeHookCommand` coverage for direct command/matcher/timeout edits, grouped timeout removal, grouped deletion cleanup, and rejecting grouped matcher edits that would affect multiple commands. No file reads, file writes, server routes, renderer IPC, hook editor UI, hook execution, OS notifications, audio behavior, or Command Code settings mutation was added.
 
+### 2026-06-06 Phase 3 broader hook edit preview route
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `89/89` |
+| Build | Pass | `npm run build`; assets `index-D2M20r3w.js` and `index-CXez1f6k.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser`; mock session created/exited, auth checks passed |
+| Built route API proof | Pass | `npx tsx src/cli/ccgui.ts serve --port 5229`; authenticated `/api/hooks/preview-edit` against `/tmp/ccgui-hooks-edit-9c9gpd` returned `ok=true`, `action=update`, project source, edited command/matcher/timeout preview, and `unchanged=true` |
+
+Scope: scoped preview-only route package for future broader hook editor work. Added `/api/hooks/preview-edit` and `transport.previewHookEdit(...)` for command, matcher, timeout, and delete previews using the same derived user/project settings paths and 1 MB read limit as hook discovery/toggle preview. No file writes, apply route, renderer UI controls, renderer IPC, hook execution, OS notifications, audio behavior, or Command Code settings mutation was added.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |

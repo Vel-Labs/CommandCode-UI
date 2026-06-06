@@ -65,6 +65,15 @@ export type HookConfigTogglePreviewResult = HookConfigEditResult & {
   enabled?: boolean
 }
 
+export type HookConfigEditPreviewResult = HookConfigEditResult & {
+  sourceScope?: HookScope
+  sourcePath?: string
+  event?: HookEvent
+  command?: string
+  action?: 'update' | 'remove'
+  update?: HookCommandUpdate
+}
+
 export type HookConfigToggleApplyResult = HookConfigTogglePreviewResult & {
   backupPath?: string
 }

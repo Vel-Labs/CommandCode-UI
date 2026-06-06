@@ -28,7 +28,15 @@ import type {
   WriteFileResult,
 } from './types'
 import type { PtyDoctorResult } from './ptyDoctor'
-import type { HookConfigDiscoveryResult, HookConfigToggleApplyResult, HookConfigTogglePreviewResult, HookEvent, HookScope } from './hooksConfig'
+import type {
+  HookCommandUpdate,
+  HookConfigDiscoveryResult,
+  HookConfigEditPreviewResult,
+  HookConfigToggleApplyResult,
+  HookConfigTogglePreviewResult,
+  HookEvent,
+  HookScope
+} from './hooksConfig'
 
 export type SessionDataSource = 'live' | 'replay'
 export type SessionDataCallback = (data: string, metadata: { source: SessionDataSource }) => void
@@ -81,6 +89,14 @@ export type TransportAPI = {
     command: string
     enabled: boolean
   }) => Promise<HookConfigTogglePreviewResult>
+  previewHookEdit: (options: {
+    cwd?: string
+    sourceScope: HookScope
+    event: HookEvent
+    command: string
+    action: 'update' | 'remove'
+    update?: HookCommandUpdate
+  }) => Promise<HookConfigEditPreviewResult>
   applyHookToggle: (options: {
     cwd?: string
     sourceScope: HookScope

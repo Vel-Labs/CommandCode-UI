@@ -512,6 +512,8 @@ Tenth Settings reference alignment package updated Notifications and Hooks refer
 
 Eleventh pure edit-helper package added `updateHookCommand` and `removeHookCommand` to `src/core/hooksConfig.ts` for future broader hook editor previews. The helpers can update direct command, matcher, and timeout fields, remove timeout fields, delete direct or grouped hook commands, clean up empty grouped hook entries, and reject matcher edits for grouped entries with multiple commands because that would affect unrelated hooks. This package did not add file reads, file writes, server routes, renderer IPC, hook editor UI, hook execution, OS notifications, audio behavior, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `86/86`, and `npm run build`.
 
+Twelfth scoped preview route package added `/api/hooks/preview-edit` and `transport.previewHookEdit(...)` for future broader hook editor previews. The route accepts only derived project/user settings scopes, keeps the 1 MB read cap, returns formatted JSON previews for command/matcher/timeout/delete edits, and does not write files. This package did not add an apply route, renderer UI controls, renderer IPC, hook execution, OS notifications, audio behavior, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `89/89`, `npm run build`, `npm run smoke:browser`, built route proof at `http://127.0.0.1:5229/` against `/tmp/ccgui-hooks-edit-9c9gpd` showing `preview=true/update/project`, edited command/matcher/timeout, and `unchanged=true`.
+
 ### Scope
 
 - Add Settings > Hooks.
@@ -520,7 +522,7 @@ Eleventh pure edit-helper package added `updateHookCommand` and `removeHookComma
 - Show hook event, matcher, command, timeout, blocking behavior, execution order, enabled state, and source scope. Implemented for read-only parsed discovery rows.
 - Validate hook JSON before writing.
 - Preserve project-over-user precedence.
-- Add enable/disable controls per hook. Implemented for scoped previewed toggles with backup writes; broader hook editing has pure helper scaffolding only and remains gated for UI/routes/writes.
+- Add enable/disable controls per hook. Implemented for scoped previewed toggles with backup writes; broader hook editing has scoped preview routes only and remains gated for UI/write behavior.
 - Add hook logs/output viewer where logs are available.
 - Add a test payload runner so users can validate hook behavior before real sessions. Dry-run sample payload preview is implemented; command execution remains gated.
 - Add examples for dangerous shell blocking, sensitive read warnings, write auditing, and Stop-hook finish notifications.

@@ -295,6 +295,99 @@ describe('server filesystem boundaries', () => {
     expect(preview.error).toContain('Access denied')
   })
 
+  it('previews broader hook edits without writing settings files', async () => {
+    const app = await startServer()
+    const project = tempProject()
+    const settingsPath = path.join(project, '.commandcode', 'settings.json')
+    const original = JSON.stringify({
+      model: 'deepseek',
+      hooks: {
+        PreToolUse: [
+          { type: 'command', matcher: 'Bash', command: 'node scripts/check-shell.js', timeout: 5 }
+        ]
+      }
+    }, null, 2) + '\n'
+
+    mkdirSync(path.dirname(settingsPath), { recursive: true })
+    writeFileSync(settingsPath, original, 'utf8')
+
+    const preview = await apiPost<{
+      ok: boolean
+      content?: string
+      sourceScope?: string
+      sourcePath?: string
+      action?: string
+      error?: string
+    }>(app, '/api/hooks/preview-edit', {
+      cwd: project,
+      sourceScope: 'project',
+      event: 'PreToolUse',
+      command: 'node scripts/check-shell.js',
+      action: 'update',
+      update: {
+        command: 'node scripts/block-shell.js',
+        matcher: 'Bash|Shell',
+        timeoutSeconds: 10
+      }
+    })
+
+    expect(preview.ok).toBe(true)
+    expect(preview.action).toBe('update')
+    expect(preview.sourceScope).toBe('project')
+    expect(preview.sourcePath).toBe(path.join(realpathSync(project), '.commandcode', 'settings.json'))
+    expect(JSON.parse(preview.content || '{}')).toMatchObject({
+      model: 'deepseek',
+      hooks: { PreToolUse: [{ command: 'node scripts/block-shell.js', matcher: 'Bash|Shell', timeoutSeconds: 10 }] }
+    })
+    expect(readFileSync(settingsPath, 'utf8')).toBe(original)
+  })
+
+  it('previews broader hook deletion without writing settings files', async () => {
+    const app = await startServer()
+    const project = tempProject()
+    const settingsPath = path.join(project, '.commandcode', 'settings.json')
+    const original = JSON.stringify({
+      hooks: {
+        Stop: [
+          { type: 'command', command: 'echo project-stop' },
+          { type: 'command', command: 'command-code-bonk --sound done' }
+        ]
+      }
+    }, null, 2) + '\n'
+
+    mkdirSync(path.dirname(settingsPath), { recursive: true })
+    writeFileSync(settingsPath, original, 'utf8')
+
+    const preview = await apiPost<{ ok: boolean; content?: string; action?: string }>(app, '/api/hooks/preview-edit', {
+      cwd: project,
+      sourceScope: 'project',
+      event: 'Stop',
+      command: 'echo project-stop',
+      action: 'remove'
+    })
+
+    expect(preview.ok).toBe(true)
+    expect(preview.action).toBe('remove')
+    expect(JSON.parse(preview.content || '{}').hooks.Stop.map((hook: { command: string }) => hook.command)).toEqual([
+      'command-code-bonk --sound done'
+    ])
+    expect(readFileSync(settingsPath, 'utf8')).toBe(original)
+  })
+
+  it('fails broader hook edit preview closed without a valid project root', async () => {
+    const app = await startServer()
+
+    const preview = await apiPost<{ ok: boolean; error?: string }>(app, '/api/hooks/preview-edit', {
+      sourceScope: 'project',
+      event: 'Stop',
+      command: 'echo project-stop',
+      action: 'remove'
+    })
+
+    expect(preview.ok).toBe(false)
+    expect(preview.error).toContain('Access denied')
+  })
+
   it('applies hook enabled changes only to the scoped settings file and writes a backup', async () => {
     const app = await startServer()
     const project = tempProject()
