@@ -1024,6 +1024,8 @@ Twelfth status update on 2026-06-06: the `Recent contexts` sidebar group now inc
 
 Thirteenth status update on 2026-06-06: live session tabs, the active-session header, and the `Live sessions` sidebar now use a shared `sessionReadinessDisplay()` formatter so attaching, replaying, running, waiting for input, response ready, completed, errored, and unread-output states are visibly labeled from existing reducer state. This improves presentation only; it does not add readiness events, terminal-output scraping, private runtime inference, notification dispatch, session lifecycle changes, transport changes, renderer IPC, file access, config writes, or Command Code invocation behavior. Validation receipts: `npm run typecheck`, `npx vitest run` -> `163/163`, `npm run build`, `npm run smoke:browser`, built route token proof at `http://127.0.0.1:57402/` serving `index-KrviLkPx.js` and `index-Bo3FjM3z.css`, built asset proof for `sessionReadinessDisplay`, `waiting for input`, `response ready`, `completed`, `unread output`, `tab-readiness--good`, and `tab-readiness--bad`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:49704`.
 
+Fourteenth status update on 2026-06-06: Phase 8 browser and Electron three-session UI dogfood passed in Demo mode through the rendered shell. Playwright against the built browser route at `http://127.0.0.1:57403/` created three sessions from the UI and verified three tab labels, `Live sessions` metadata, the active-session header, and an active terminal pane. Playwright's Electron launcher against the built app repeated the same three-session UI flow and saved `/tmp/ccgui-phase8-electron-three-session-dogfood.png`; browser screenshot receipt saved `/tmp/ccgui-phase8-three-session-dogfood.png`. Core Phase 8 session durability/readability/artifact association is validated. Editable labels/notes, safe bulk operations, rendered untrusted HTML, file reveal actions from artifact chips, and notification dispatch remain deferred behind their named persistence, file-access, and notification gates.
+
 ### Scope
 
 - Parse transcript JSONL into readable conversation/timeline entries. Implemented for the transcript preview UI.
@@ -1031,9 +1033,9 @@ Thirteenth status update on 2026-06-06: live session tabs, the active-session he
 - Show resume receipts: source file, session id, cwd, model, timestamp, and resume result. Implemented as a read-only transcript workspace receipt card.
 - Detect file paths referenced by terminal output and transcript entries.
 - Surface generated or referenced files as session artifacts. Implemented for transcript preview suggestions that open the existing right-inspector file preview after an explicit click.
-- Add right-inspector previews for rendered Markdown, rendered HTML, raw text, ANSI logs, and reveal-file actions. Existing right-inspector file preview is wired from transcript artifact chips for Markdown, raw text, and ANSI through the current guarded file-read route; safe rendered HTML remains planned.
+- Add right-inspector previews for rendered Markdown, rendered HTML, raw text, ANSI logs, and reveal-file actions. Existing right-inspector file preview is wired from transcript artifact chips for Markdown, raw text, and ANSI through the current guarded file-read route; safe rendered HTML and artifact-chip reveal actions remain deferred behind file-access and untrusted-rendering gates.
 - Add safe HTML rendering rules, sandboxing, or fallback-to-source behavior. Implemented with explicit fallback-to-source behavior and safety copy for `.html` and `.htm` previews.
-- Add session search, grouping, labels/notes, and safe bulk operations. Recent context search and sidebar grouping are implemented; editable labels/notes and bulk operations remain planned behind persistence and safe-bulk gates.
+- Add session search, grouping, labels/notes, and safe bulk operations. Recent context search and sidebar grouping are implemented; editable labels/notes and bulk operations are deferred behind persistence and safe-bulk gates.
 - Fix hidden/background terminal restoration so resize is not needed to repaint. Implemented by keeping one mounted terminal pane per live session and activating panes without clearing their buffers.
 - Add explicit states for attaching, replaying, waiting for input, running, completed, errored, unread, and response-ready. Implemented as visible labels from the existing readiness reducer; notification dispatch and deeper runtime-state provenance remain planned/gated.
 - Clarify sidebar naming and active-session visibility. Implemented with `Recent contexts` and `Live sessions` sidebar labels plus per-row source/date/readiness/runtime metadata.
@@ -1075,7 +1077,7 @@ Likely new files:
 - Live session readiness states are visibly labeled. Implemented with `sessionReadinessDisplay()` coverage in `tests/session-readiness.test.ts` and wired to tabs, the active-session header, and the sidebar.
 - `npm run typecheck`
 - `npx vitest run`
-- Browser/Electron dogfood with at least three sessions.
+- Browser/Electron dogfood with at least three sessions. Passed in Demo mode through Playwright against the built browser route and built Electron app on 2026-06-06; screenshots saved under `/tmp/ccgui-phase8-three-session-dogfood.png` and `/tmp/ccgui-phase8-electron-three-session-dogfood.png`.
 
 ### Operational Cleanliness
 

@@ -1437,3 +1437,14 @@ Scope: sidebar session-search package. `Recent contexts` now filters discovered 
 | Browser plugin navigation | Not available | Tool discovery did not expose a direct in-app Browser navigation tool; route-level and built-asset receipts were used instead |
 
 Scope: session-readiness presentation package. Tabs, active-session header chips, and Live sessions sidebar metadata now use a shared display formatter for existing readiness reducer states. This did not add readiness events, terminal-output scraping, private runtime inference, notification dispatch, session lifecycle changes, transport changes, renderer IPC, file access, config writes, or Command Code invocation behavior.
+
+### 2026-06-06 Phase 8 three-session UI dogfood
+
+| Check | Result | Receipt |
+|---|---:|---|
+| Built browser UI dogfood | Pass | Playwright against `http://127.0.0.1:57403?token=...`; created three Demo-mode sessions from the rendered UI; receipt showed `tabCount: 3`, `Live sessionssession 3attaching · demosession 2attaching · demosession 1attaching · demo`, active header `mockattaching`, and `terminalVisible: true` |
+| Browser screenshot | Pass | `/tmp/ccgui-phase8-three-session-dogfood.png` |
+| Built Electron UI dogfood | Pass | Playwright Electron launcher against the built app; created three Demo-mode sessions from the rendered desktop UI; receipt showed `tabCount: 3`, `Live sessionssession 3attaching · demosession 2attaching · demosession 1attaching · demo`, active header `mockattaching`, and `terminalVisible: true` |
+| Electron screenshot | Pass | `/tmp/ccgui-phase8-electron-three-session-dogfood.png` |
+
+Scope: Phase 8 visual dogfood receipt. This validates browser and Electron shell rendering for three simultaneous Demo-mode sessions, active tabs, Live sessions metadata, readiness labels, and terminal pane presence. It did not change code, add renderer IPC, alter transport/session lifecycle, add file access, write config, dispatch notifications, or invoke real Command Code sessions.
