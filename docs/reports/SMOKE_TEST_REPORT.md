@@ -1282,3 +1282,18 @@ Scope: pure transcript parser package. `src/core/transcriptParser.ts` normalizes
 | PTY/headless/real CLI smoke | Not run | No PTY/session lifecycle, headless command-builder, runtime, or Command Code invocation behavior changed |
 
 Scope: pure artifact detector package. `src/core/artifactDetection.ts` detects common file-like references in already-provided text, resolves relative paths against an explicit workspace root, applies explicit allowed-root checks through realpath-normalized boundaries, rejects outside-root paths and symlink escapes, keeps missing in-root candidates for later existence checks, and returns rejection reasons. `tests/artifact-detection.test.ts` covers relative paths, absolute paths, outside-root rejection, symlink escape rejection, missing in-root candidates, and missing-workspace-root rejection. This did not add file content reads, preview rendering, reveal actions, renderer IPC, server routes, config writes, CLI arguments, transcript mutation, runtime/session lifecycle changes, response-ready inference, or Command Code settings mutation.
+
+### 2026-06-06 Phase 8 transcript timeline UI
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `157/157` |
+| Build | Pass | `npm run build`; renderer assets `index-AP-RfVtB.js` and `index-DaU9l8ex.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57394`; token proof returned `302`, cookie-authenticated `/` served built assets `index-AP-RfVtB.js` and `index-DaU9l8ex.css` |
+| Built asset UI proof | Pass | `rg -n "Raw transcript|Raw entry|Transcript filters|No transcript entries match this filter|parseTranscriptJsonl|transcript-timeline" out/renderer/assets/index-AP-RfVtB.js out/renderer/assets/index-DaU9l8ex.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:63620` |
+| Browser plugin navigation | Not available | The Browser navigation tool was not exposed; route-level and built-asset receipts were used instead |
+
+Scope: transcript readability UI package. `TranscriptPreview` now renders parsed timeline entries with all/user/assistant/tool/event/error/unknown filters and preserves raw transcript plus raw-entry disclosures. It still uses the existing guarded `transport.readTranscript()` path. This did not add server routes, renderer IPC, file access policy changes, transcript mutation, artifact preview reads, reveal actions, config writes, CLI arguments, runtime/session lifecycle changes, response-ready inference, or Command Code settings mutation.

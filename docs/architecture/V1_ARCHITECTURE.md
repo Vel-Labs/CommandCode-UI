@@ -266,4 +266,5 @@ Current Phase 8 status on 2026-06-06:
 - Parsed entries are normalized into user, assistant, tool, error, event, and unknown timeline kinds while preserving the raw parsed object or raw invalid JSONL line for debugging.
 - Invalid JSONL is represented as an error entry instead of dropping surrounding transcript entries.
 - `src/core/artifactDetection.ts` is a pure detector for already-provided terminal/transcript text. It accepts explicit allowed roots, resolves relative paths against an explicit workspace root, rejects outside-root paths and symlink escapes, and returns accepted/rejected candidates without reading file contents or revealing files.
-- Inspector previews, safe Markdown/HTML/ANSI rendering, file reveal/read actions, transcript timeline UI, session restoration, and response-ready state remain planned or gated.
+- `src/renderer/src/workspaces/TranscriptWorkspace.tsx` renders parsed transcript timeline entries through the existing guarded `transport.readTranscript()` route. It exposes kind filters and keeps raw transcript/raw-entry disclosures for debugging.
+- Inspector previews, safe Markdown/HTML/ANSI rendering, file reveal/read actions, session restoration, and response-ready state remain planned or gated.

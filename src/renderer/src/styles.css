@@ -2792,6 +2792,144 @@ input[type="range"]::-webkit-slider-thumb {
   overflow: hidden;
 }
 
+.transcript-timeline {
+  display: grid;
+  gap: 10px;
+  min-height: 0;
+}
+
+.transcript-timeline--compact {
+  max-height: 42vh;
+  overflow: auto;
+}
+
+.transcript-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.transcript-filter-row button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 5px 9px;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  color: #a1a1aa;
+  background: rgba(255,255,255,0.035);
+}
+
+.transcript-filter-row button:hover,
+.transcript-filter-row button.selected {
+  border-color: rgba(255,255,255,0.18);
+  color: #f4f4f5;
+  background: rgba(255,255,255,0.08);
+}
+
+.transcript-filter-row strong {
+  color: #d4d4d8;
+  font-family: "JetBrains Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+}
+
+.transcript-entry-list {
+  display: grid;
+  gap: 8px;
+  min-height: 0;
+}
+
+.transcript-entry {
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-left-width: 3px;
+  border-radius: 8px;
+  background: rgba(5,5,5,0.48);
+}
+
+.transcript-entry--user {
+  border-left-color: #60a5fa;
+}
+
+.transcript-entry--assistant {
+  border-left-color: #a3e635;
+}
+
+.transcript-entry--tool {
+  border-left-color: #f59e0b;
+}
+
+.transcript-entry--event {
+  border-left-color: #a78bfa;
+}
+
+.transcript-entry--error {
+  border-left-color: #fb7185;
+}
+
+.transcript-entry--unknown {
+  border-left-color: #71717a;
+}
+
+.transcript-entry header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.transcript-entry-kind {
+  color: #f4f4f5;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.transcript-entry-meta {
+  overflow: hidden;
+  color: #71717a;
+  font-family: "JetBrains Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.transcript-entry p {
+  margin: 0;
+  color: #d4d4d8;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.transcript-entry details,
+.transcript-raw-details {
+  margin-top: 8px;
+}
+
+.transcript-entry summary,
+.transcript-raw-details summary {
+  cursor: pointer;
+  color: #8f8f96;
+  font-size: 11px;
+}
+
+.transcript-entry pre {
+  max-height: 220px;
+  margin: 8px 0 0;
+  padding: 10px;
+  overflow: auto;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  color: #a1a1aa;
+  background: rgba(0,0,0,0.34);
+  font-family: "JetBrains Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
 .transcript-preview {
   height: 100%;
   min-height: 0;

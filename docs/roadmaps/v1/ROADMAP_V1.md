@@ -1002,10 +1002,12 @@ Status on 2026-06-06: started. The first parser package added `src/core/transcri
 
 Second status update on 2026-06-06: added `src/core/artifactDetection.ts` and `tests/artifact-detection.test.ts` as a pure, policy-aware artifact detector. It finds common relative and absolute file-like references in already-provided text, resolves relative paths against an explicit workspace root, normalizes allowed roots through realpath checks, rejects outside-root paths and symlink escapes, keeps missing in-root candidates for later existence checks, and returns rejection reasons for future UI. Validation receipts: `npm run typecheck`, `npx vitest run` -> `157/157`, and `npm run build`. This did not add preview reads, reveal actions, renderer UI, server routes, IPC, transcript mutation, session lifecycle changes, or Command Code invocation behavior.
 
+Third status update on 2026-06-06: `TranscriptPreview` now renders parsed transcript timeline entries with user, assistant, tool, event, error, unknown, and all-entry filters while preserving raw transcript and raw-entry disclosures for debugging. It still uses the existing guarded `transport.readTranscript()` route and does not add server routes, renderer IPC, file access policy changes, transcript mutation, artifact preview reads, session lifecycle changes, response-ready inference, or Command Code invocation behavior. Validation receipts: `npm run typecheck`, `npx vitest run` -> `157/157`, `npm run build`, `npm run smoke:browser`, built route token proof at `http://127.0.0.1:57394/` serving `index-AP-RfVtB.js` and `index-DaU9l8ex.css`, built asset proof for `Transcript filters`, `Raw transcript`, `Raw entry`, and `transcript-timeline`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:63620`.
+
 ### Scope
 
-- Parse transcript JSONL into readable conversation/timeline entries.
-- Add transcript filters for user, assistant, tool/event, errors, hooks, and session lifecycle events.
+- Parse transcript JSONL into readable conversation/timeline entries. Implemented for the transcript preview UI.
+- Add transcript filters for user, assistant, tool/event, errors, hooks, and session lifecycle events. Implemented for parsed transcript preview kinds; deeper lifecycle state remains planned.
 - Show resume receipts: source file, session id, cwd, model, timestamp, and resume result.
 - Detect file paths referenced by terminal output and transcript entries.
 - Surface generated or referenced files as session artifacts.
@@ -1061,7 +1063,7 @@ Likely new files:
 - Keep artifact preview read-only unless an explicit editor is implemented and scoped.
 - Treat HTML as untrusted content.
 - Do not let terminal path detection bypass file access policy.
-- Preserve raw transcript access for debugging.
+- Preserve raw transcript access for debugging. Implemented in the parsed transcript preview with raw transcript and raw-entry disclosures.
 
 ### Agent Parallelization
 
