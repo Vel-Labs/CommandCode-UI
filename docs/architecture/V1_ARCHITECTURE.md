@@ -82,7 +82,9 @@ Current extraction status on 2026-06-06:
 - `src/renderer/src/workspaces/SettingsWorkspace.tsx` owns existing settings workspace presentation only; Phase 2 settings expansion has not started.
 - `src/renderer/src/workspaces/TranscriptWorkspace.tsx` owns transcript presentation and inline transcript preview.
 - `src/renderer/src/inspectors/RightInspectorPanel.tsx` owns right-inspector presentation and environment display.
-- `src/renderer/src/App.tsx` still owns runtime state coordination, transport calls, session lifecycle, terminal input state, app/project preference persistence, settings section selection, popovers, and command palette handling until later Phase 1 slices move those boundaries.
+- `src/renderer/src/components/AppPopovers.tsx` owns existing project, runtime, permission, model, and slash-command popover presentation.
+- `src/renderer/src/components/ReleaseNotesModal.tsx` owns release-note modal presentation.
+- `src/renderer/src/App.tsx` still owns runtime state coordination, transport calls, session lifecycle, terminal input state, app/project preference persistence, settings section selection, popover state transitions, release-note state, and command palette item handling until later Phase 1 slices move those boundaries.
 
 ## Settings Center
 

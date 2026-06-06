@@ -19,6 +19,14 @@ export type CommandPaletteItem = {
   action?: CommandAction
 }
 
+export type ReleaseNote = {
+  eyebrow: string
+  title: string
+  body: string
+  bullets: string[]
+  command?: string
+}
+
 export type SessionTab = {
   id: string
   label: string

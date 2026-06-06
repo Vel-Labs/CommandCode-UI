@@ -128,3 +128,16 @@ Scope: behavior-preserving renderer extraction of active session workbench prese
 | Browser screenshot automation | Not run | Playwright is not installed in this project; no new dependency was added for this architecture-only extraction |
 
 Scope: behavior-preserving renderer extraction of existing settings workspace presentation into `src/renderer/src/workspaces/SettingsWorkspace.tsx`. Phase 2 settings expansion was not started. Real CLI interactive path was not retested for this slice because PTY/session lifecycle and command builders were unchanged.
+
+### 2026-06-06 Phase 1 popovers and release notes extraction
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5190`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:61482` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; no new dependency was added for this architecture-only extraction |
+
+Scope: behavior-preserving renderer extraction of existing popover presentation into `src/renderer/src/components/AppPopovers.tsx` and release-note presentation into `src/renderer/src/components/ReleaseNotesModal.tsx`. Command execution, update checks, release-note state, and popover state transitions remain owned by `App.tsx`.
