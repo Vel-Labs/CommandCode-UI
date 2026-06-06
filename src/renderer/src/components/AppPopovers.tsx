@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react'
 import type { JSX, RefObject } from 'react'
 import { Folder, FolderOpen } from 'lucide-react'
 import type { PermissionMode } from '../../../shared/types'
@@ -9,6 +10,8 @@ import { AuthCard } from './AuthCard'
 import { HeadlessHistory } from './HeadlessHistory'
 import { IdePanel } from './IdePanel'
 import { ModelDropdown } from './ModelDropdown'
+import { searchCommandPalette } from '../commandPalette/search'
+import { workflowRecipes } from '../commandPalette/workflowRecipes'
 
 export function AppPopovers({
   popoverRef,
@@ -79,6 +82,14 @@ export function AppPopovers({
   clearHeadlessJobs: () => void
   runCommand: (item: CommandPaletteItem) => Promise<void>
 }): JSX.Element | null {
+  const [paletteQuery, setPaletteQuery] = useState('')
+  const paletteResults = useMemo(
+    () => searchCommandPalette(commandPaletteItems, workflowRecipes, paletteQuery),
+    [commandPaletteItems, paletteQuery]
+  )
+  const visibleCommands = paletteResults.filter((result) => result.kind === 'command')
+  const visibleRecipes = paletteResults.filter((result) => result.kind === 'recipe')
+
   return (
     <>
       {openPopover === 'project' && (
@@ -143,20 +154,43 @@ export function AppPopovers({
       {openPopover === 'slash' && (
         <div ref={popoverRef} className="native-popover slash-popover">
           <div className="popover-title">Commands</div>
+          <input
+            className="native-input command-palette-search"
+            value={paletteQuery}
+            onChange={(event) => setPaletteQuery(event.target.value)}
+            placeholder="Search commands and workflows"
+            aria-label="Search commands and workflows"
+          />
           {commandGroups.map((group) => (
             <div key={group} className="command-group">
               <div className="command-group-title">{group}</div>
-              {commandPaletteItems.filter((item) => item.group === group).map((item) => (
-                <button key={item.id} className="popover-row command-row" onClick={() => void runCommand(item)}>
+              {visibleCommands.filter((result) => result.item.group === group).map((result) => (
+                <button key={result.item.id} className="popover-row command-row" onClick={() => void runCommand(result.item)}>
                   <span className="command-row-main">
-                    <strong>{item.label}</strong>
-                    <code>{item.command}</code>
+                    <strong>{result.item.label}</strong>
+                    <code>{result.item.command}</code>
                   </span>
-                  <span className="popover-row-description">{item.description}</span>
+                  <span className="popover-row-description">{result.item.description}</span>
                 </button>
               ))}
             </div>
           ))}
+          {visibleRecipes.length > 0 && (
+            <div className="command-group command-group--recipes">
+              <div className="command-group-title">Workflow recipes</div>
+              {visibleRecipes.map((result) => (
+                <div key={result.item.id} className="popover-row command-row command-row--recipe">
+                  <span className="command-row-main">
+                    <strong>{result.item.title}</strong>
+                    <code>{result.item.command ?? result.item.intent}</code>
+                  </span>
+                  <span className="popover-row-description">{result.item.description}</span>
+                  <span className="command-recipe-preview">{result.item.preview}</span>
+                  <span className={`command-recipe-risk command-recipe-risk--${result.item.risk}`}>{result.item.risk}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </>

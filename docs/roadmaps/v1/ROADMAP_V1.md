@@ -703,6 +703,8 @@ Sequential:
 
 Goal: make advanced slash commands discoverable and safer to use.
 
+Status update 2026-06-06: First search/recipe foundation package added `src/renderer/src/commandPalette/search.ts` and `src/renderer/src/commandPalette/workflowRecipes.ts`, plus a search input and preview-only workflow recipe rows in the existing slash popover. Search now covers existing commands and declarative recipes for interactive, headless, plan, design, resume, continue, configure models, MCP setup, hook setup, notification setup, and agent creation. Executable command rows still use the existing `runCommand(item)` path; recipe rows do not execute commands, mutate prompts, write config, broaden IPC, or infer Command Code state. Guided `/design` and `/agents` helper forms remain planned. Validation receipts: `npm run typecheck`, `npx vitest run` -> `117/117`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:57375/` serving assets `index-CBo51pUT.js` and `index-BV7Dspfr.css`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:58698`. Browser screenshot automation remains not run because Playwright is not installed in this project.
+
 ### Scope
 
 - Replace static command buttons with searchable command/workflow palette.

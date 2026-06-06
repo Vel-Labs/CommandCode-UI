@@ -945,3 +945,17 @@ Scope: added a local Models reference page with direct `cmd --help` and `cmd --l
 | Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
 
 Scope: added a pure model-routing preview contract for compaction, title generation, and background work, then rendered the rows in Settings > Models as Command Code-owned and preview-only. This did not add config writes, routing-table parsing, IPC routes, file access, CLI argument changes, Command Code model semantics, or session lifecycle behavior. Real CLI path was not retested for this preview-only settings slice.
+
+### 2026-06-06 Phase 5 command palette search foundation
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `117/117` |
+| Build | Pass | `npm run build`; renderer assets `index-CBo51pUT.js` and `index-BV7Dspfr.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57375`; token proof returned `302`, cookie-authenticated `/` served built assets `index-CBo51pUT.js` and `index-BV7Dspfr.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:58698` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
+
+Scope: added tested command/workflow palette search and preview-only recipes for interactive, headless, plan, design, resume, continue, configure models, MCP setup, hook setup, notification setup, and agent creation. Executable command rows still use the existing `runCommand(item)` path. This did not add prompt rewriting, helper execution semantics, config writes, renderer IPC, file access, CLI argument changes, or session lifecycle behavior. Real CLI path was not retested for this renderer-only palette slice.
