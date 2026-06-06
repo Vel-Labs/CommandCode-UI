@@ -4141,6 +4141,82 @@ input[type="range"]::-webkit-slider-thumb {
   white-space: nowrap;
 }
 
+.settings-shortcut-grid {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.settings-shortcut-row {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.6fr) minmax(180px, 0.7fr) minmax(220px, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 10px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.settings-shortcut-row strong {
+  color: #f4f4f5;
+}
+
+.settings-shortcut-row span {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.settings-shortcut-row kbd {
+  padding: 3px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  color: #f4f4f5;
+  background: rgba(0, 0, 0, 0.2);
+  font: inherit;
+  font-size: 11px;
+}
+
+.settings-shortcut-row small {
+  color: #a0a0a6;
+  line-height: 1.4;
+}
+
+.settings-command-grid {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0;
+}
+
+.settings-command-row {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.7fr) minmax(160px, 0.8fr) minmax(80px, auto);
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.settings-command-row strong {
+  color: #f4f4f5;
+  font-size: 13px;
+}
+
+.settings-command-row code {
+  min-width: 0;
+  overflow: hidden;
+  color: #d4d4d8;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-command-row span {
+  color: #a0a0a6;
+  font-size: 12px;
+  text-align: right;
+}
+
 .settings-command-preview {
   display: grid;
   grid-template-columns: 132px minmax(0, 1fr);
@@ -4370,7 +4446,17 @@ input[type="range"]::-webkit-slider-thumb {
     grid-template-columns: 1fr;
   }
 
+  .settings-shortcut-row,
+  .settings-command-row {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-command-row span {
+    text-align: left;
+  }
+
   .settings-command-preview code,
+  .settings-command-row code,
   .settings-destination-note code {
     white-space: normal;
     overflow-wrap: anywhere;

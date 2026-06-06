@@ -162,7 +162,7 @@ export function ShellLayout({
         ) : (
           <>
             <nav className="sidebar-nav" aria-label="Primary">
-              <button className="sidebar-row" onClick={onNewSession} title="New session">
+              <button className="sidebar-row" onClick={onNewSession} title="New session (Cmd/Ctrl+T)">
                 <SquarePen size={18} />
                 {!railCollapsed && <span>New session</span>}
               </button>

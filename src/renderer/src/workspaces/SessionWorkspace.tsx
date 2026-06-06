@@ -144,7 +144,7 @@ export function SessionWorkspace({
           <button
             className={`ghost-button native-ghost terminal-input-toggle ${terminalInputEnabled ? 'terminal-input-toggle--active' : ''}`}
             onClick={onToggleTerminalInput}
-            title="Temporarily route keyboard input to Command Code terminal menus"
+            title="Temporarily route keyboard input to Command Code terminal menus (Menu input)"
           >
             <Keyboard size={14} />
             Menu input

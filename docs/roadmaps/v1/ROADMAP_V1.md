@@ -368,6 +368,8 @@ Sixteenth renderer-local preferences package added an editable Terminal Settings
 
 Seventeenth presentation package added bundled release-note history to Settings About using the existing `releaseNotes` metadata in `src/renderer/src/commandPalette.ts`. This package did not run update checks, change release-note dismissal state, add persistence fields, add server routes, expand renderer IPC, change runtime/session lifecycle, or mutate Command Code settings. Validation receipts: `npm run typecheck`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5208/`, and Electron dev startup with embedded app server `http://127.0.0.1:49748`.
 
+Eighteenth presentation package expanded Settings Keyboard with grouped shortcut references and command examples from the existing command palette metadata, and added visible accelerator hints to the existing New Session, Send, and Menu Input controls. This package did not add shortcut remapping, persistence fields, server routes, renderer IPC expansion, runtime/session lifecycle changes, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5209/`, and Electron dev startup with embedded app server `http://127.0.0.1:49905`.
+
 ### Scope
 
 - Fold AdvancedPanel content into Settings as first-class sections. Read-only replacement coverage is started; AdvancedPanel removal remains gated by `docs/reports/ADVANCED_PANEL_REMOVAL_GATE.md`.
@@ -377,7 +379,7 @@ Seventeenth presentation package added bundled release-note history to Settings 
 - Redesign Profile into an actionable dashboard or collapse it into General. Started with read-only dashboard shortcuts to the active Settings sections.
 - Add terminal settings for font size, scrollback, bell, cursor, line height, history, and profile where supported. Renderer-local font size, line height, scrollback, and cursor blink controls are implemented; bell behavior, profiles, history controls, and live PTY geometry updates remain planned.
 - Add notification settings for toast/audio categories, quiet mode, per-session readiness, hook-triggered alerts, and volume. Existing GUI toast/audio category and volume controls are implemented through renderer-local preferences; OS notifications, quiet mode, hook-triggered alerts, and readiness remain planned.
-- Add keyboard shortcut reference and visible accelerator hints.
+- Add keyboard shortcut reference and visible accelerator hints. Keyboard now shows grouped shortcuts and command examples, and existing New Session, Send, and Menu Input controls show accelerator hints; shortcut remapping remains planned.
 - Add startup behavior settings: default project, window restore, startup session behavior.
 - Add data controls: transcript deletion, cache clearing, preference reset, export/import.
 - Add About/version/release-history/update visibility. About now shows update state plus bundled release-note history; update checks remain user-triggered by existing controls.

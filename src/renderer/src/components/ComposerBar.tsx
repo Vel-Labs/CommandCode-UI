@@ -80,7 +80,7 @@ export function ComposerBar({
             {modelLabel}
             <ChevronDown size={14} />
           </button>
-          <button className="composer-send" onClick={() => void onSubmit()} title={active ? 'Send' : 'Start'}>
+          <button className="composer-send" onClick={() => void onSubmit()} title={active ? 'Send (Enter)' : 'Start (Enter)'}>
             {active ? <Send size={18} /> : <Play size={18} />}
           </button>
         </div>
