@@ -1509,3 +1509,12 @@ Scope: read-only git header display package. Home and active-session headers now
 | Built Electron screenshot | Pass | `/tmp/ccgui-phase9-pty-badge-electron.png`; home badge rendered `PTY connected` |
 
 Scope: PTY health display package. Home and active-session headers now show a compact badge from the existing PTY doctor result. This did not add PTY calls, alter PTY/session lifecycle, change fallback-to-Demo behavior, broaden renderer IPC, add server routes, mutate config, change file access, or invoke Command Code differently.
+
+### 2026-06-06 Phase 9 popover outside-click validation
+
+| Check | Result | Receipt |
+|---|---:|---|
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57408` served current built renderer assets |
+| Outside-click dismissal | Pass | Playwright opened `.slash-popover`, `.permission-popover`, `.project-popover`, `.runtime-popover`, and `.model-popover`; clicking outside dismissed each popover through the existing pointer-down path |
+
+Scope: receipt-only popover validation. This did not change code, renderer IPC, server routes, transport, config writes, file access, session lifecycle, or Command Code invocation behavior.

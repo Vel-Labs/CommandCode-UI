@@ -1122,6 +1122,8 @@ Status update 2026-06-06: Third polish package wired existing read-only git envi
 
 Status update 2026-06-06: Fourth polish package improved PTY doctor visibility with `PtyHealthBadge` and tested display formatting for connected, unhealthy, unavailable, and checking states. Home and active-session headers now show PTY status with shell/error detail from the existing `ptyHealth` result, replacing the plain home text label and adding session-header diagnostics. This does not add PTY calls, alter PTY/session lifecycle, change fallback-to-Demo behavior, broaden renderer IPC, add server routes, mutate config, change file access, or invoke Command Code differently. Validation receipts: `npm run typecheck`, `npx vitest run` -> `169/169`, `npm run build`, `npm run smoke:browser`, `npm run smoke:pty`, built route token proof at `http://127.0.0.1:57407/` serving `index-BDiS2blp.js` and `index-CyWwlfpS.css`, built asset proof for `PtyHealthBadge`, `ptyHealthDisplay`, and `pty-health-badge`, browser UI receipts showing `PTY connected` with `/bin/zsh` detail in home/session headers with screenshots `/tmp/ccgui-phase9-pty-badge-home.png` and `/tmp/ccgui-phase9-pty-badge-session.png`, and built Electron screenshot `/tmp/ccgui-phase9-pty-badge-electron.png`.
 
+Status update 2026-06-06: Fifth validation package rechecked outside-click dismissal for the current native popovers. Playwright against the built browser route at `http://127.0.0.1:57408/` opened slash, permission, project, runtime, and model popovers and clicked outside each; every popover dismissed through the existing `useDismissiblePopover` pointer-down path. This was receipt-only validation and did not change code, renderer IPC, server routes, transport, config writes, file access, session lifecycle, or Command Code invocation behavior.
+
 ### Scope
 
 - Improve popover anchoring, responsive positioning, Escape/click-outside behavior, and attachment cues. Attachment cues and responsive viewport containment are implemented for current native popovers; existing Escape/outside-click dismissal remains in `useDismissiblePopover` and was revalidated with Playwright.
@@ -1150,7 +1152,7 @@ Status update 2026-06-06: Fourth polish package improved PTY doctor visibility w
 ### Tests And Proof
 
 - Popovers remain anchored at desktop and narrow widths. Browser Playwright receipts covered project, permission, slash, runtime, and model popovers at 1440x1000 and 390x844.
-- Escape and outside-click dismissal work independently per popover. Escape dismissal was revalidated for project, permission, slash, runtime, and model popovers; outside-click logic remains in `useDismissiblePopover` and still needs a dedicated automated receipt.
+- Escape and outside-click dismissal work independently per popover. Escape and outside-click dismissal are revalidated for project, permission, slash, runtime, and model popovers.
 - Sidebar/panel resize-to-collapse works and persists preference.
 - Motion does not cause layout overlap or unreadable text.
 - Git status displays actual project state or a clear unavailable state. Browser UI receipts show actual `main` state for this repo; Electron screenshot shows the no-project unavailable state without mutating app preferences.
