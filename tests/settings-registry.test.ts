@@ -14,6 +14,7 @@ const expectedSections: SettingsSection[] = [
   'keyboard',
   'data',
   'usage',
+  'sessions',
   'integrations',
   'hooks',
   'mcp',

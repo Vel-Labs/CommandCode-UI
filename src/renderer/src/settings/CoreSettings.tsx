@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
-import { Activity, Bot, Braces, CreditCard, Database, GitBranch, Keyboard, MemoryStick, Monitor, Plug, Settings, Sparkles, Terminal, Wrench } from 'lucide-react'
+import { Activity, Bot, Braces, CreditCard, Database, GitBranch, History, Keyboard, MemoryStick, Monitor, Plug, Settings, Sparkles, Terminal, Wrench } from 'lucide-react'
 import type { PermissionMode } from '../../../shared/types'
 import type { PtyDoctorResult } from '../../../core/ptyDoctor'
 import type { TransportAPI } from '../../../core/transport'
@@ -53,6 +53,7 @@ const profileActions: Array<{
   { section: 'general', label: 'General', description: 'Command binary and onboarding behavior.', icon: <Settings size={16} /> },
   { section: 'runtime', label: 'Runtime', description: 'PTY health, mode, permissions, model, auth, and IDE diagnostics.', icon: <Wrench size={16} /> },
   { section: 'usage', label: 'Usage', description: 'Headless history and local run counters.', icon: <CreditCard size={16} /> },
+  { section: 'sessions', label: 'Sessions', description: 'Review discovered Command Code sessions without resuming them.', icon: <History size={16} /> },
   { section: 'data', label: 'Project state', description: 'Read project .commandcode paths and local state.', icon: <Database size={16} /> },
   { section: 'integrations', label: 'Integrations', description: 'Open MCP, hooks, agents, skills, design, memory, and taste.', icon: <Plug size={16} /> }
 ]

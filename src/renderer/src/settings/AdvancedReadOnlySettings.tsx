@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { JSX, ReactNode } from 'react'
 import type { TransportAPI } from '../../../core/transport'
-import type { ProjectCommandCodeReference } from '../../../core/types'
+import type { DiscoveredSession, ProjectCommandCodeReference } from '../../../core/types'
 
 export function ProjectStateSettings({ transport, cwd }: { transport: TransportAPI; cwd: string }): JSX.Element {
   const [reference, setReference] = useState<ProjectCommandCodeReference | null>(null)
@@ -46,6 +46,38 @@ export function ProjectStateSettings({ transport, cwd }: { transport: TransportA
           ))}
         </>
       )}
+    </SettingsReadOnlyCard>
+  )
+}
+
+export function SessionsSettingsReadOnly({ transport, cwd }: { transport: TransportAPI; cwd: string }): JSX.Element {
+  const [sessions, setSessions] = useState<DiscoveredSession[]>([])
+  const [loading, setLoading] = useState(false)
+
+  const load = async (): Promise<void> => {
+    setLoading(true)
+    try {
+      setSessions((await transport.discoverSessions(cwd || undefined)).sessions)
+    } catch {
+      setSessions([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { void load() }, [cwd])
+
+  return (
+    <SettingsReadOnlyCard title={`Discovered sessions (${sessions.length})`} loading={loading} onRefresh={load}>
+      <p className="settings-muted">Read-only session discovery. Resume and reveal actions remain in Advanced until session lifecycle and file-access replacement paths are validated.</p>
+      {sessions.map((session) => (
+        <div key={session.id} className="settings-readonly-row">
+          <strong>{session.title || session.id}</strong>
+          <span>{session.source || 'global'} - {formatSessionTime(session.timestamp)} - {(session.sizeBytes / 1024).toFixed(1)}KB</span>
+          <code className="settings-readonly-path">{session.transcriptPath}</code>
+        </div>
+      ))}
+      {!sessions.length && !loading && <p className="settings-muted">No sessions discovered for the current project context.</p>}
     </SettingsReadOnlyCard>
   )
 }
@@ -229,4 +261,10 @@ function SettingsReadOnlyCard({
       {children}
     </div>
   )
+}
+
+function formatSessionTime(value: string): string {
+  const time = new Date(value)
+  if (Number.isNaN(time.getTime())) return value
+  return time.toLocaleString()
 }

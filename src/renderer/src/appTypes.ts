@@ -15,6 +15,7 @@ export type SettingsSection =
   | 'keyboard'
   | 'data'
   | 'usage'
+  | 'sessions'
   | 'integrations'
   | 'hooks'
   | 'mcp'

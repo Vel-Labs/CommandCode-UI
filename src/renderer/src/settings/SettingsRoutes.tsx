@@ -9,6 +9,7 @@ import {
   McpSettingsReadOnly,
   MemorySettingsReadOnly,
   ProjectStateSettings,
+  SessionsSettingsReadOnly,
   SkillsSettingsReadOnly,
   TasteSettingsReadOnly
 } from './AdvancedReadOnlySettings'
@@ -41,6 +42,7 @@ const implementedSettingsSections: SettingsSection[] = [
   'integrations',
   'advanced',
   'data',
+  'sessions',
   'mcp',
   'agents',
   'skills',
@@ -183,6 +185,8 @@ export function SettingsRoute(props: SettingsRouteProps): JSX.Element {
       return <AdvancedSettings openAdvanced={openAdvanced} />
     case 'data':
       return <SettingsFrame title="Data"><ProjectStateSettings transport={transport} cwd={cwd} /></SettingsFrame>
+    case 'sessions':
+      return <SettingsFrame title="Sessions"><SessionsSettingsReadOnly transport={transport} cwd={cwd} /></SettingsFrame>
     case 'mcp':
       return <SettingsFrame title="MCP"><McpSettingsReadOnly transport={transport} commandExecutable={commandExecutable} /></SettingsFrame>
     case 'agents':

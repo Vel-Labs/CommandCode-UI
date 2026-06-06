@@ -4131,6 +4131,16 @@ input[type="range"]::-webkit-slider-thumb {
   overflow-wrap: anywhere;
 }
 
+.settings-readonly-path {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: #c9c9d1;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .settings-readonly-toggle {
   display: grid;
   width: 100%;
