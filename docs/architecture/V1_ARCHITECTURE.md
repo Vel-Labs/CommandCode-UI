@@ -280,7 +280,7 @@ Current Phase 8 status on 2026-06-06:
 
 ## Native Workbench Polish
 
-Current Phase 9 status on 2026-06-06:
+Current Phase 9 status on 2026-06-06: complete for the current V1 contract, with mutation/runtime-affecting workbench actions gated.
 
 - `src/renderer/src/components/GitEnvironmentBadge.tsx` and `src/renderer/src/services/gitEnvironmentDisplay.ts` surface the existing read-only `transport.gitStatus(cwd)` result in home/session headers. The badge displays branch, local change count, and ahead/behind detail when a project is selected, or an explicit unavailable state when no git repo is loaded.
 - The git badge does not add git mutations, branch switching, diff actions, new renderer IPC, server routes, or filesystem capability. The existing environment inspector remains the detailed git surface.

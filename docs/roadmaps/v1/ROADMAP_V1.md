@@ -1114,6 +1114,8 @@ Sequential:
 
 Goal: close the gap between functional adapter and natural desktop workbench.
 
+Status on 2026-06-06: complete and validated for the current V1 contract. Native popover positioning, attachment cues, outside-click dismissal, update visibility, read-only git/PTY header diagnostics, right-inspector switching, right-inspector resize-to-collapse, restrained inspector motion, and shared Settings loading skeletons are implemented and validated in Browser/Electron receipts. Remaining file, IDE, git mutation, terminal lifecycle/profile, editable theme-token, and release-fetching work is intentionally gated by `docs/reports/WORKBENCH_POLISH_GATE.md` and surfaced as preview-only Settings > Data status; those items are not claimed as implemented.
+
 Status update 2026-06-06: First polish package made the shell footer update indicator easier to see by adding a compact `update-status-dot` marker for checking, updating, available, and failed states. The marker remains visible in collapsed and expanded sidebars and reuses the existing `updateState` value and update click handler. This did not change update transport, release fetching, install behavior, renderer IPC, server routes, config writes, file access, session lifecycle, or Command Code invocation behavior. Validation receipts: `npm run typecheck`, `npm run build`, `npm run smoke:browser`, built route token proof at `http://127.0.0.1:57404/` serving `index-ByJxlA74.js` and `index-NYEKx49J.css`, built asset proof for `update-status-dot`, `updateNeedsAttention`, `update-row--available`, and `update-row--failed`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:50170`.
 
 Status update 2026-06-06: Second polish package improved native popover attachment and responsive positioning. Popovers now get a subtle attachment notch on desktop, contained scrolling, safer text wrapping, and a late narrow-screen override that keeps project, permission, slash, runtime, and model popovers inside the viewport. This is CSS-only polish and does not change popover state, Escape/outside-click logic, renderer IPC, server routes, transport, config writes, file access, session lifecycle, or Command Code invocation behavior. Validation receipts: `npm run typecheck`, `npm run build`, `npm run smoke:browser`, built route token proof at `http://127.0.0.1:57405/` serving `index-Bz57oaG8.js` and `index-BigcAntF.css`, built asset proof for `native-popover::before`, `overflow-wrap`, `overscroll-behavior`, and the `max-width: 720px` override, Playwright desktop/narrow browser layout receipts for five popovers with Escape dismissal, screenshots `/tmp/ccgui-phase9-popovers-desktop.png` and `/tmp/ccgui-phase9-popovers-narrow.png`, and built Electron screenshot `/tmp/ccgui-phase9-popovers-electron.png`.
@@ -1198,9 +1200,9 @@ Sequential:
 
 ### Acceptance
 
-- Visual polish is verified in Browser/Electron screenshots.
-- File, IDE, git, and release-note features stay scoped so the GUI does not become a broad IDE clone.
-- The app feels cohesive under normal daily-driver flows: start session, switch tabs, inspect artifact, change settings, return to session.
+- Visual polish is verified in Browser/Electron screenshots. Implemented receipts cover popovers, git/PTY badges, right-inspector switching, right-inspector collapse, right-inspector motion, Settings loading skeletons, and the workbench gate card.
+- File, IDE, git, and release-note features stay scoped so the GUI does not become a broad IDE clone. Remaining mutation/runtime-affecting work is gated by `docs/reports/WORKBENCH_POLISH_GATE.md` and exposed as preview-only status, not executable behavior.
+- The app feels cohesive under normal daily-driver flows: start session, switch tabs, inspect artifact, change settings, return to session. Phase 8 three-session dogfood plus Phase 9 Browser/Electron inspector and Settings receipts validate those flows for the current V1 contract.
 
 ## Phase 10: Validation, Docs, And Contributor Enablement
 

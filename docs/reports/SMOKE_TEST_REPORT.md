@@ -1599,3 +1599,16 @@ Scope: documentation-only workbench gate. `docs/reports/WORKBENCH_POLISH_GATE.md
 | Built Electron Settings UI | Pass | Playwright Electron launcher showed the same Settings > Data gate card with `found: true`, `blockedCount: 5`, and `previewCount: 1`; screenshot `/tmp/ccgui-phase9-workbench-gate-electron.png` |
 
 Scope: preview-only workbench action registry. `src/renderer/src/workbench/workbenchActions.ts` lists remaining workbench actions and proof requirements, and Settings > Data renders them as a read-only gate card. This did not add command strings, callbacks, transport calls, apply buttons, renderer IPC, server routes, file access, config writes, session lifecycle changes, CSS token rewrites, or Command Code invocation behavior.
+
+### 2026-06-06 Phase 9 closeout
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `172/172` |
+| Build | Pass | `npm run build`; renderer assets from current build |
+| Browser/API smoke | Pass | `npm run smoke:browser` -> `7.3b Multi-session independence: PASS` |
+| Phase status | Pass | `rg -n "Status on 2026-06-06: complete and validated for the current V1 contract|WORKBENCH_POLISH_GATE|not claimed as implemented" docs/roadmaps/v1/ROADMAP_V1.md` |
+| Boundary status | Pass | `rg -n "complete for the current V1 contract|mutation/runtime-affecting workbench actions gated" docs/architecture/V1_ARCHITECTURE.md` |
+
+Scope: Phase 9 closeout docs. Phase 9 is marked complete for the current V1 contract, while file, IDE, git mutation, terminal lifecycle/profile, editable theme-token, and release-fetching work remains gated and not claimed as implemented. This did not change runtime code, renderer IPC, server routes, transport calls, file access, config writes, session lifecycle, CSS tokens, or Command Code invocation behavior.
