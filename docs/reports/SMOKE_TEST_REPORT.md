@@ -1574,3 +1574,13 @@ Scope: CSS-only inspector motion polish. Right-inspector open state now has rest
 | Built Electron Settings UI | Pass | Playwright Electron launcher showed the same Settings > MCP loading path with `skeletonCount: 1`; screenshot `/tmp/ccgui-phase9-settings-skeleton-electron.png` |
 
 Scope: shared Settings loading presentation. `SettingsReadOnlyCard` now renders additive skeleton rows from existing loading state. This did not change Settings navigation, transport calls, discovery semantics, config writes, renderer IPC, server routes, file access capability, session lifecycle, or Command Code invocation behavior.
+
+### 2026-06-06 Phase 9 workbench polish gate
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Gate doc content | Pass | `rg -n "Blocked Actions|Required Before File Actions|Required Before IDE Actions|Required Before Git Actions|Required Before Theme Token Controls|Current Decision" docs/reports/WORKBENCH_POLISH_GATE.md` |
+| Roadmap boundary | Pass | `rg -n "WORKBENCH_POLISH_GATE|remaining Phase 9 boundary|workbench actions gated" docs/roadmaps/v1/ROADMAP_V1.md docs/architecture/V1_ARCHITECTURE.md` |
+
+Scope: documentation-only workbench gate. `docs/reports/WORKBENCH_POLISH_GATE.md` now defines the remaining hard boundaries before Phase 9 adds file actions, IDE actions, git mutations, terminal lifecycle/profile work, editable theme token controls, or release-fetching behavior. This did not change runtime code, renderer IPC, server routes, transport calls, file access, config writes, session lifecycle, CSS tokens, or Command Code invocation behavior.

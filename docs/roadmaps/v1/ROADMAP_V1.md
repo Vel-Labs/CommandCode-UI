@@ -1132,6 +1132,8 @@ Status update 2026-06-06: Eighth polish package added restrained right-inspector
 
 Status update 2026-06-06: Ninth polish package added shared loading skeletons to `SettingsReadOnlyCard` so read-only discovery sections show a consistent placeholder while refreshing. The skeleton is additive presentation around existing loading state and does not change Settings navigation, transport calls, discovery semantics, config writes, renderer IPC, server routes, file access capability, session lifecycle, or Command Code invocation behavior. Validation receipts: `npm run typecheck`, `npm run build`, `npm run smoke:browser`, built route token proof at `http://127.0.0.1:57412/` serving `index-CxJL1HRY.js` and `index-Cf7sVHd_.css`, built asset proof for `settings-loading-skeleton`, `settings-skeleton-sheen`, and `prefers-reduced-motion`, in-app Browser Settings > MCP loading receipt showing `skeletonCount: 1` with screenshot `/tmp/ccgui-phase9-settings-skeleton-mcp-browser.png`, and built Electron Settings > MCP loading receipt showing `skeletonCount: 1` with screenshot `/tmp/ccgui-phase9-settings-skeleton-electron.png`.
 
+Status update 2026-06-06: Tenth gate package added `docs/reports/WORKBENCH_POLISH_GATE.md` to define the remaining Phase 9 boundary before file actions, IDE actions, git actions, terminal lifecycle/profile work, editable theme token controls, or release-fetching behavior can be implemented. This package is documentation-only and does not change runtime code, renderer IPC, server routes, transport calls, file access, config writes, session lifecycle, CSS tokens, or Command Code invocation behavior. Validation receipts: `npm run typecheck` and local content checks for blocked workbench actions, required file/IDE/git/theme contracts, and the current decision to keep remaining workbench actions gated.
+
 ### Scope
 
 - Improve popover anchoring, responsive positioning, Escape/click-outside behavior, and attachment cues. Attachment cues and responsive viewport containment are implemented for current native popovers; existing Escape/outside-click dismissal remains in `useDismissiblePopover` and was revalidated with Playwright.
@@ -1140,8 +1142,8 @@ Status update 2026-06-06: Ninth polish package added shared loading skeletons to
 - Make update indicator easier to see. Implemented with a compact state marker for attention states in the existing footer control.
 - Wire git environment state into the workspace header. Implemented as a read-only badge in home and active-session headers using the existing git status route; git actions remain out of scope.
 - Improve PTY doctor integration and failure diagnostics. Implemented as header-level PTY health badges with shell/error tooltips from the existing doctor result; deeper repair actions remain out of scope.
-- Add optional native workbench affordances: file search/create/rename/delete, IDE launch/config, branch switcher/diff, terminal tabs/history/profiles, and release-note fetching.
-- Add fine-grained theme controls such as accent color, grid opacity, terminal font size, and app density.
+- Add optional native workbench affordances: file search/create/rename/delete, IDE launch/config, branch switcher/diff, terminal tabs/history/profiles, and release-note fetching. These remain gated by `docs/reports/WORKBENCH_POLISH_GATE.md`.
+- Add fine-grained theme controls such as accent color, grid opacity, terminal font size, and app density. Editable token controls remain gated by `docs/reports/WORKBENCH_POLISH_GATE.md`.
 
 ### Likely Impacted Files
 
