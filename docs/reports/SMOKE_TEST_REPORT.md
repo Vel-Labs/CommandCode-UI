@@ -213,6 +213,20 @@ Scope: read-only Settings Sessions discovery package. Settings now includes a Se
 
 Scope: read-only Settings MCP command preview package. MCP Settings now shows connect/disconnect command previews for discovered servers. No server routes, renderer IPC expansion, config writes, persistence fields, transport/session lifecycle changes, MCP actions, or Command Code settings mutation were added.
 
+### 2026-06-06 Phase 2 Settings notification preferences
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `52/52` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5206`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets `index-kD2gLwTl.js` and `index-CFKlYiiM.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:49423` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project/runtime; no new dependency was added for this settings package |
+
+Scope: renderer-local Settings Notifications package. Notifications Settings now edits the existing GUI toast/audio categories and volume controls through browser `localStorage` keys `ccgui.toast-preferences` and `ccgui.audio-preferences`. No server routes, renderer IPC expansion, file-backed config writes, transport/session lifecycle changes, notification readiness inference, OS notification behavior, or Command Code settings mutation were added.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |

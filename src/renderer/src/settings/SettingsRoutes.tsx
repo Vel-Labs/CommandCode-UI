@@ -28,7 +28,7 @@ import {
   HooksSettingsReadOnly,
   KeyboardSettingsReadOnly,
   ModelsSettingsReadOnly,
-  NotificationsSettingsReadOnly,
+  NotificationsSettings,
   TerminalSettingsReadOnly
 } from './ReferenceSettings'
 import { settingsItem } from './settingsRegistry'
@@ -200,7 +200,7 @@ export function SettingsRoute(props: SettingsRouteProps): JSX.Element {
     case 'keyboard':
       return <SettingsFrame title="Keyboard"><KeyboardSettingsReadOnly /></SettingsFrame>
     case 'notifications':
-      return <SettingsFrame title="Notifications"><NotificationsSettingsReadOnly /></SettingsFrame>
+      return <SettingsFrame title="Notifications"><NotificationsSettings /></SettingsFrame>
     case 'terminal':
       return <SettingsFrame title="Terminal"><TerminalSettingsReadOnly /></SettingsFrame>
     case 'models':

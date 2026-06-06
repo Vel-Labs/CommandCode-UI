@@ -1,61 +1,20 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { JSX } from 'react'
+import {
+  NOTIFICATION_PREFERENCES_CHANGED_EVENT,
+  loadAudioPrefs,
+  loadToastPrefs,
+  notificationCategoryLabel,
+  saveAudioPrefs,
+  saveToastPrefs
+} from '../settings/notificationPreferences'
+import type { AudioPrefs, ToastPrefs } from '../settings/notificationPreferences'
 
 type Toast = {
   id: number
   message: string
   category: string
   timestamp: number
-}
-
-const TOAST_PREFS_KEY = 'ccgui.toast-preferences'
-const AUDIO_PREFS_KEY = 'ccgui.audio-preferences'
-
-type ToastPrefs = {
-  durationMs: number
-  categories: Record<string, boolean>
-}
-
-type AudioPrefs = {
-  masterVolume: number
-  categories: Record<string, { enabled: boolean; volume: number }>
-}
-
-const defaultToastPrefs: ToastPrefs = {
-  durationMs: 4000,
-  categories: {
-    'session-started': true,
-    'session-exited': true,
-    'session-response': true,
-    'headless-complete': true,
-    'headless-error': true,
-    'transcript-saved': true
-  }
-}
-
-const defaultAudioPrefs: AudioPrefs = {
-  masterVolume: 0.5,
-  categories: {
-    'session-started': { enabled: false, volume: 1 },
-    'session-exited': { enabled: false, volume: 1 },
-    'session-response': { enabled: false, volume: 1 },
-    'headless-complete': { enabled: false, volume: 1 },
-    'headless-error': { enabled: false, volume: 1 }
-  }
-}
-
-function loadToastPrefs(): ToastPrefs {
-  try {
-    const stored = localStorage.getItem(TOAST_PREFS_KEY)
-    return stored ? { ...defaultToastPrefs, ...JSON.parse(stored) as Partial<ToastPrefs> } : defaultToastPrefs
-  } catch { return defaultToastPrefs }
-}
-
-function loadAudioPrefs(): AudioPrefs {
-  try {
-    const stored = localStorage.getItem(AUDIO_PREFS_KEY)
-    return stored ? { ...defaultAudioPrefs, ...JSON.parse(stored) as Partial<AudioPrefs> } : defaultAudioPrefs
-  } catch { return defaultAudioPrefs }
 }
 
 let nextId = 1
@@ -70,7 +29,13 @@ export function notify(message: string, category: string) {
 
 export function ToastContainer(): JSX.Element {
   const [toasts, setToasts] = useState<Toast[]>([])
-  const [prefs] = useState<ToastPrefs>(loadToastPrefs)
+  const [prefs, setPrefs] = useState<ToastPrefs>(loadToastPrefs)
+
+  useEffect(() => {
+    const reload = () => setPrefs(loadToastPrefs())
+    window.addEventListener(NOTIFICATION_PREFERENCES_CHANGED_EVENT, reload)
+    return () => window.removeEventListener(NOTIFICATION_PREFERENCES_CHANGED_EVENT, reload)
+  }, [])
 
   useEffect(() => {
     const handler = (toast: Toast) => {
@@ -141,17 +106,24 @@ export function SettingsDropdown(): JSX.Element {
   const updateToast = useCallback((update: Partial<ToastPrefs>) => {
     setToastPrefs((prev) => {
       const next = { ...prev, ...update }
-      localStorage.setItem(TOAST_PREFS_KEY, JSON.stringify(next))
-      return next
+      return saveToastPrefs(next)
     })
   }, [])
 
   const updateAudio = useCallback((update: Partial<AudioPrefs>) => {
     setAudioPrefs((prev) => {
       const next = { ...prev, ...update }
-      localStorage.setItem(AUDIO_PREFS_KEY, JSON.stringify(next))
-      return next
+      return saveAudioPrefs(next)
     })
+  }, [])
+
+  useEffect(() => {
+    const reload = () => {
+      setToastPrefs(loadToastPrefs())
+      setAudioPrefs(loadAudioPrefs())
+    }
+    window.addEventListener(NOTIFICATION_PREFERENCES_CHANGED_EVENT, reload)
+    return () => window.removeEventListener(NOTIFICATION_PREFERENCES_CHANGED_EVENT, reload)
   }, [])
 
   return (
@@ -170,7 +142,7 @@ export function SettingsDropdown(): JSX.Element {
                   checked={enabled}
                   onChange={(e) => updateToast({ categories: { ...toastPrefs.categories, [key]: e.target.checked } })}
                 />
-                {key.replace(/-/g, ' ')}
+                {notificationCategoryLabel(key)}
               </label>
             ))}
           </div>
@@ -194,7 +166,7 @@ export function SettingsDropdown(): JSX.Element {
                   checked={cat.enabled}
                   onChange={(e) => updateAudio({ categories: { ...audioPrefs.categories, [key]: { ...cat, enabled: e.target.checked } } })}
                 />
-                {key.replace(/-/g, ' ')}
+                {notificationCategoryLabel(key)}
               </label>
             ))}
           </div>

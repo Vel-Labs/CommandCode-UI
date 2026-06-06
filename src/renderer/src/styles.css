@@ -4167,6 +4167,55 @@ input[type="range"]::-webkit-slider-thumb {
   white-space: nowrap;
 }
 
+.settings-control-row {
+  display: grid;
+  grid-template-columns: minmax(150px, auto) minmax(180px, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: #d4d4d8;
+  font-size: 13px;
+}
+
+.settings-control-row select {
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  color: #f4f4f5;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.settings-control-row small {
+  color: #a0a0a6;
+}
+
+.settings-toggle-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 12px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.settings-toggle-row {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: #d4d4d8;
+  background: rgba(0, 0, 0, 0.12);
+  font-size: 13px;
+}
+
+.settings-toggle-row span {
+  overflow-wrap: anywhere;
+}
+
 .settings-readonly-toggle {
   display: grid;
   width: 100%;
@@ -4270,6 +4319,7 @@ input[type="range"]::-webkit-slider-thumb {
   .profile-stat-strip,
   .settings-profile-grid,
   .settings-action-grid,
+  .settings-toggle-grid,
   .profile-action-grid,
   .appearance-options {
     grid-template-columns: 1fr;
@@ -4280,6 +4330,7 @@ input[type="range"]::-webkit-slider-thumb {
     border-left: 0;
   }
 
+  .settings-control-row,
   .settings-destination-note {
     grid-template-columns: 1fr;
   }

@@ -40,6 +40,13 @@ Current project preference fields:
 - `headlessYolo`
 - `appearanceTheme`
 
+Renderer-local notification preferences are stored in browser `localStorage`:
+
+- `ccgui.toast-preferences`
+- `ccgui.audio-preferences`
+
+These keys only control existing GUI toast and audio presentation. They do not configure OS notifications, hook execution, Command Code readiness semantics, or Command Code `settings.json`.
+
 ## Command Code-Owned Scope
 
 Command Code-owned configuration remains in documented Command Code paths, including:
@@ -70,7 +77,6 @@ Allowed without a new write gate:
 
 Requires a write gate before implementation:
 
-- notification preferences
 - terminal preferences
 - keyboard shortcut remapping
 - startup behavior changes
@@ -86,6 +92,7 @@ Current executable coverage:
 
 - `tests/settings-registry.test.ts` covers Settings registry/search/route coverage.
 - `tests/server-security.test.ts` covers project GUI preference sanitization and project-scoped preference writes.
+- `tests/notification-preferences.test.ts` covers renderer-local notification preference defaults, corrupt storage fallback, merge behavior, volume clamping, and sanitized saves.
 
 Current visible destination coverage:
 
@@ -94,10 +101,11 @@ Current visible destination coverage:
 - Runtime shows the GUI project preference destination for `permissionMode` and `trust`.
 - Runtime shows the GUI app/project preference destinations for `model` and `projectModels`.
 - Appearance shows the GUI app/project preference destinations for `appearanceTheme`.
+- Notifications shows renderer-local `localStorage` destinations for toast and audio preferences.
 
 Known unimplemented acceptance:
 
-- notification preferences persist and load
+- OS notifications, hook-triggered alerts, quiet mode, and per-session readiness preferences
 - terminal preferences persist without breaking xterm
 - editable settings destination labels for future write-capable sections
 - data controls write/delete only within approved roots

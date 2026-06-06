@@ -362,6 +362,8 @@ Thirteenth read-only package added a Sessions Settings section backed by the exi
 
 Fourteenth read-only package added MCP connect/disconnect command previews to Settings MCP using the existing Command Code command shape (`<command> mcp connect|disconnect <server>`). Actual connect/disconnect execution remains in Advanced because it mutates external MCP state. This package did not add server routes, renderer IPC expansion, config writes, persistence fields, transport/session lifecycle changes, MCP actions, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `48/48`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5205/`, and Electron dev startup with embedded app server `http://127.0.0.1:65482`.
 
+Fifteenth renderer-local preferences package added an editable Notifications Settings page for the existing GUI toast/audio categories and moved preference parsing/storage into `src/renderer/src/settings/notificationPreferences.ts`. These preferences persist in browser `localStorage` keys `ccgui.toast-preferences` and `ccgui.audio-preferences`; OS notifications, hook-triggered alerts, quiet mode, and per-session readiness remain planned. This package did not add server routes, renderer IPC expansion, file-backed config writes, transport/session lifecycle changes, notification readiness inference, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `52/52`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5206/`, and Electron dev startup with embedded app server `http://127.0.0.1:49423`.
+
 ### Scope
 
 - Fold AdvancedPanel content into Settings as first-class sections. Read-only replacement coverage is started; AdvancedPanel removal remains gated by `docs/reports/ADVANCED_PANEL_REMOVAL_GATE.md`.
@@ -370,7 +372,7 @@ Fourteenth read-only package added MCP connect/disconnect command previews to Se
 - Populate Integrations with actual integration management or remove the dead section. Started with the read-only Settings hub; write-capable integration management remains gated.
 - Redesign Profile into an actionable dashboard or collapse it into General. Started with read-only dashboard shortcuts to the active Settings sections.
 - Add terminal settings for font size, scrollback, bell, cursor, line height, history, and profile where supported.
-- Add notification settings for toast/audio categories, quiet mode, per-session readiness, hook-triggered alerts, and volume.
+- Add notification settings for toast/audio categories, quiet mode, per-session readiness, hook-triggered alerts, and volume. Existing GUI toast/audio category and volume controls are implemented through renderer-local preferences; OS notifications, quiet mode, hook-triggered alerts, and readiness remain planned.
 - Add keyboard shortcut reference and visible accelerator hints.
 - Add startup behavior settings: default project, window restore, startup session behavior.
 - Add data controls: transcript deletion, cache clearing, preference reset, export/import.
@@ -407,7 +409,7 @@ Likely new files:
 
 - Settings search filters sections and visible rows.
 - Settings navigation reaches every formerly advanced section.
-- Notification preferences persist and load.
+- Renderer-local toast/audio notification preferences persist and load. OS notifications, hook-triggered alerts, quiet mode, and readiness remain planned.
 - Terminal preferences persist without breaking xterm.
 - Editable settings show destination path before write. Implemented for existing editable GUI preference controls; future write-capable sections remain gated.
 - Browser/Electron screenshots for Settings at desktop and narrow widths.

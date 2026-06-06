@@ -109,7 +109,7 @@ Current implementation status on 2026-06-06:
 - `ShellLayout` renders registry-backed settings navigation and filters sections through the settings search input.
 - `SettingsWorkspace` renders read-only placeholder pages for newly registered Phase 2 sections until each section has a validated replacement path.
 - `src/renderer/src/settings/AdvancedReadOnlySettings.tsx` renders Settings-hosted read-only views for Project state, MCP, Agents, Skills, Memory, and Taste.
-- `src/renderer/src/settings/ReferenceSettings.tsx` renders read-only reference views for Keyboard, Notifications, Terminal, Models, Design, Hooks, and About.
+- `src/renderer/src/settings/ReferenceSettings.tsx` renders reference views for Keyboard, Terminal, Models, Design, Hooks, and About, plus the renderer-local Notifications preference page.
 - `src/renderer/src/settings/CoreSettings.tsx` renders existing Profile, General, Runtime, Appearance, Usage, Integrations, and Advanced presentation sections while preserving their existing callbacks.
 - `src/renderer/src/settings/SettingsRoutes.tsx` owns the Settings section dispatcher, shared frame, and placeholder fallback so `SettingsWorkspace` stays a shell container.
 - Integrations is now a read-only Settings hub that routes to MCP, Hooks, Agents, Skills, Design, Memory, and Taste replacement sections without adding connect, edit, save, auth, or config mutation actions.
@@ -119,7 +119,8 @@ Current implementation status on 2026-06-06:
 - Skills now include read-only content preview expansion in Settings while insert/use actions remain planned.
 - Sessions now include read-only discovery in Settings while resume and reveal actions remain in Advanced behind session lifecycle and file-access gates.
 - MCP now shows read-only connect/disconnect command previews in Settings while execution remains in Advanced.
-- No new config write, persistence, server route, or Command Code settings mutation was added by these read-only Settings Center packages.
+- Notifications now edits the existing renderer-local toast/audio preference keys (`ccgui.toast-preferences`, `ccgui.audio-preferences`) through `src/renderer/src/settings/notificationPreferences.ts`; OS notifications, hook alerts, quiet mode, and session readiness remain planned.
+- No server route, renderer IPC expansion, Command Code settings mutation, or runtime/session lifecycle change was added by these Settings Center packages.
 - `docs/reports/SETTINGS_PERSISTENCE_GATE.md` defines the Phase 2 ownership boundary for GUI-owned preferences versus Command Code-owned `settings.json` before additional editable sections add writes.
 - `docs/reports/ADVANCED_PANEL_REMOVAL_GATE.md` defines which AdvancedPanel behavior has Settings replacement coverage and which advanced-only actions still block modal removal.
 
