@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { JSX, ReactNode } from 'react'
 import { buildMcpActionPreview } from '../../../core/mcpCommands'
+import { mcpPolicyReferences, mcpScopeReferences } from '../../../core/mcpReference'
 import type { TransportAPI } from '../../../core/transport'
 import type { AgentConfig, DiscoveredSession, ProjectCommandCodeReference } from '../../../core/types'
 import { AgentHelper } from '../workflows/AgentHelper'
@@ -149,6 +150,23 @@ export function McpSettingsReadOnly({ transport, commandExecutable }: { transpor
   return (
     <SettingsReadOnlyCard title={`MCP servers (${servers.length})`} loading={loading} onRefresh={load}>
       <p className="settings-muted">MCP remains Command Code-owned. Connect and disconnect run the previewed `cmd mcp ...` command; add, remove, and auth actions remain gated.</p>
+      <div className="settings-reference-grid settings-reference-grid--compact">
+        {mcpScopeReferences.map((scope) => (
+          <div key={scope.id} className="settings-reference-tile">
+            <strong>{scope.label}</strong>
+            <code>{scope.configPath}</code>
+            <span>{scope.description}</span>
+          </div>
+        ))}
+      </div>
+      <div className="settings-reference-grid settings-reference-grid--compact">
+        {mcpPolicyReferences.map((policy) => (
+          <div key={policy.id} className="settings-reference-tile">
+            <strong>{policy.label}</strong>
+            <span>{policy.description}</span>
+          </div>
+        ))}
+      </div>
       {actionResult && <p className="settings-muted">{actionResult}</p>}
       {servers.map((server) => (
         <div key={server.name} className="settings-readonly-row">
