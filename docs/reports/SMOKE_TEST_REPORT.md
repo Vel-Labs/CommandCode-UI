@@ -1219,3 +1219,17 @@ Scope: improved read-only Settings > Taste readability with expandable packages,
 | Browser plugin navigation | Not available | The Browser navigation tool was not exposed in this thread; route-level receipts were used instead |
 
 Scope: improved read-only Settings > Skills source visibility with discovered paths, derived source labels for existing skill roots, and an explicit insert/use unavailable row on expanded skills. This did not add renderer IPC, server routes, config writes, file access changes, runtime/session lifecycle changes, skill activation, skill CRUD, hidden command execution, or Command Code settings mutation.
+
+### 2026-06-06 Phase 7 Memory preview affordance
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Build | Pass | `npm run build`; renderer assets `index-BUzH0Hjz.js` and `index-8BkyITsP.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57392`; token proof returned `302`, cookie-authenticated `/` served built assets `index-BUzH0Hjz.js` and `index-8BkyITsP.css` |
+| Built asset UI proof | Pass | `rg -n "No memory content available|more lines|memoryPreview|Save memory|Destination:" out/renderer/assets/index-BUzH0Hjz.js` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:62689` |
+| Direct memory save click-through | Not run | Existing `transport.saveMemory` route and server policy were not changed; previous isolated Settings Memory save receipts remain the write-path evidence |
+
+Scope: added read-only Memory previews and made opening the existing editor an explicit `Edit` action while preserving the same visible destination and save route. This did not add renderer IPC, server routes, new config writes, file access changes, runtime/session lifecycle changes, memory CRUD beyond the existing save behavior, undo/revert, template semantics, or Command Code settings mutation.

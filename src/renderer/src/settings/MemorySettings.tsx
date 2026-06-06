@@ -5,6 +5,7 @@ import { SettingsReadOnlyCard } from './SettingsReadOnlyCard'
 
 export function MemorySettingsReadOnly({ transport, cwd }: { transport: TransportAPI; cwd: string }): JSX.Element {
   const [memories, setMemories] = useState<Array<{ path: string; name: string; content: string }>>([])
+  const [expanded, setExpanded] = useState<string | undefined>()
   const [editing, setEditing] = useState<string | undefined>()
   const [content, setContent] = useState('')
   const [saveStatus, setSaveStatus] = useState<string | undefined>()
@@ -50,11 +51,20 @@ export function MemorySettingsReadOnly({ transport, cwd }: { transport: Transpor
         <div key={memory.path} className="settings-readonly-row">
           <button
             className="settings-readonly-toggle"
-            onClick={() => startEditing(memory)}
+            onClick={() => setExpanded(expanded === memory.path ? undefined : memory.path)}
           >
             <strong>{memory.name}</strong>
             <span>{memory.path}</span>
           </button>
+          <div className="settings-inline-actions">
+            <button className="ghost-button native-ghost settings-inline-action" onClick={() => startEditing(memory)}>Edit</button>
+          </div>
+          {expanded === memory.path && editing !== memory.path && (
+            <>
+              <span className="settings-destination-note">Destination: {memory.path}</span>
+              <pre className="settings-preview-block">{memoryPreview(memory.content)}</pre>
+            </>
+          )}
           {editing === memory.path && (
             <div className="settings-editor-block">
               <span className="settings-destination-note">Destination: {memory.path}</span>
@@ -78,4 +88,10 @@ export function MemorySettingsReadOnly({ transport, cwd }: { transport: Transpor
       ))}
     </SettingsReadOnlyCard>
   )
+}
+
+function memoryPreview(value: string): string {
+  const lines = value.trim() ? value.trim().split('\n') : ['No memory content available.']
+  const preview = lines.slice(0, 12).join('\n')
+  return lines.length > 12 ? `${preview}\n... ${lines.length - 12} more lines` : preview
 }
