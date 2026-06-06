@@ -225,12 +225,14 @@ Third behavior-preserving extraction slice moved the shared composer presentatio
 
 Fourth behavior-preserving extraction slice moved active session workbench presentation, tab/terminal layout, bottom terminal presentation, and workbench tool rail into `src/renderer/src/workspaces/SessionWorkspace.tsx`. `App.tsx` still owns transport calls, session lifecycle callbacks, terminal input state, stop ladder behavior, bottom-terminal shell session lifecycle, and right-inspector selection. Validation receipts for this slice: `npm run typecheck`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5188/`, and Electron dev startup with embedded app server `http://127.0.0.1:61091`. Screenshot automation remains not run because Playwright is not installed in this project.
 
+Fifth behavior-preserving extraction slice moved settings workspace presentation to `src/renderer/src/workspaces/SettingsWorkspace.tsx` without adding Phase 2 settings expansion. `App.tsx` still owns app/project preference hydration and persistence, settings section selection, and all existing setter callbacks. Validation receipts for this slice: `npm run typecheck`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5189/`, and Electron dev startup with embedded app server `http://127.0.0.1:61272`. Screenshot automation remains not run because Playwright is not installed in this project.
+
 Remaining Phase 1 package order:
 
 1. Extract shell layout and sidebar without changing navigation behavior. Implemented and validated in the second extraction slice.
 2. Extract home workspace and composer presentation. Implemented and validated in the third extraction slice.
 3. Extract session workspace and workbench tool rail while preserving `TerminalPane` behavior. Implemented and validated in the fourth extraction slice.
-4. Extract settings workspace presentation without starting Phase 2 settings expansion.
+4. Extract settings workspace presentation without starting Phase 2 settings expansion. Implemented and validated in the fifth extraction slice.
 5. Extract command palette, popovers, and release notes.
 6. Move session, runtime health, app preference, project preference, and command palette coordination into scoped hooks only where this reduces `App.tsx` ownership.
 7. Audit dead UI paths and document before removal.

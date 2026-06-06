@@ -115,3 +115,16 @@ Scope: behavior-preserving renderer extraction of shared composer presentation i
 | Browser screenshot automation | Not run | Playwright is not installed in this project; no new dependency was added for this architecture-only extraction |
 
 Scope: behavior-preserving renderer extraction of active session workbench presentation, tab/terminal layout, bottom terminal presentation, and workbench tool rail into `src/renderer/src/workspaces/SessionWorkspace.tsx`. Real CLI interactive path was not retested for this slice because PTY/session lifecycle and command builders were unchanged.
+
+### 2026-06-06 Phase 1 settings workspace extraction
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5189`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:61272` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; no new dependency was added for this architecture-only extraction |
+
+Scope: behavior-preserving renderer extraction of existing settings workspace presentation into `src/renderer/src/workspaces/SettingsWorkspace.tsx`. Phase 2 settings expansion was not started. Real CLI interactive path was not retested for this slice because PTY/session lifecycle and command builders were unchanged.
