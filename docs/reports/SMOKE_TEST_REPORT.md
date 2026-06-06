@@ -433,6 +433,21 @@ Scope: validation-only Settings session click-through package. It exercised exis
 
 Scope: Settings MCP validation package. It fixed disconnected-status parsing and exercised existing Settings MCP Connect/Disconnect buttons against a fake local Command Code executable. No real external MCP server was mutated.
 
+### 2026-06-06 Phase 2 AdvancedPanel removal
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `58/58` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5221`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets `index-lfU4Ropg.js` and `index-BE4-R85S.css` |
+| In-app Browser route | Pass | Authenticated `http://127.0.0.1:5221/` loaded Settings Advanced, showed `Diagnostics and scoped tools`, and did not show `Open Advanced tools` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:52429` |
+| Source scan | Pass | No source references remain for `AdvancedPanel`, `advancedOpen`, `Open Advanced tools`, the right-inspector `advanced` mode, or modal-only `.advanced-*` selectors except `.advanced-raw`, which remains used for Settings Usage raw output |
+
+Scope: Settings replacement closeout package. Removed the legacy `AdvancedPanel` modal, its launch state, the Runtime popover Advanced button, the dead right-inspector `advanced` mode, and modal-only CSS. Settings Advanced remains the diagnostics hub. No renderer IPC expansion, server routes, config writes, file access changes, transport/session lifecycle changes, or Command Code settings mutation was added.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |

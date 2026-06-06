@@ -35,7 +35,6 @@ export function AppPopovers({
   setCommandExecutable,
   runCheck,
   openDocs,
-  openAdvanced,
   setSkipOnboarding,
   setHeadlessYolo,
   setHeadlessMaxTurns,
@@ -70,7 +69,6 @@ export function AppPopovers({
   setCommandExecutable: (value: string) => void
   runCheck: () => Promise<void>
   openDocs: () => void
-  openAdvanced: () => void
   setSkipOnboarding: (value: boolean) => void
   setHeadlessYolo: (value: boolean) => void
   setHeadlessMaxTurns: (value: number) => void
@@ -122,7 +120,6 @@ export function AppPopovers({
             <button className="ghost-button native-ghost" onClick={() => void runCheck()}>Check CLI</button>
             <button className="ghost-button native-ghost" onClick={() => transport.openExternal('https://commandcode.ai/docs/reference/cli')}>CLI docs</button>
             <button className="ghost-button native-ghost" onClick={openDocs}>Docs</button>
-            <button className="ghost-button native-ghost" onClick={openAdvanced}>Advanced</button>
           </div>
           <label className="checkbox-row"><input type="checkbox" checked={skipOnboarding} onChange={(event) => setSkipOnboarding(event.target.checked)} /> Skip onboarding</label>
           <label className="checkbox-row"><input type="checkbox" checked={runtimeMode === 'mock'} onChange={(event) => setRuntimeMode(event.target.checked ? 'mock' : 'real-session')} disabled={!ptyHealth?.healthy && runtimeMode === 'mock'} /> Use Demo mode</label>

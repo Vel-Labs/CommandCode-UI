@@ -392,9 +392,11 @@ Twenty-eighth validation package exercised Settings Sessions reveal/resume click
 
 Twenty-ninth MCP validation package fixed MCP status parsing so `disconnected` is not misclassified as `connected`, added a temp-executable regression test for `listMcp` and `mcpAction`, and exercised Settings MCP Connect/Disconnect against a fake local Command Code executable served from an isolated temporary `HOME` and temporary project at `http://127.0.0.1:5220/`. The in-app Browser opened Settings MCP, observed the fake `fixture` server as `disconnected`, clicked Connect and observed `fixture: ok - fixture: connect` plus `connected`, clicked Disconnect and observed `fixture: ok - fixture: disconnect` plus `disconnected`, then verified the temp state file and removed the fixture. No real external MCP server was mutated. Validation receipts: `npm run typecheck`, `npx vitest run` -> `58/58`, `npm run build`, and `npm run smoke:browser`.
 
+Thirtieth AdvancedPanel removal package deleted `src/renderer/src/components/AdvancedPanel.tsx`, removed its modal launch state, removed the Runtime popover's generic Advanced launcher, removed the dead right-inspector `advanced` mode, and dropped modal-only CSS while preserving the Settings Advanced diagnostics hub. This package did not add renderer IPC, server routes, config writes, file access changes, transport/session lifecycle changes, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `58/58`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5221/`, in-app Browser click-through to Settings Advanced showing `Diagnostics and scoped tools` with no `Open Advanced tools`, and Electron dev startup with embedded app server `http://127.0.0.1:52429`.
+
 ### Scope
 
-- Fold AdvancedPanel content into Settings as first-class sections. Replacement coverage is implemented for AdvancedPanel sections; AdvancedPanel removal remains gated by `docs/reports/ADVANCED_PANEL_REMOVAL_GATE.md`.
+- Fold AdvancedPanel content into Settings as first-class sections. Implemented; the legacy AdvancedPanel modal has been removed after Settings replacement receipts landed.
 - Add or complete sections: General, Runtime, Models, Hooks, MCP, Agents, Skills, Design, Memory, Taste, Notifications, Terminal, Keyboard, Data, About, and Advanced Diagnostics.
 - Implement real settings search or remove the placeholder until search exists.
 - Populate Integrations with actual integration management or remove the dead section. Started with the read-only Settings hub; write-capable integration management remains gated.
@@ -411,7 +413,7 @@ Twenty-ninth MCP validation package fixed MCP status parsing so `disconnected` i
 
 - `src/renderer/src/App.tsx`
 - `src/renderer/src/components/SettingsPanel.tsx` or equivalent
-- `src/renderer/src/components/AdvancedPanel.tsx`
+- `src/renderer/src/settings/AdvancedReadOnlySettings.tsx`
 - `src/renderer/src/components/ToastSystem.tsx`
 - `src/renderer/src/components/UsageDashboard.tsx`
 - `src/renderer/src/components/AuthCard.tsx`
@@ -469,7 +471,7 @@ Parallel-friendly:
 
 Sequential:
 
-- AdvancedPanel removal must wait until replacement routes exist.
+- AdvancedPanel removal completed after replacement routes and safe click-through receipts existed.
 - Shared settings persistence and scope model must be defined before individual editable sections write config.
 - UX naming and section taxonomy should be decided before parallel UI implementation.
 
@@ -737,7 +739,8 @@ Goal: make MCP visible and operable from the GUI without hiding secrets or inven
 
 ### Likely Impacted Files
 
-- `src/renderer/src/components/AdvancedPanel.tsx`
+- `src/renderer/src/settings/AdvancedReadOnlySettings.tsx`
+- `src/renderer/src/settings/SettingsRoutes.tsx`
 - `src/renderer/src/settings/McpSettings.tsx`
 - `src/renderer/src/settings/IntegrationsSettings.tsx`
 - `src/core/cli.ts`
@@ -807,7 +810,8 @@ Goal: make community extension surfaces understandable and scoped.
 
 ### Likely Impacted Files
 
-- `src/renderer/src/components/AdvancedPanel.tsx`
+- `src/renderer/src/settings/AdvancedReadOnlySettings.tsx`
+- `src/renderer/src/settings/SettingsRoutes.tsx`
 - `src/renderer/src/settings/AgentsSettings.tsx`
 - `src/renderer/src/settings/SkillsSettings.tsx`
 - `src/renderer/src/settings/MemorySettings.tsx`

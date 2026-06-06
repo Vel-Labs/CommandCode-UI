@@ -1,7 +1,7 @@
 import type { DiscoveredSession } from '../../core/types'
 
 export type WorkspaceView = 'home' | 'session' | 'transcript' | 'settings'
-export type RightInspector = 'none' | 'files' | 'file' | 'transcript' | 'docs' | 'advanced' | 'environment' | 'ide'
+export type RightInspector = 'none' | 'files' | 'file' | 'transcript' | 'docs' | 'environment' | 'ide'
 export type RuntimeMode = 'mock' | 'real-session'
 export type PopoverKey = 'project' | 'permission' | 'runtime' | 'model' | 'slash' | null
 export type SettingsSection =

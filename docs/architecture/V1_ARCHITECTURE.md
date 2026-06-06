@@ -129,10 +129,10 @@ Current implementation status on 2026-06-06:
 - MCP now includes connect/disconnect execution in Settings using the existing `transport.mcpAction` path and visible command previews. Add, remove, and auth actions remain gated.
 - Agents now includes project-scoped discovery and edit/save in Settings using the existing `transport.saveAgent` route. Destination paths are visible, project agents are editable, user/global agents are marked read-only, and server validation keeps writes under the selected project `.commandcode/agents/` root.
 - Memory now includes edit/save in Settings using the existing `transport.saveMemory` route. Destination paths are visible and server validation keeps writes to `COMMANDCODE.md`, `AGENTS.md`, `CLAUDE.md`, or `.commandcode/memory/` under the selected project root.
-- Advanced now routes to explicit Settings diagnostics sections instead of launching the generic Advanced modal from inside Settings. The legacy modal remains available outside Settings until `docs/reports/ADVANCED_PANEL_REMOVAL_GATE.md` is closed.
+- Advanced now routes to explicit Settings diagnostics sections. The legacy `AdvancedPanel` modal and its launch hooks have been removed after Settings replacements and safe click-through receipts landed.
 - No renderer IPC expansion or Command Code settings mutation was added by these Settings Center packages.
 - `docs/reports/SETTINGS_PERSISTENCE_GATE.md` defines the Phase 2 ownership boundary for GUI-owned preferences versus Command Code-owned `settings.json` before additional editable sections add writes.
-- `docs/reports/ADVANCED_PANEL_REMOVAL_GATE.md` defines which AdvancedPanel behavior has Settings replacement coverage and which advanced-only actions still block modal removal.
+- `docs/reports/ADVANCED_PANEL_REMOVAL_GATE.md` records the AdvancedPanel replacement coverage and removal receipts.
 
 Suggested sections:
 

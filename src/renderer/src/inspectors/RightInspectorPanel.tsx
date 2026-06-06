@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
 import type { JSX } from 'react'
-import { FolderOpen, GitBranch, RefreshCw, Settings, X } from 'lucide-react'
+import { FolderOpen, GitBranch, RefreshCw, X } from 'lucide-react'
 import type { DiscoveredSession, GitEnvironmentStatus } from '../../../core/types'
 import type { TransportAPI } from '../../../core/transport'
 import { FileBrowser } from '../components/FileBrowser'
@@ -21,7 +21,6 @@ export function RightInspectorPanel({
   onSelectFile,
   onOpenFiles,
   onRevealTranscript,
-  onOpenSettings,
   onResizeStart
 }: {
   mode: RightInspector
@@ -35,9 +34,7 @@ export function RightInspectorPanel({
   onOpenFiles: () => void
   onOpenTranscript: () => void
   onOpenDocs: () => void
-  onOpenAdvanced: () => void
   onRevealTranscript: () => void
-  onOpenSettings: () => void
   onResizeStart: (event: ReactPointerEvent<HTMLDivElement>) => void
 }): JSX.Element | null {
   if (mode === 'none') return null
@@ -54,7 +51,7 @@ export function RightInspectorPanel({
             ? 'Environment'
             : mode === 'ide'
               ? 'IDE'
-              : 'Advanced'
+              : 'Inspector'
 
   return (
     <aside className="right-inspector" aria-label={title}>
@@ -92,12 +89,6 @@ export function RightInspectorPanel({
           <div className="inspector-stack">
             <button className="ghost-button native-ghost" onClick={() => transport.revealPath(cwd)}><FolderOpen size={16} /> Reveal project in Finder</button>
             <IdePanel transport={transport} commandExecutable={commandExecutable} cwd={cwd} />
-          </div>
-        )}
-        {mode === 'advanced' && (
-          <div className="inspector-stack">
-            <button className="ghost-button native-ghost" onClick={onOpenSettings}><Settings size={16} /> Open settings</button>
-            <InspectorEmpty title="Advanced tools" detail="MCP, skills, memory, agents, usage, and project-state tools remain available from Settings and Advanced." />
           </div>
         )}
       </div>

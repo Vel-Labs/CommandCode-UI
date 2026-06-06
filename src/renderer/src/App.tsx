@@ -9,7 +9,6 @@ import { useTransport } from './useTransport'
 import { pushCommandHistory } from './components/CommandHistory'
 import type { HeadlessJob } from './components/HeadlessHistory'
 import { notify, playChime } from './components/ToastSystem'
-import { AdvancedPanel } from './components/AdvancedPanel'
 import { buildPtySubmitChunks } from '../../shared/ptyInput'
 import { RightInspectorPanel } from './inspectors/RightInspectorPanel'
 import { TranscriptWorkspace } from './workspaces/TranscriptWorkspace'
@@ -183,7 +182,6 @@ export function App(): JSX.Element {
   const [statusLine, setStatusLine] = useState('')
   const [headlessJobs, setHeadlessJobs] = useState<HeadlessJob[]>([])
   const [viewingFile, setViewingFile] = useState<string | undefined>()
-  const [advancedOpen, setAdvancedOpen] = useState(false)
   const [rightInspector, setRightInspector] = useState<RightInspector>('none')
   const [bottomTerminalOpen, setBottomTerminalOpen] = useState(false)
   const [shellSessionId, setShellSessionId] = useState<string | undefined>()
@@ -1122,9 +1120,7 @@ export function App(): JSX.Element {
               onOpenFiles={() => setRightInspector('files')}
               onOpenTranscript={() => setRightInspector('transcript')}
               onOpenDocs={() => setRightInspector('docs')}
-              onOpenAdvanced={() => setRightInspector('advanced')}
               onRevealTranscript={() => transport.revealTranscript(selectedTranscript.transcriptPath)}
-              onOpenSettings={() => { setRailCollapsed(false); setOpenPopover(null); setSettingsOpen(true); setSettingsSection('profile') }}
               onResizeStart={startInspectorResize}
             />
           </div>
@@ -1194,9 +1190,7 @@ export function App(): JSX.Element {
               onOpenFiles={() => setRightInspector('files')}
               onOpenTranscript={() => setRightInspector('transcript')}
               onOpenDocs={() => setRightInspector('docs')}
-              onOpenAdvanced={() => setRightInspector('advanced')}
               onRevealTranscript={() => activeTab?.transcriptPath && transport.revealTranscript(activeTab.transcriptPath)}
-              onOpenSettings={() => { setRailCollapsed(false); setOpenPopover(null); setSettingsOpen(true); setSettingsSection('profile') }}
               onResizeStart={startInspectorResize}
             />
           </div>
@@ -1227,7 +1221,6 @@ export function App(): JSX.Element {
           setCommandExecutable={setCommandExecutable}
           runCheck={runCheck}
           openDocs={() => openRightInspector('docs')}
-          openAdvanced={() => setAdvancedOpen(true)}
           setSkipOnboarding={setSkipOnboarding}
           setHeadlessYolo={setHeadlessYolo}
           setHeadlessMaxTurns={setHeadlessMaxTurns}
@@ -1237,15 +1230,6 @@ export function App(): JSX.Element {
           setTrust={setTrust}
           clearHeadlessJobs={() => setHeadlessJobs([])}
           runCommand={runCommand}
-        />
-
-        <AdvancedPanel
-          transport={transport}
-          commandExecutable={commandExecutable}
-          cwd={cwd}
-          onResumeSession={resumeProjectSession}
-          visible={advancedOpen}
-          onClose={() => setAdvancedOpen(false)}
         />
         {releaseNoteVersion && releaseNotes[releaseNoteVersion] && (
           <ReleaseNotesModal

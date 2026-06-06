@@ -2,7 +2,7 @@
 
 Date: 2026-06-06
 
-This gate records what Settings replaces from `src/renderer/src/components/AdvancedPanel.tsx` and what still blocks removing the Advanced modal. It is a removal contract, not a runtime change.
+This gate records what Settings replaces from the removed `src/renderer/src/components/AdvancedPanel.tsx` modal and the receipts that closed the removal gate.
 
 ## Current Settings Replacement Coverage
 
@@ -34,8 +34,8 @@ Do not remove `AdvancedPanel` until:
 
 ## Current Decision
 
-`AdvancedPanel` is ready for a removal package if the package deletes the legacy modal entry points and preserves the Settings replacements below.
+`AdvancedPanel` has been removed.
 
-Settings is now the primary navigation home for configuration and diagnostics, including project-scoped session resume, transcript reveal, MCP connect/disconnect execution, project-scoped agent writes, and project-scoped memory writes. Advanced no longer has an exclusive action, but removal remains gated by direct Browser/Electron reachability receipts and roadmap/doc closeout.
+Settings is now the primary navigation home for configuration and diagnostics, including project-scoped session resume, transcript reveal, MCP connect/disconnect execution, project-scoped agent writes, and project-scoped memory writes. Advanced no longer has an exclusive action, and direct Browser/Electron reachability receipts are recorded in the roadmap and smoke report.
 
-The Settings Advanced page no longer opens the generic Advanced modal. It now routes to explicit diagnostics sections for Project state, Sessions, Usage, MCP, Agents, Skills, Memory, and Taste. The legacy modal remains available from non-Settings entry points until this removal gate is closed.
+The Settings Advanced page no longer opens the generic Advanced modal. It routes to explicit diagnostics sections for Project state, Sessions, Usage, MCP, Agents, Skills, Memory, and Taste. The legacy modal entry points were removed after safe click-through receipts covered scoped file writes, session reveal/resume, and MCP connect/disconnect.
