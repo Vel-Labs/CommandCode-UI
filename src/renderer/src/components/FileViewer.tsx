@@ -10,6 +10,15 @@ type FileViewerProps = {
   variant?: 'overlay' | 'inline'
 }
 
+export type FileViewerMode = 'markdown' | 'ansi' | 'html-source' | 'source'
+
+export function fileViewerMode(ext: string, filePath: string): FileViewerMode {
+  if (ext === '.md' || ext === '.markdown') return 'markdown'
+  if (ext === '.html' || ext === '.htm') return 'html-source'
+  if (filePath.endsWith('.ansi') || ext === '.ansi') return 'ansi'
+  return 'source'
+}
+
 export function FileViewer({ transport, filePath, cwd, onClose, variant = 'overlay' }: FileViewerProps): JSX.Element | null {
   const [content, setContent] = useState('')
   const [ext, setExt] = useState('')
@@ -39,8 +48,7 @@ export function FileViewer({ transport, filePath, cwd, onClose, variant = 'overl
     ? `${content.length}B`
     : `${(content.length / 1024).toFixed(1)}KB`
 
-  const isMd = ext === '.md'
-  const isAnsi = filePath.endsWith('.ansi')
+  const mode = fileViewerMode(ext, filePath)
 
   const contentNode = (
     <div className={`file-viewer ${variant === 'inline' ? 'file-viewer--inline' : ''}`}>
@@ -51,13 +59,19 @@ export function FileViewer({ transport, filePath, cwd, onClose, variant = 'overl
       </div>
       <div className="file-viewer-body">
         {error && <div className="error-text">{error}</div>}
-        {!error && isAnsi && (
+        {!error && mode === 'ansi' && (
           <pre className="file-content ansi-content">{content}</pre>
         )}
-        {!error && !isMd && !isAnsi && (
+        {!error && mode === 'html-source' && (
+          <>
+            <div className="file-viewer-safety-note">HTML is shown as source. It is not executed in the GUI preview.</div>
+            <pre className="file-content html-source-content">{content}</pre>
+          </>
+        )}
+        {!error && mode === 'source' && (
           <pre className="file-content">{content}</pre>
         )}
-        {!error && isMd && (
+        {!error && mode === 'markdown' && (
           <div className="file-content md-content">
             {renderMarkdownSync(content)}
           </div>

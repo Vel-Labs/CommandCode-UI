@@ -1358,3 +1358,18 @@ Scope: sidebar presentation package. Sidebar labels now distinguish recent trans
 | Browser plugin navigation | Not available | The Browser navigation tool was not exposed; route-level and built-asset receipts were used instead |
 
 Scope: session lifecycle UI package. Active sessions now keep their own mounted terminal panes so tab switches and inspector/layout changes do not clear terminal buffers. Hidden panes remain subscribed to their session output, while only the active pane accepts input and sends resize calls. This did not add renderer IPC, server routes, broad shell/file capability, Command Code command changes, config writes, transcript mutation, or private runtime inference. Manual three-session dogfood remains required before Phase 8 closeout.
+
+### 2026-06-06 Phase 8 HTML fallback preview
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `161/161` |
+| Build | Pass | `npm run build`; renderer assets `index-Cg2UA8m-.js` and `index-pRMa43Mm.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57399`; token proof returned `302`, cookie-authenticated `/` served built assets `index-Cg2UA8m-.js` and `index-pRMa43Mm.css` |
+| Built asset UI proof | Pass | `rg -n "HTML is shown as source|html-source|fileViewerMode|not executed" out/renderer/assets/index-Cg2UA8m-.js out/renderer/assets/index-pRMa43Mm.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:64927` |
+| Browser plugin navigation | Not available | The Browser navigation tool was not exposed; route-level and built-asset receipts were used instead |
+
+Scope: safe file preview package. `.html` and `.htm` files now render as source with a visible safety note that HTML is not executed in the GUI preview. The package adds pure `fileViewerMode` tests and does not add sandbox execution, renderer IPC, server routes, new file access, config writes, runtime/session lifecycle changes, or Command Code invocation behavior.

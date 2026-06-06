@@ -1012,6 +1012,8 @@ Sixth status update on 2026-06-06: the sidebar now distinguishes `Recent context
 
 Seventh status update on 2026-06-06: active Command Code sessions now keep their own mounted `TerminalPane` while inactive panes are hidden, so tab switches and inspector/layout changes no longer clear the visible terminal buffer for the selected session. Only the active pane accepts input and sends resize events; inactive panes remain subscribed to their own session output. This did not add renderer IPC, server routes, broad shell/file capability, Command Code command changes, config writes, transcript mutation, or private runtime inference. Validation receipts: `npm run typecheck`, `npx vitest run` -> `159/159`, `npm run build`, `npm run smoke:browser`, `npm run smoke:pty`, built route token proof at `http://127.0.0.1:57398/` serving `index-BTmTf7TD.js` and `index-Cw9LExQE.css`, built asset proof for `terminal-pane-slot`, `terminal-pane-slot--active`, `activeRef`, and mapped terminal panes, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:64699`.
 
+Eighth status update on 2026-06-06: `FileViewer` now treats `.html` and `.htm` as explicit fallback-to-source previews with a visible safety note. HTML content is not executed in the GUI preview. Validation receipts: `npm run typecheck`, `npx vitest run` -> `161/161`, `npm run build`, `npm run smoke:browser`, built route token proof at `http://127.0.0.1:57399/` serving `index-Cg2UA8m-.js` and `index-pRMa43Mm.css`, built asset proof for `HTML is shown as source`, `html-source`, `fileViewerMode`, and `not executed`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:64927`. This did not add sandbox execution, renderer IPC, server routes, new file access, config writes, or Command Code invocation behavior.
+
 ### Scope
 
 - Parse transcript JSONL into readable conversation/timeline entries. Implemented for the transcript preview UI.
@@ -1020,7 +1022,7 @@ Seventh status update on 2026-06-06: active Command Code sessions now keep their
 - Detect file paths referenced by terminal output and transcript entries.
 - Surface generated or referenced files as session artifacts. Implemented for transcript preview suggestions that open the existing right-inspector file preview after an explicit click.
 - Add right-inspector previews for rendered Markdown, rendered HTML, raw text, ANSI logs, and reveal-file actions. Existing right-inspector file preview is wired from transcript artifact chips for Markdown, raw text, and ANSI through the current guarded file-read route; safe rendered HTML remains planned.
-- Add safe HTML rendering rules, sandboxing, or fallback-to-source behavior.
+- Add safe HTML rendering rules, sandboxing, or fallback-to-source behavior. Implemented with explicit fallback-to-source behavior and safety copy for `.html` and `.htm` previews.
 - Add session search, grouping, labels/notes, and safe bulk operations.
 - Fix hidden/background terminal restoration so resize is not needed to repaint. Implemented by keeping one mounted terminal pane per live session and activating panes without clearing their buffers.
 - Add explicit states for attaching, replaying, waiting for input, running, completed, errored, unread, and response-ready.
@@ -1056,7 +1058,7 @@ Likely new files:
 - Artifact detector finds relative and absolute paths in terminal/transcript text within allowed roots. Implemented and validated in `tests/artifact-detection.test.ts`.
 - Artifact detector rejects paths outside allowed roots and symlink escapes. Implemented and validated in `tests/artifact-detection.test.ts`.
 - Markdown preview renders `.md` files. Existing `FileViewer` Markdown rendering is reachable from transcript artifact chips through the right inspector.
-- HTML preview is sandboxed or falls back safely.
+- HTML preview is sandboxed or falls back safely. Implemented as source-only fallback with a visible non-execution note.
 - Active sessions restore visually after tab changes, inspector resizing, and terminal input toggles. Implemented for tab/layout restoration with mounted per-session panes; manual multi-session dogfood remains part of Phase 8 closeout.
 - One blocked interactive session does not block rendering or state in other sessions.
 - Per-session artifacts remain associated with the correct session.

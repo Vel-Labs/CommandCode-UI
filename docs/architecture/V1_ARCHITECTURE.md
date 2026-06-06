@@ -272,4 +272,5 @@ Current Phase 8 status on 2026-06-06:
 - Transcript artifact chips open the existing right-inspector file preview after explicit user action. They do not auto-open files, add server routes, add renderer IPC, or broaden filesystem capability.
 - Sidebar session labels distinguish recent transcript contexts from live sessions, and live session rows show compact readiness/runtime metadata from existing `SessionReadinessState`.
 - `SessionWorkspace` keeps one mounted `TerminalPane` per live session. Inactive panes remain hidden and subscribed to their own output, while only the active pane accepts input and emits resize calls. This preserves terminal buffers across tab switches and inspector/layout changes without terminal-output scraping.
-- Safe rendered HTML preview, file reveal actions from artifact chips, session restoration, and response-ready state remain planned or gated.
+- `FileViewer` treats `.html` and `.htm` as source-only previews with explicit safety copy. The GUI does not execute HTML in artifact previews.
+- File reveal actions from artifact chips, manual three-session dogfood, and deeper response-ready state remain planned or gated.
