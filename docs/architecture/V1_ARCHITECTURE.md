@@ -94,6 +94,11 @@ Deferred Phase 1 hook boundaries:
 - Runtime health hooks are deferred because they affect runtime truth and PTY availability claims.
 - App and project preference hooks are deferred because they affect shared settings persistence.
 
+Dead UI audit:
+
+- `docs/reports/PHASE1_DEAD_UI_AUDIT.md` documents unreferenced legacy components, an unreachable `mode` popover branch, and stale CSS candidates.
+- No dead UI removal has happened yet; removal should be a separate cleanup package after validation.
+
 ## Settings Center
 
 Settings should become the natural home for configuration, not just a profile/status page.

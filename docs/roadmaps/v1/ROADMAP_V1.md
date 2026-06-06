@@ -231,6 +231,8 @@ Sixth behavior-preserving extraction slice moved native project/runtime/model/sl
 
 Seventh behavior-preserving extraction slice moved command palette/release-note constants to `src/renderer/src/commandPalette.ts` and moved outside-click/Escape popover dismissal to `src/renderer/src/hooks/useDismissiblePopover.ts`. Runtime health, session lifecycle, app preference, and project preference hooks are intentionally deferred because those packages affect runtime truth or shared settings persistence and require a hard internal gate. Validation receipts for this slice: `npm run typecheck`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5191/`, and Electron dev startup with embedded app server `http://127.0.0.1:61625`. Screenshot automation remains not run because Playwright is not installed in this project.
 
+Dead UI path audit is documented in `docs/reports/PHASE1_DEAD_UI_AUDIT.md`. It identifies unreferenced legacy presentation components and stale CSS candidates, but no removals have been performed yet.
+
 Remaining Phase 1 package order:
 
 1. Extract shell layout and sidebar without changing navigation behavior. Implemented and validated in the second extraction slice.
@@ -239,8 +241,8 @@ Remaining Phase 1 package order:
 4. Extract settings workspace presentation without starting Phase 2 settings expansion. Implemented and validated in the fifth extraction slice.
 5. Extract command palette, popovers, and release notes. Implemented and validated in the sixth and seventh extraction slices.
 6. Move session, runtime health, app preference, project preference, and command palette coordination into scoped hooks only where this reduces `App.tsx` ownership. Command constants and popover dismissal are implemented and validated; session lifecycle, runtime health, and preference persistence hooks are deferred behind their hard gates.
-7. Audit dead UI paths and document before removal.
-8. Start CSS separation only after component ownership is clear.
+7. Audit dead UI paths and document before removal. Implemented in `docs/reports/PHASE1_DEAD_UI_AUDIT.md`.
+8. Start CSS separation only after component ownership is clear. Planned; stale CSS removal should happen only after the documented dead components/branches are removed in a cleanup package.
 
 ### Scope
 
