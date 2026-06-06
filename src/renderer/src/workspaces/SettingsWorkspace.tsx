@@ -3,7 +3,7 @@ import { Activity, GitBranch, Keyboard, Terminal } from 'lucide-react'
 import type { PermissionMode } from '../../../shared/types'
 import type { PtyDoctorResult } from '../../../core/ptyDoctor'
 import type { TransportAPI } from '../../../core/transport'
-import type { AppearanceTheme, RuntimeMode, SettingsSection } from '../appTypes'
+import type { AppearanceTheme, RuntimeMode, SettingsSection, UpdateState } from '../appTypes'
 import type { HeadlessJob } from '../components/HeadlessHistory'
 import { AuthCard } from '../components/AuthCard'
 import { HeadlessHistory } from '../components/HeadlessHistory'
@@ -17,6 +17,15 @@ import {
   SkillsSettingsReadOnly,
   TasteSettingsReadOnly
 } from '../settings/AdvancedReadOnlySettings'
+import {
+  AboutSettingsReadOnly,
+  DesignSettingsReadOnly,
+  HooksSettingsReadOnly,
+  KeyboardSettingsReadOnly,
+  ModelsSettingsReadOnly,
+  NotificationsSettingsReadOnly,
+  TerminalSettingsReadOnly
+} from '../settings/ReferenceSettings'
 import { settingsItem } from '../settings/settingsRegistry'
 
 const appearanceOptions: Array<{
@@ -73,6 +82,9 @@ export function SettingsWorkspace({
   runtimeMode,
   appearanceTheme,
   setAppearanceTheme,
+  updateState,
+  updateVersion,
+  updateDetails,
   runCheck,
   openConfigureModels,
   openDocs,
@@ -103,6 +115,9 @@ export function SettingsWorkspace({
   runtimeMode: RuntimeMode
   appearanceTheme: AppearanceTheme
   setAppearanceTheme: (value: AppearanceTheme) => void
+  updateState: UpdateState
+  updateVersion?: string
+  updateDetails: string
   runCheck: () => Promise<void>
   openConfigureModels: () => Promise<void>
   openDocs: () => void
@@ -299,7 +314,82 @@ export function SettingsWorkspace({
           </div>
         )}
 
-        {!['profile', 'general', 'runtime', 'appearance', 'usage', 'integrations', 'advanced', 'data', 'mcp', 'agents', 'skills', 'memory', 'taste'].includes(section) && (
+        {section === 'keyboard' && (
+          <div className="settings-detail-page">
+            <div className="settings-page-title">Keyboard</div>
+            <KeyboardSettingsReadOnly />
+          </div>
+        )}
+
+        {section === 'notifications' && (
+          <div className="settings-detail-page">
+            <div className="settings-page-title">Notifications</div>
+            <NotificationsSettingsReadOnly />
+          </div>
+        )}
+
+        {section === 'terminal' && (
+          <div className="settings-detail-page">
+            <div className="settings-page-title">Terminal</div>
+            <TerminalSettingsReadOnly />
+          </div>
+        )}
+
+        {section === 'models' && (
+          <div className="settings-detail-page">
+            <div className="settings-page-title">Models</div>
+            <ModelsSettingsReadOnly onConfigureModels={openConfigureModels} />
+          </div>
+        )}
+
+        {section === 'design' && (
+          <div className="settings-detail-page">
+            <div className="settings-page-title">Design</div>
+            <DesignSettingsReadOnly />
+          </div>
+        )}
+
+        {section === 'hooks' && (
+          <div className="settings-detail-page">
+            <div className="settings-page-title">Hooks</div>
+            <HooksSettingsReadOnly />
+          </div>
+        )}
+
+        {section === 'about' && (
+          <div className="settings-detail-page">
+            <div className="settings-page-title">About</div>
+            <AboutSettingsReadOnly
+              updateState={updateState}
+              updateVersion={updateVersion}
+              updateDetails={updateDetails}
+              commandExecutable={commandExecutable}
+            />
+          </div>
+        )}
+
+        {![
+          'profile',
+          'general',
+          'runtime',
+          'appearance',
+          'usage',
+          'integrations',
+          'advanced',
+          'data',
+          'mcp',
+          'agents',
+          'skills',
+          'memory',
+          'taste',
+          'keyboard',
+          'notifications',
+          'terminal',
+          'models',
+          'design',
+          'hooks',
+          'about'
+        ].includes(section) && (
           <SettingsPlaceholder section={section} />
         )}
       </main>

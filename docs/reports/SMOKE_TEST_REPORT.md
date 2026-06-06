@@ -114,6 +114,20 @@ Scope: read-only Settings Center registry/search package. Added searchable setti
 
 Scope: Settings-hosted read-only Project state, MCP, Agents, Skills, Memory, and Taste views. Advanced modal remains available. No connect/disconnect/edit/save actions, config writes, persistence changes, server routes, or Command Code settings mutation were added.
 
+### 2026-06-06 Phase 2 read-only reference settings pages
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `41/41` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5195`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:63129` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; no new dependency was added for this settings package |
+
+Scope: Settings-hosted read-only reference pages for Keyboard, Notifications, Terminal, Models, Design, Hooks, and About. No preference writes, config writes, persistence changes, server routes, runtime/session changes, or Command Code settings mutation were added.
+
 ### 2026-06-06 Phase 1 closeout
 
 | Check | Result | Receipt |

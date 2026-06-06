@@ -1064,6 +1064,9 @@ export function App(): JSX.Element {
             runtimeMode={runtimeMode}
             appearanceTheme={appearanceTheme}
             setAppearanceTheme={setAppearanceTheme}
+            updateState={updateState}
+            updateVersion={updateVersion}
+            updateDetails={updateDetails}
             runCheck={runCheck}
             openConfigureModels={openConfigureModels}
             openDocs={() => openRightInspector('docs')}
