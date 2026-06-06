@@ -41,6 +41,7 @@ import {
   type HookConfigEditPreviewResult,
   type HookConfigTogglePreviewResult,
   type HookConfigSourceResult,
+  type HookEvent,
   type HookScope
 } from '../core/hooksConfig'
 import {
@@ -51,6 +52,7 @@ import {
   type HookLogReadResult,
   type HookLogSourceResult
 } from '../core/hooksLogs'
+import { buildHookDryRun, type HookDryRunResult } from '../core/hooksDryRun'
 import type {
   CliExecResult,
   AppGuiPreferences,
@@ -1135,6 +1137,19 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
 
   addRoute('POST', '/api/hooks/logs/read', async ({ body }) => {
     return readHookLog(body as { cwd?: string; sourceScope?: string; path?: string })
+  })
+
+  addRoute('POST', '/api/hooks/dry-run', async ({ body }) => {
+    return buildHookDryRun(body as {
+      cwd?: string
+      sourceScope: HookScope
+      event: HookEvent
+      command: string
+      matcher?: string
+      enabled?: boolean
+      toolName?: string
+      permissionMode?: string
+    }) satisfies HookDryRunResult
   })
 
   addRoute('POST', '/api/hooks/preview-edit', async ({ body }) => {

@@ -17,6 +17,7 @@ import type {
   HookLogEntry,
   HookLogReadResult
 } from '../../../core/hooksLogs'
+import type { HookDryRunResult } from '../../../core/hooksDryRun'
 import { buildHookPayloadPreview } from '../../../core/hooksPayload'
 import type { HookPayloadPreview } from '../../../core/hooksPayload'
 import {
@@ -248,6 +249,8 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
   const [hookLogsError, setHookLogsError] = useState('')
   const [hookLogRead, setHookLogRead] = useState<HookLogReadResult | null>(null)
   const [readingLogPath, setReadingLogPath] = useState('')
+  const [hookDryRun, setHookDryRun] = useState<HookDryRunResult | null>(null)
+  const [dryRunningKey, setDryRunningKey] = useState('')
   const examples = [
     { label: 'Block risky shell', event: 'PreToolUse', matcher: 'Bash', command: 'node .commandcode/hooks/block-risky-shell.js' },
     { label: 'Sensitive read warning', event: 'PreToolUse', matcher: 'Read', command: 'node .commandcode/hooks/warn-sensitive-read.js' },
@@ -333,6 +336,29 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
       matcher: hook.matcher
     }))
   }, [cwd])
+
+  const dryRunHook = useCallback((hook: ParsedHookCommand) => {
+    const key = `${hook.sourceScope}:${hook.sourcePath}:${hook.order}:${hook.command}`
+    setDryRunningKey(key)
+    setHookDryRun(null)
+    transport.dryRunHook({
+      cwd,
+      sourceScope: hook.sourceScope,
+      event: hook.event,
+      command: hook.command,
+      matcher: hook.matcher,
+      enabled: hook.enabled
+    })
+      .then(setHookDryRun)
+      .catch((err) => setHookDryRun({
+        ok: false,
+        willRun: false,
+        reason: 'Dry-run failed before hook execution.',
+        error: err instanceof Error ? err.message : String(err),
+        execution: 'not-run'
+      }))
+      .finally(() => setDryRunningKey(''))
+  }, [cwd, transport])
 
   const openEditPreview = useCallback((hook: ParsedHookCommand) => {
     setEditingHook(hook)
@@ -472,6 +498,13 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
                 </button>
                 <button
                   className="ghost-button native-ghost settings-inline-action"
+                  onClick={() => dryRunHook(hook)}
+                  disabled={dryRunningKey === `${hook.sourceScope}:${hook.sourcePath}:${hook.order}:${hook.command}`}
+                >
+                  {dryRunningKey === `${hook.sourceScope}:${hook.sourcePath}:${hook.order}:${hook.command}` ? 'Testing' : 'Dry-run test'}
+                </button>
+                <button
+                  className="ghost-button native-ghost settings-inline-action"
                   onClick={() => openEditPreview(hook)}
                 >
                   Edit preview
@@ -559,6 +592,22 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
             <span>no hook executed</span>
           </div>
           <pre className="advanced-raw">{payloadPreview.payloadJson}</pre>
+        </div>
+      )}
+      {hookDryRun && (
+        <div className="settings-command-grid">
+          <div className="settings-command-row">
+            <strong>{hookDryRun.ok ? 'Dry-run test' : 'Dry-run failed'}</strong>
+            <code>{hookDryRun.command || hookDryRun.error || 'No hook command'}</code>
+            <span>
+              {hookDryRun.ok
+                ? `${hookDryRun.event || 'hook'} / ${hookDryRun.willRun ? 'would run' : 'would skip'} / ${hookDryRun.execution || 'not-run'}`
+                : 'not-run'}
+            </span>
+          </div>
+          <p className="settings-muted">{hookDryRun.reason}</p>
+          {hookDryRun.payloadJson && <pre className="advanced-raw">{hookDryRun.payloadJson}</pre>}
+          {hookDryRun.error && <p className="settings-muted">{hookDryRun.error}</p>}
         </div>
       )}
       {preview && (
@@ -673,7 +722,7 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
           </div>
         ))}
       </div>
-      <p className="settings-muted">Scoped hook discovery, enable/disable writes, preview-confirmed broader edit writes, and scoped read-only hook log viewing are available. Hook execution, OS notifications, quiet mode, and response-ready delivery remain gated by `docs/reports/HOOKS_NOTIFICATIONS_GATE.md`.</p>
+      <p className="settings-muted">Scoped hook discovery, enable/disable writes, preview-confirmed broader edit writes, dry-run tests, and scoped read-only hook log viewing are available. Real hook execution, OS notifications, quiet mode, and response-ready delivery remain gated by `docs/reports/HOOKS_NOTIFICATIONS_GATE.md`.</p>
     </SettingsReferenceCard>
   )
 }

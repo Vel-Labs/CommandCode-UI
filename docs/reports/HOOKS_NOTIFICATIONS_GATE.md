@@ -24,6 +24,7 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 - `src/core/hooksLogs.ts`, `/api/hooks/logs`, `/api/hooks/logs/read`, `transport.listHookLogs(...)`, and `transport.readHookLog(...)` discover and read only `.log`, `.jsonl`, `.txt`, and `.ansi` files from derived project/user hook directories: `<project>/.commandcode/hooks` and `~/.commandcode/hooks`.
 - Settings > Hooks includes a scoped read-only Hook logs viewer with source diagnostics, refresh, bounded read action, and raw preview output.
 - `src/core/hooksPayload.ts` and Settings > Hooks `Sample payload` controls build explicitly marked dry-run JSON samples without executing hook commands or starting sessions.
+- `src/core/hooksDryRun.ts`, `/api/hooks/dry-run`, `transport.dryRunHook(...)`, and Settings > Hooks `Dry-run test` controls return sample payload evidence, matcher applicability, and `execution: not-run` without executing hook commands or starting sessions.
 - `src/renderer/src/services/sessionReadiness.ts` adds a pure session readiness reducer for background, unread, response-ready, and input-required state.
 - The readiness reducer keeps attach, replay, and foreground transitions non-notifying, separates live background output from response-ready state, and emits notification intent only for explicit background `assistant-ready` or `input-required` events.
 - Session data callbacks include `live` versus `replay` metadata, and active tabs/sidebar rows display reducer-backed unread/readiness state without firing toast, audio, or OS notifications.
@@ -35,7 +36,7 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 - No arbitrary hook config path is accepted from the renderer.
 - No arbitrary hook log path is accepted from the renderer; hook log reads are bounded to derived project/user hook directories and supported log-like extensions.
 - No renderer IPC or broad file access permission was added.
-- No hook command execution or real-session test-payload runner was added.
+- No hook command execution or real-session test-payload runner was added; the implemented runner is dry-run only and reports `execution: not-run`.
 - No OS notifications, hook-triggered alerts, quiet mode, runtime-integrated response-ready notifications, or runtime-integrated input-required notifications were added.
 
 ## Required Before Hook Writes
@@ -60,7 +61,7 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 ## Validation Receipts
 
 - `npm run typecheck`
-- `npx vitest run` -> `94/94`
+- `npx vitest run` -> `100/100`
 - `npm run build`
 - `npm run smoke:browser`
 - Built browser route token proof at `http://127.0.0.1:5224/`
@@ -70,7 +71,9 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 - Authenticated `/api/hooks/preview-edit` proof against isolated temp project with unchanged source file
 - Authenticated `/api/hooks/apply-edit` proof against isolated temp project with sibling backup
 - Authenticated `/api/hooks/logs` and `/api/hooks/logs/read` proof against isolated temp project with `audit.log` listed/read, outside path rejected, and unsupported `.md` rejected
+- Authenticated `/api/hooks/dry-run` proof with matching and mismatched sample tools; both returned `execution: not-run`
 - Built browser route token proof at `http://127.0.0.1:5227/`
 - Built browser route token proof at `http://127.0.0.1:56188/` with assets `index-B7vaMBRP.js` and `index-Df7RZjIk.css`
-- Electron dev startup with renderer `http://localhost:5175/` and embedded server `http://127.0.0.1:56240`
+- Built browser route token proof at `http://127.0.0.1:56853/` with assets `index-u1BdDkr0.js` and `index-Df7RZjIk.css`
+- Electron dev startup with renderer `http://localhost:5175/` and embedded server `http://127.0.0.1:56886`
 - In-app Browser screenshot automation was not available in this turn; route-level and Electron startup receipts were used instead.

@@ -38,6 +38,7 @@ import type {
   HookEvent,
   HookScope
 } from './hooksConfig'
+import type { HookDryRunResult } from './hooksDryRun'
 import type { HookLogDiscoveryResult, HookLogReadResult } from './hooksLogs'
 
 export type SessionDataSource = 'live' | 'replay'
@@ -113,6 +114,16 @@ export type TransportAPI = {
     sourceScope: HookScope
     path: string
   }) => Promise<HookLogReadResult>
+  dryRunHook: (options: {
+    cwd?: string
+    sourceScope: HookScope
+    event: HookEvent
+    command: string
+    matcher?: string
+    enabled?: boolean
+    toolName?: string
+    permissionMode?: string
+  }) => Promise<HookDryRunResult>
   applyHookToggle: (options: {
     cwd?: string
     sourceScope: HookScope

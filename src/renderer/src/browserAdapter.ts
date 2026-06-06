@@ -28,6 +28,7 @@ import type {
 } from '../../core/types'
 import type { PtyDoctorResult } from '../../core/ptyDoctor'
 import type { HookConfigDiscoveryResult, HookConfigEditApplyResult, HookConfigEditPreviewResult, HookConfigToggleApplyResult, HookConfigTogglePreviewResult } from '../../core/hooksConfig'
+import type { HookDryRunResult } from '../../core/hooksDryRun'
 import type { HookLogDiscoveryResult, HookLogReadResult } from '../../core/hooksLogs'
 
 let cachedToken = ''
@@ -389,6 +390,12 @@ export function createBrowserTransport(): TransportAPI {
 
     readHookLog: async (options) =>
       fetchJson<HookLogReadResult>('/api/hooks/logs/read', {
+        method: 'POST',
+        body: JSON.stringify(options)
+      }),
+
+    dryRunHook: async (options) =>
+      fetchJson<HookDryRunResult>('/api/hooks/dry-run', {
         method: 'POST',
         body: JSON.stringify(options)
       }),

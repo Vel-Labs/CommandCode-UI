@@ -31,10 +31,10 @@ GUI implications:
 - Show project vs user scope and whether the file is committed.
 - Read and validate `.commandcode/settings.json` before writing.
 - Current GUI status: Settings > Hooks reads only the documented project/user `settings.json` paths through scoped discovery, shows parsed diagnostics, can preview/apply enable/disable toggles with `.ccgui.bak` backups, can preview/apply broader command, matcher, timeout, and delete edits with `.ccgui.bak` backups, and can show scoped read-only hook logs from derived project/user hook directories. Hook execution remains gated.
-- Current GUI dry-run status: Settings > Hooks can render an explicitly marked sample payload for discovered hooks, but it does not claim the sample was emitted by a real Command Code session.
+- Current GUI dry-run status: Settings > Hooks can render an explicitly marked sample payload and can run a dry-run test that reports matcher applicability and `execution: not-run`; it does not claim the sample was emitted by a real Command Code session and does not execute hook commands.
 - Surface hook order and whether a hook can block execution.
 - Add local examples for block shell, sensitive read warning, write audit, and Stop revision.
-- Provide a test payload runner before asking users to run a real Command Code session.
+- Provide a test payload runner before asking users to run a real Command Code session. The current runner is dry-run only; real hook execution remains gated.
 - Keep hook execution owned by Command Code; the GUI should edit config and run diagnostics only.
 
 ## MCP

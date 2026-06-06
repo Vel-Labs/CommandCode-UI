@@ -520,6 +520,8 @@ Fourteenth broader edit write package added `/api/hooks/apply-edit`, `transport.
 
 Fifteenth scoped hook log viewer package added `src/core/hooksLogs.ts`, `/api/hooks/logs`, `/api/hooks/logs/read`, `transport.listHookLogs(...)`, `transport.readHookLog(...)`, and a Settings > Hooks read-only log viewer. The server derives only `<project>/.commandcode/hooks` and `~/.commandcode/hooks`, lists supported log-like files (`.log`, `.jsonl`, `.txt`, `.ansi`), caps reads at the existing 1 MB file-read limit, and rejects outside paths and unsupported extensions. This package did not add arbitrary file access, renderer IPC, hook execution, hook test-runner behavior, OS notifications, audio behavior, or Command Code runtime mutation. The real Command Code interactive path was not exercised because this package only reads scoped diagnostics. Validation receipts: `npm run typecheck`, `npx vitest run` -> `94/94`, `npm run build`, `npm run smoke:browser`, authenticated `/api/hooks/logs` and `/api/hooks/logs/read` proof at `http://127.0.0.1:56187/` against `/var/folders/r8/0k0xbybj7svf24btnjglc7jh0000gn/T/ccgui-hook-log-proof-KXgeh5` showing only `audit.log` listed/read while outside `outside.log` and unsupported `secret.md` were rejected, built browser route proof at `http://127.0.0.1:56188/` with assets `index-B7vaMBRP.js` and `index-Df7RZjIk.css`, and Electron dev startup with renderer `http://localhost:5175/` plus embedded app server `http://127.0.0.1:56240`. In-app Browser screenshot automation was not available in this turn, so route-level and Electron startup receipts were used instead.
 
+Sixteenth dry-run test runner package added `src/core/hooksDryRun.ts`, `/api/hooks/dry-run`, `transport.dryRunHook(...)`, and Settings > Hooks `Dry-run test` controls. The runner returns sample payload evidence, matcher applicability, `willRun`/`would skip` status, and `execution: not-run`; it does not read hook config, write files, start sessions, spawn processes, execute hook commands, or mutate Command Code runtime state. Real hook execution and real-session test payloads remain gated. Validation receipts: `npm run typecheck`, `npx vitest run` -> `100/100`, `npm run build`, `npm run smoke:browser`, authenticated `/api/hooks/dry-run` proof at `http://127.0.0.1:56852/` showing matching `Bash|Shell` returned `willRun=true` with `execution=not-run` and mismatched `Write|Edit` versus `Read` returned `willRun=false` with `execution=not-run`, built browser route proof at `http://127.0.0.1:56853/` with assets `index-u1BdDkr0.js` and `index-Df7RZjIk.css`, and Electron dev startup with renderer `http://localhost:5175/` plus embedded app server `http://127.0.0.1:56886`. In-app Browser screenshot automation was not available in this turn, so route-level and Electron startup receipts were used instead.
+
 ### Scope
 
 - Add Settings > Hooks.
@@ -530,7 +532,7 @@ Fifteenth scoped hook log viewer package added `src/core/hooksLogs.ts`, `/api/ho
 - Preserve project-over-user precedence.
 - Add enable/disable controls per hook. Implemented for scoped previewed toggles with backup writes; broader hook editing is implemented for command, matcher, timeout, and delete edits through preview-confirmed scoped writes with backups.
 - Add hook logs/output viewer where logs are available. Implemented as a scoped read-only viewer for derived project/user hook directories with supported log-like extensions only.
-- Add a test payload runner so users can validate hook behavior before real sessions. Dry-run sample payload preview is implemented; command execution remains gated.
+- Add a test payload runner so users can validate hook behavior before real sessions. Implemented as a dry-run runner that returns sample payload evidence and matcher applicability with `execution: not-run`; real hook command execution remains gated.
 - Add examples for dangerous shell blocking, sensitive read warnings, write auditing, and Stop-hook finish notifications.
 - Document and support a community-style Stop-hook notification/audio recipe compatible with `vipulgupta2048/command-code-bonk`.
 - Replace terminal data-length notification heuristics with explicit session lifecycle state. Pure reducer and live-versus-replay session callback metadata implemented; response-ready runtime integration remains gated.
@@ -563,7 +565,7 @@ Likely new files:
 
 - Hook config parser handles empty, user-only, project-only, and merged configs.
 - Invalid hook JSON is rejected before write.
-- Test payload runner executes or dry-runs without starting a real session.
+- Test payload runner dry-runs without starting a real session. Real hook command execution remains gated.
 - Opening/attaching/returning to a session does not produce response-ready toast. Implemented at pure reducer level and in tab foreground/replay wiring; runtime UI notification integration remains gated.
 - Background session output produces one appropriate unread/ready notification. Reducer distinguishes live background output from readiness intent, and tabs/sidebar show unread state; notification dispatch remains gated.
 - Input-required state produces a distinct notification. Implemented at pure reducer intent level; notification dispatch remains gated.

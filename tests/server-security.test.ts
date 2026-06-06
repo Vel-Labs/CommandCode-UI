@@ -272,6 +272,39 @@ describe('server filesystem boundaries', () => {
     expect(unsupported.error).toContain('Unsupported hook log file type')
   })
 
+  it('returns hook dry-run evidence without executing hook commands', async () => {
+    const app = await startServer()
+    const project = tempProject()
+
+    const dryRun = await apiPost<{
+      ok: boolean
+      willRun: boolean
+      reason: string
+      payloadJson?: string
+      execution?: string
+    }>(app, '/api/hooks/dry-run', {
+      cwd: project,
+      sourceScope: 'project',
+      event: 'PreToolUse',
+      command: 'node scripts/block-shell.js',
+      matcher: 'Bash|Shell',
+      enabled: true
+    })
+
+    expect(dryRun).toMatchObject({
+      ok: true,
+      willRun: true,
+      execution: 'not-run'
+    })
+    expect(dryRun.reason).toContain('did not execute')
+    expect(JSON.parse(dryRun.payloadJson || '{}')).toMatchObject({
+      hook_event_name: 'PreToolUse',
+      tool_name: 'Bash',
+      ccgui_preview_command: 'node scripts/block-shell.js',
+      ccgui_dry_run: true
+    })
+  })
+
   it('reports hook config parse errors without writing or executing hooks', async () => {
     const app = await startServer()
     const project = tempProject()

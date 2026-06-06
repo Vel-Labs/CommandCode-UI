@@ -648,6 +648,21 @@ Scope: scoped broader hook edit write package. Added `/api/hooks/apply-edit`, `t
 
 Scope: scoped read-only hook log diagnostics package. Added `src/core/hooksLogs.ts`, `/api/hooks/logs`, `/api/hooks/logs/read`, `transport.listHookLogs(...)`, `transport.readHookLog(...)`, and Settings > Hooks source diagnostics plus raw preview UI. The server derives only `<project>/.commandcode/hooks` and `~/.commandcode/hooks`, lists supported log-like files (`.log`, `.jsonl`, `.txt`, `.ansi`), caps reads at the existing 1 MB file-read limit, and rejects outside paths and unsupported extensions. No arbitrary file access, renderer IPC, hook execution, hook test-runner, OS notification, audio behavior, or Command Code runtime mutation was added. The real Command Code interactive path was not exercised because this package only reads scoped diagnostics.
 
+### 2026-06-06 Phase 3 hook dry-run test runner
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `100/100` |
+| Build | Pass | `npm run build`; assets `index-u1BdDkr0.js` and `index-Df7RZjIk.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser`; mock session created/exited, auth checks passed |
+| Hook dry-run API proof | Pass | Authenticated `/api/hooks/dry-run` at `http://127.0.0.1:56852/`; matching `Bash|Shell` sample returned `willRun=true`, `toolName=Bash`, and `execution=not-run`; mismatched `Write|Edit` versus `Read` returned `willRun=false` and `execution=not-run` |
+| Built browser route | Pass | `npm run dev:server -- --port 56853`; token proof returned `302`, cookie-authenticated `/` served built assets `index-u1BdDkr0.js` and `index-Df7RZjIk.css`; authenticated `/api/hooks/dry-run` returned `ccgui_dry_run=true` and `execution=not-run` |
+| Electron dev startup | Pass | `npm run dev`; renderer `http://localhost:5175/`, embedded app server `http://127.0.0.1:56886` |
+| In-app Browser screenshot automation | Not run | Browser plugin navigation tools were not exposed in this turn and Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
+
+Scope: dry-run test runner package for Settings > Hooks. Added `src/core/hooksDryRun.ts`, `/api/hooks/dry-run`, `transport.dryRunHook(...)`, and Settings `Dry-run test` controls that return sample payload evidence, matcher applicability, and `execution: not-run`. The route does not read hook config, does not write files, does not start a session, does not spawn a process, and does not execute hook commands. Real hook execution, real-session test payloads, OS notifications, audio behavior, and Command Code runtime mutation remain gated.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |
