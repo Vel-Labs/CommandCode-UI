@@ -1,9 +1,9 @@
 import type { JSX } from 'react'
-import { Activity, GitBranch, Keyboard, Terminal } from 'lucide-react'
+import { Activity, Bot, Braces, GitBranch, Keyboard, MemoryStick, Monitor, Plug, Sparkles, Terminal } from 'lucide-react'
 import type { PermissionMode } from '../../../shared/types'
 import type { PtyDoctorResult } from '../../../core/ptyDoctor'
 import type { TransportAPI } from '../../../core/transport'
-import type { AppearanceTheme, RuntimeMode } from '../appTypes'
+import type { AppearanceTheme, RuntimeMode, SettingsSection } from '../appTypes'
 import type { HeadlessJob } from '../components/HeadlessHistory'
 import { AuthCard } from '../components/AuthCard'
 import { HeadlessHistory } from '../components/HeadlessHistory'
@@ -253,14 +253,51 @@ export function UsageSettings({
   )
 }
 
-export function IntegrationsSettings({ openDocs, transport }: { openDocs: () => void; transport: TransportAPI }): JSX.Element {
+const integrationSections: Array<{
+  section: SettingsSection
+  label: string
+  description: string
+  icon: JSX.Element
+}> = [
+  { section: 'mcp', label: 'MCP', description: 'Read configured MCP servers and tool visibility.', icon: <Plug size={16} /> },
+  { section: 'hooks', label: 'Hooks', description: 'Review documented hook scopes before write support lands.', icon: <Braces size={16} /> },
+  { section: 'agents', label: 'Agents', description: 'Inspect discovered project and global agent files.', icon: <Bot size={16} /> },
+  { section: 'skills', label: 'Skills', description: 'Inspect installed skills and source paths.', icon: <MemoryStick size={16} /> },
+  { section: 'design', label: 'Design', description: 'Review the staged /design helper entry point.', icon: <Monitor size={16} /> },
+  { section: 'memory', label: 'Memory', description: 'Inspect memory scopes and ownership warnings.', icon: <MemoryStick size={16} /> },
+  { section: 'taste', label: 'Taste', description: 'Inspect taste profile discovery without editing internals.', icon: <Sparkles size={16} /> }
+]
+
+export function IntegrationsSettings({
+  openDocs,
+  transport,
+  openSection
+}: {
+  openDocs: () => void
+  transport: TransportAPI
+  openSection: (section: SettingsSection) => void
+}): JSX.Element {
   return (
     <div className="settings-detail-page">
       <div className="settings-page-title">Integrations</div>
-      <div className="settings-card">
-        <button className="ghost-button native-ghost settings-inline-action" onClick={openDocs}><Keyboard size={16} /> Docs</button>
-        <button className="ghost-button native-ghost settings-inline-action" onClick={() => transport.openExternal('https://commandcode.ai/docs/reference/cli')}><Terminal size={16} /> CLI docs</button>
-        <div className="settings-muted">MCP, skills, memory, and agent controls stay in Advanced so runtime-sensitive tools remain explicit.</div>
+      <div className="settings-card settings-card--wide">
+        <div className="settings-readonly-header">
+          <strong>Integration surfaces</strong>
+        </div>
+        <div className="settings-action-grid">
+          {integrationSections.map((item) => (
+            <button key={item.section} className="settings-action-tile" onClick={() => openSection(item.section)}>
+              <span>{item.icon}</span>
+              <strong>{item.label}</strong>
+              <small>{item.description}</small>
+            </button>
+          ))}
+        </div>
+        <div className="settings-inline-actions">
+          <button className="ghost-button native-ghost settings-inline-action" onClick={openDocs}><Keyboard size={16} /> Local docs</button>
+          <button className="ghost-button native-ghost settings-inline-action" onClick={() => transport.openExternal('https://commandcode.ai/docs/reference/cli')}><Terminal size={16} /> CLI docs</button>
+        </div>
+        <p className="settings-muted">This hub only routes to existing read-only Settings sections. Connect, edit, save, auth, and config mutation actions remain gated until command previews, scopes, and write destinations are explicit.</p>
       </div>
     </div>
   )

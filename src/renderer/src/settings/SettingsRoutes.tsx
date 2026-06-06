@@ -84,6 +84,7 @@ export type SettingsRouteProps = {
   openConfigureModels: () => Promise<void>
   openDocs: () => void
   openAdvanced: () => void
+  openSection: (section: SettingsSection) => void
 }
 
 export function SettingsRoute(props: SettingsRouteProps): JSX.Element {
@@ -115,7 +116,8 @@ export function SettingsRoute(props: SettingsRouteProps): JSX.Element {
     runCheck,
     openConfigureModels,
     openDocs,
-    openAdvanced
+    openAdvanced,
+    openSection
   } = props
 
   switch (section) {
@@ -166,7 +168,7 @@ export function SettingsRoute(props: SettingsRouteProps): JSX.Element {
     case 'usage':
       return <UsageSettings headlessJobs={headlessJobs} clearHeadlessJobs={clearHeadlessJobs} sessionCount={sessionCount} />
     case 'integrations':
-      return <IntegrationsSettings openDocs={openDocs} transport={transport} />
+      return <IntegrationsSettings openDocs={openDocs} transport={transport} openSection={openSection} />
     case 'advanced':
       return <AdvancedSettings openAdvanced={openAdvanced} />
     case 'data':

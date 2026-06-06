@@ -106,6 +106,20 @@ Scope: test-only validation package. `tests/settings-registry.test.ts` covers th
 
 Scope: gate and validation package. `docs/reports/SETTINGS_PERSISTENCE_GATE.md` defines GUI-owned app/project preference files, Command Code-owned `settings.json` scope, and the write gates required before editable Settings sections expand. `tests/server-security.test.ts` now covers invalid project preference paths and sanitized temp-project GUI preference writes. No config writes, persistence fields, server routes, renderer IPC expansion, runtime/session changes, or Command Code settings mutation were added.
 
+### 2026-06-06 Phase 2 read-only Integrations hub
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `48/48` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5198`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets `index-rbvZ9UTu.js` and `index-C732M7fy.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:64131` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; no new dependency was added for this settings package |
+
+Scope: read-only Integrations hub package. The Integrations Settings page now routes to existing MCP, Hooks, Agents, Skills, Design, Memory, and Taste Settings sections and keeps local/CLI docs links visible. No connect, edit, save, auth, config mutation, server routes, renderer IPC expansion, runtime/session changes, or Command Code settings mutation were added.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |

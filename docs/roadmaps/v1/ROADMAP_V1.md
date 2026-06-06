@@ -346,12 +346,14 @@ Fifth presentation package extracted Settings section routing, shared section fr
 
 Sixth gate package added `docs/reports/SETTINGS_PERSISTENCE_GATE.md` to define GUI-owned preference files, Command Code-owned `settings.json` scope, and write gates required before editable Settings sections expand. It also added project GUI preference route coverage to `tests/server-security.test.ts` for invalid project paths and sanitized temp-project writes. This package did not add config writes, persistence fields, server routes, renderer IPC expansion, runtime/session changes, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `48/48`, and `npm run build`.
 
+Seventh read-only package replaced the placeholder Integrations page with a Settings hub that routes to existing MCP, Hooks, Agents, Skills, Design, Memory, and Taste sections and keeps local/CLI docs links visible. It did not add connect, edit, save, auth, config mutation, server routes, renderer IPC expansion, runtime/session changes, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `48/48`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5198/`, and Electron dev startup with embedded app server `http://127.0.0.1:64131`.
+
 ### Scope
 
 - Fold AdvancedPanel content into Settings as first-class sections.
 - Add or complete sections: General, Runtime, Models, Hooks, MCP, Agents, Skills, Design, Memory, Taste, Notifications, Terminal, Keyboard, Data, About, and Advanced Diagnostics.
 - Implement real settings search or remove the placeholder until search exists.
-- Populate Integrations with actual integration management or remove the dead section.
+- Populate Integrations with actual integration management or remove the dead section. Started with the read-only Settings hub; write-capable integration management remains gated.
 - Redesign Profile into an actionable dashboard or collapse it into General.
 - Add terminal settings for font size, scrollback, bell, cursor, line height, history, and profile where supported.
 - Add notification settings for toast/audio categories, quiet mode, per-session readiness, hook-triggered alerts, and volume.

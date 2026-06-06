@@ -34,7 +34,8 @@ export function SettingsWorkspace({
   runCheck,
   openConfigureModels,
   openDocs,
-  openAdvanced
+  openAdvanced,
+  openSection
 }: {
   section: SettingsSection
   cwd: string
@@ -64,6 +65,7 @@ export function SettingsWorkspace({
   openConfigureModels: () => Promise<void>
   openDocs: () => void
   openAdvanced: () => void
+  openSection: (section: SettingsSection) => void
 }): JSX.Element {
   return (
     <section className="settings-workspace" aria-label="Settings">
@@ -97,6 +99,7 @@ export function SettingsWorkspace({
           openConfigureModels={openConfigureModels}
           openDocs={openDocs}
           openAdvanced={openAdvanced}
+          openSection={openSection}
         />
       </main>
     </section>

@@ -3903,6 +3903,65 @@ input[type="range"]::-webkit-slider-thumb {
   margin-right: 8px;
 }
 
+.settings-inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.settings-action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.settings-action-tile {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 10px;
+  min-height: 92px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #f4f4f5;
+  background: rgba(255, 255, 255, 0.035);
+  text-align: left;
+}
+
+.settings-action-tile:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.settings-action-tile > span {
+  grid-row: span 2;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 7px;
+  color: #d9d9df;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.settings-action-tile strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-action-tile small {
+  min-width: 0;
+  color: #a0a0a6;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 .settings-status-row,
 .settings-permission-grid {
   display: grid;

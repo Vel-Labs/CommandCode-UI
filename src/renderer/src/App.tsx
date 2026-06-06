@@ -1067,6 +1067,7 @@ export function App(): JSX.Element {
             openConfigureModels={openConfigureModels}
             openDocs={() => openRightInspector('docs')}
             openAdvanced={() => setAdvancedOpen(true)}
+            openSection={setSettingsSection}
           />
         ) : workspaceView === 'home' ? (
           <HomeWorkspace
