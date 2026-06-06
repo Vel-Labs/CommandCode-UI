@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import {
   buildMcpActionArgs,
   buildMcpActionPreview,
+  buildMcpAddCommandArgs,
+  buildMcpAddCommandPreview,
   buildMcpGatedCommandArgs,
   buildMcpGatedCommandPreview
 } from '../src/core/mcpCommands'
@@ -37,5 +39,46 @@ describe('MCP command builders', () => {
     expect(buildMcpGatedCommandPreview(undefined, { kind: 'get', serverName: 'github' })).toBe('cmd mcp get github')
     expect(buildMcpGatedCommandPreview(undefined, { kind: 'auth-status', serverName: 'github' })).toBe('cmd mcp auth --status github')
     expect(buildMcpGatedCommandPreview(undefined, { kind: 'auth-list' })).toBe('cmd mcp auth --list')
+  })
+
+  it('builds HTTP add command previews with redacted headers', () => {
+    expect(buildMcpAddCommandArgs({
+      kind: 'add',
+      serverName: 'linear',
+      transport: 'http',
+      scope: 'project',
+      url: 'https://mcp.linear.app',
+      headers: [{ key: 'Authorization', value: 'Bearer secret-token', secret: true }]
+    }, { redactSecrets: true })).toEqual([
+      'mcp',
+      'add',
+      '--transport',
+      'http',
+      '--scope',
+      'project',
+      '--header',
+      'Authorization=<redacted>',
+      'linear',
+      'https://mcp.linear.app'
+    ])
+  })
+
+  it('builds stdio add previews with redacted env values', () => {
+    expect(buildMcpAddCommandPreview(undefined, {
+      kind: 'add',
+      serverName: 'repo',
+      transport: 'stdio',
+      env: [{ key: 'GITHUB_TOKEN', value: 'ghp_secret', secret: true }]
+    })).toBe("cmd mcp add --transport stdio --env 'GITHUB_TOKEN=<redacted>' repo")
+  })
+
+  it('builds add-json previews without exposing client secrets', () => {
+    expect(buildMcpAddCommandPreview(undefined, {
+      kind: 'add-json',
+      serverName: 'oauth-server',
+      scope: 'user',
+      json: '{"type":"http","url":"https://example.test/mcp"}',
+      clientSecret: 'super-secret'
+    })).toBe("cmd mcp add-json --scope user --client-secret '<redacted>' oauth-server '{\"type\":\"http\",\"url\":\"https://example.test/mcp\"}'")
   })
 })

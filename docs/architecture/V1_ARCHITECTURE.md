@@ -165,7 +165,7 @@ Phase 3 has started with a pure parser/gate package:
 
 Phase 6 has started with a pure command-builder package:
 
-- `src/core/mcpCommands.ts` owns tested `cmd mcp connect|disconnect <server>` argument construction and display previews.
+- `src/core/mcpCommands.ts` owns tested `cmd mcp connect|disconnect <server>` argument construction, gated command previews, and preview-only `cmd mcp add` / `cmd mcp add-json` argument construction with redacted secret display.
 - `src/core/mcpList.ts` owns MCP list-output parsing for server status, tool count, raw output, and optional registered tool names already present in `cmd mcp list` output.
 - `src/core/mcpReference.ts` owns tested scope path and policy metadata for local, project, and user MCP config, permission prompts, plan-mode restrictions, and secret-handling boundaries.
 - `src/core/discovery.ts` uses the same builder for the existing MCP action path.
@@ -175,7 +175,7 @@ Phase 6 has started with a pure command-builder package:
 - Settings > MCP shows preview-only gated commands for details, remove, auth status, and auth clear. Those previews are not executable from the GUI yet.
 - `/api/mcp/list` returns read-only list diagnostics (`ok`, `stdout`, `stderr`, `error`) alongside `servers`, and Settings > MCP surfaces failures instead of treating failed list commands as empty state.
 - `src/renderer/src/settings/McpSettings.tsx` owns Settings > MCP presentation; `AdvancedReadOnlySettings.tsx` no longer owns the MCP route content.
-- MCP add, remove, auth, server edit, connection test, diagnostics, and log viewing remain planned or gated. No MCP secrets are stored in GUI preferences.
+- MCP add has pure redacted preview builders only; Settings UI, execution, config reads/writes, and secret persistence remain planned or gated. MCP remove, auth, server edit, connection test, diagnostics, and log viewing also remain planned or gated. No MCP secrets are stored in GUI preferences.
 
 Suggested sections:
 

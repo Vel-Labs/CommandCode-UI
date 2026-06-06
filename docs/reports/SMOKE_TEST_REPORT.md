@@ -1128,3 +1128,14 @@ Scope: extended the existing read-only MCP list route to return list diagnostics
 | Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
 
 Scope: extracted Settings > MCP presentation into a dedicated `McpSettings.tsx` module and updated route ownership without changing MCP transport behavior, command previews, diagnostics, tool chips, or connect/disconnect actions. This did not add new MCP commands, config reads or writes, renderer IPC, secret storage, runtime mutation, or Command Code settings mutation.
+
+### 2026-06-06 Phase 6 MCP add preview builders
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `148/148` |
+| Real headless | Pass | `npm run smoke:headless` -> `cmd --print` exit `0` |
+| Build | Pass | `npm run build`; renderer assets `index-v30dRzNV.js` and `index-8BkyITsP.css` |
+
+Scope: added tested pure preview builders for documented `cmd mcp add` and `cmd mcp add-json` argument shapes, including scoped HTTP, stdio, env, header, JSON config, and redacted client-secret previews. This did not add Settings UI, execution buttons, MCP add mutation, config reads or writes, renderer IPC, secret storage, runtime mutation, or Command Code settings mutation. Real external MCP add/add-json mutation was not tested because this package only builds redacted previews.
