@@ -6,25 +6,30 @@ import type { TransportAPI } from '../../../core/transport'
 import { parseTranscriptJsonl, type ParsedTranscriptEntry, type TranscriptEntryKind } from '../../../core/transcriptParser'
 import type { WorkEvent } from '../appTypes'
 import { resolveSessionModelIdentity } from '../services/sessionModelIdentity'
+import { suggestTranscriptArtifacts, type TranscriptArtifactSuggestion } from '../services/transcriptArtifacts'
 
 export function TranscriptWorkspace({
   session,
   transport,
+  cwd,
   statusLine,
   resumeFailure,
   workEvents,
   onResume,
   onReveal,
-  onOpenTranscript
+  onOpenTranscript,
+  onOpenArtifact
 }: {
   session: DiscoveredSession
   transport: TransportAPI
+  cwd: string
   statusLine: string
   resumeFailure: string
   workEvents: WorkEvent[]
   onResume: () => void
   onReveal: () => void
   onOpenTranscript: () => void
+  onOpenArtifact: (path: string) => void
 }): JSX.Element {
   const modelIdentity = resolveSessionModelIdentity({ transcriptModel: session.model })
 
@@ -52,17 +57,32 @@ export function TranscriptWorkspace({
         ))}
       </div>
       <div className="transcript-inline-preview">
-        <TranscriptPreview transport={transport} session={session} compact />
+        <TranscriptPreview transport={transport} session={session} cwd={session.cwd || cwd} onOpenArtifact={onOpenArtifact} compact />
       </div>
     </section>
   )
 }
 
-export function TranscriptPreview({ transport, session, compact = false }: { transport: TransportAPI; session: DiscoveredSession; compact?: boolean }): JSX.Element {
+export function TranscriptPreview({
+  transport,
+  session,
+  cwd,
+  onOpenArtifact,
+  compact = false
+}: {
+  transport: TransportAPI
+  session: DiscoveredSession
+  cwd?: string
+  onOpenArtifact?: (path: string) => void
+  compact?: boolean
+}): JSX.Element {
   const [content, setContent] = useState('')
   const [error, setError] = useState('')
   const [filter, setFilter] = useState<TranscriptEntryKind | 'all'>('all')
   const parsed = useMemo(() => parseTranscriptJsonl(content), [content])
+  const artifactRoot = session.cwd || cwd
+  const artifactText = useMemo(() => parsed.entries.map((entry) => entry.text).filter(Boolean).join('\n'), [parsed.entries])
+  const artifactResult = useMemo(() => suggestTranscriptArtifacts(artifactText, artifactRoot), [artifactRoot, artifactText])
   const visibleEntries = filter === 'all'
     ? parsed.entries
     : parsed.entries.filter((entry) => entry.kind === filter)
@@ -111,11 +131,50 @@ export function TranscriptPreview({ transport, session, compact = false }: { tra
           ? visibleEntries.map((entry) => <TranscriptTimelineEntry key={`${entry.line}-${entry.id}`} entry={entry} />)
           : <div className="muted">No transcript entries match this filter.</div>}
       </div>
+      <TranscriptArtifactList artifacts={artifactResult.artifacts} rejectedCount={artifactResult.rejectedCount} onOpenArtifact={onOpenArtifact} />
       <details className="transcript-raw-details">
         <summary>Raw transcript</summary>
         <pre className={`transcript-preview ${compact ? 'transcript-preview--compact' : ''}`}>{content}</pre>
       </details>
     </div>
+  )
+}
+
+function TranscriptArtifactList({
+  artifacts,
+  rejectedCount,
+  onOpenArtifact
+}: {
+  artifacts: TranscriptArtifactSuggestion[]
+  rejectedCount: number
+  onOpenArtifact?: (path: string) => void
+}): JSX.Element | null {
+  if (!artifacts.length && !rejectedCount) return null
+
+  return (
+    <section className="transcript-artifacts" aria-label="Transcript artifacts">
+      <header>
+        <strong>Referenced artifacts</strong>
+        <span>{artifacts.length} available{rejectedCount ? ` · ${rejectedCount} outside scope or unavailable` : ''}</span>
+      </header>
+      {artifacts.length ? (
+        <div className="transcript-artifact-list">
+          {artifacts.map((artifact) => (
+            <button
+              key={artifact.path}
+              className="transcript-artifact"
+              type="button"
+              onClick={() => onOpenArtifact?.(artifact.path)}
+              disabled={!onOpenArtifact}
+              title={artifact.path}
+            >
+              <span>{artifact.path.split('/').pop()}</span>
+              <code>{artifact.kind}{artifact.exists ? '' : ' · missing'}</code>
+            </button>
+          ))}
+        </div>
+      ) : <p className="muted">No previewable artifact paths were found inside the selected workspace.</p>}
+    </section>
   )
 }
 

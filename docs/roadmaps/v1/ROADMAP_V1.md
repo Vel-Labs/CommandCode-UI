@@ -1004,14 +1004,16 @@ Second status update on 2026-06-06: added `src/core/artifactDetection.ts` and `t
 
 Third status update on 2026-06-06: `TranscriptPreview` now renders parsed transcript timeline entries with user, assistant, tool, event, error, unknown, and all-entry filters while preserving raw transcript and raw-entry disclosures for debugging. It still uses the existing guarded `transport.readTranscript()` route and does not add server routes, renderer IPC, file access policy changes, transcript mutation, artifact preview reads, session lifecycle changes, response-ready inference, or Command Code invocation behavior. Validation receipts: `npm run typecheck`, `npx vitest run` -> `157/157`, `npm run build`, `npm run smoke:browser`, built route token proof at `http://127.0.0.1:57394/` serving `index-AP-RfVtB.js` and `index-DaU9l8ex.css`, built asset proof for `Transcript filters`, `Raw transcript`, `Raw entry`, and `transcript-timeline`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:63620`.
 
+Fourth status update on 2026-06-06: transcript previews now surface explicit, click-to-open referenced artifact chips and route them into the existing right-inspector file preview. The renderer uses `src/renderer/src/services/transcriptArtifacts.ts` for browser-safe, selected-workspace suggestions only; actual file content reads still go through the existing guarded `FileViewer` -> `transport.readFile()` -> `/api/files/read` route. No new renderer IPC, server route, filesystem capability, auto-open behavior, write path, transcript mutation, session lifecycle change, or Command Code invocation behavior was added. Validation receipts: `npm run typecheck`, `npx vitest run` -> `159/159`, `npm run build`, `npm run smoke:browser`, built route token proof at `http://127.0.0.1:57395/` serving `index-mM3ke8qx.js` and `index-CgvJRcPm.css`, built asset proof for `Referenced artifacts`, `outside scope or unavailable`, `suggestTranscriptArtifacts`, and `transcript-artifacts`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:63992`.
+
 ### Scope
 
 - Parse transcript JSONL into readable conversation/timeline entries. Implemented for the transcript preview UI.
 - Add transcript filters for user, assistant, tool/event, errors, hooks, and session lifecycle events. Implemented for parsed transcript preview kinds; deeper lifecycle state remains planned.
 - Show resume receipts: source file, session id, cwd, model, timestamp, and resume result.
 - Detect file paths referenced by terminal output and transcript entries.
-- Surface generated or referenced files as session artifacts.
-- Add right-inspector previews for rendered Markdown, rendered HTML, raw text, ANSI logs, and reveal-file actions.
+- Surface generated or referenced files as session artifacts. Implemented for transcript preview suggestions that open the existing right-inspector file preview after an explicit click.
+- Add right-inspector previews for rendered Markdown, rendered HTML, raw text, ANSI logs, and reveal-file actions. Existing right-inspector file preview is wired from transcript artifact chips for Markdown, raw text, and ANSI through the current guarded file-read route; safe rendered HTML remains planned.
 - Add safe HTML rendering rules, sandboxing, or fallback-to-source behavior.
 - Add session search, grouping, labels/notes, and safe bulk operations.
 - Fix hidden/background terminal restoration so resize is not needed to repaint.
@@ -1047,7 +1049,7 @@ Likely new files:
 - Transcript parser handles JSONL user, assistant, tool, error, and unknown entries. Implemented and validated in `tests/transcript-parser.test.ts`; hook/system event entries and invalid JSONL parse errors are covered too.
 - Artifact detector finds relative and absolute paths in terminal/transcript text within allowed roots. Implemented and validated in `tests/artifact-detection.test.ts`.
 - Artifact detector rejects paths outside allowed roots and symlink escapes. Implemented and validated in `tests/artifact-detection.test.ts`.
-- Markdown preview renders `.md` files.
+- Markdown preview renders `.md` files. Existing `FileViewer` Markdown rendering is reachable from transcript artifact chips through the right inspector.
 - HTML preview is sandboxed or falls back safely.
 - Active sessions restore visually after tab changes, inspector resizing, and terminal input toggles.
 - One blocked interactive session does not block rendering or state in other sessions.
@@ -1060,7 +1062,7 @@ Likely new files:
 
 - Do not mutate transcript files.
 - Do not auto-open generated files without user action.
-- Keep artifact preview read-only unless an explicit editor is implemented and scoped.
+- Keep artifact preview read-only unless an explicit editor is implemented and scoped. Implemented for transcript artifact chips by reusing the existing read-only `FileViewer`.
 - Treat HTML as untrusted content.
 - Do not let terminal path detection bypass file access policy.
 - Preserve raw transcript access for debugging. Implemented in the parsed transcript preview with raw transcript and raw-entry disclosures.

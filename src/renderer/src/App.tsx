@@ -1139,12 +1139,14 @@ export function App(): JSX.Element {
             <TranscriptWorkspace
               session={selectedTranscript}
               transport={transport}
+              cwd={cwd}
               statusLine={statusLine}
               resumeFailure={resumeFailure}
               workEvents={workEvents}
               onResume={() => void resumeProjectSession(selectedTranscript)}
               onReveal={() => transport.revealTranscript(selectedTranscript.transcriptPath)}
               onOpenTranscript={() => openRightInspector('transcript')}
+              onOpenArtifact={(path) => { setViewingFile(path); setRightInspector('file'); addWorkEvent('Opened artifact', displayPath(path)) }}
             />
             <RightInspectorPanel
               mode={rightInspector}

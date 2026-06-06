@@ -76,7 +76,7 @@ export function RightInspectorPanel({
                 <div className="inspector-button-row">
                   <button className="ghost-button native-ghost" onClick={onRevealTranscript}>Reveal transcript</button>
                 </div>
-                <TranscriptPreview transport={transport} session={transcript} />
+                <TranscriptPreview transport={transport} session={transcript} cwd={cwd} onOpenArtifact={onSelectFile} />
               </>
             )
             : <InspectorEmpty title="No transcript selected" detail="Open a recent context or active session transcript." />

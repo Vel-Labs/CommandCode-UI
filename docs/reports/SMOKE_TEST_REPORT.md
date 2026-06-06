@@ -1297,3 +1297,18 @@ Scope: pure artifact detector package. `src/core/artifactDetection.ts` detects c
 | Browser plugin navigation | Not available | The Browser navigation tool was not exposed; route-level and built-asset receipts were used instead |
 
 Scope: transcript readability UI package. `TranscriptPreview` now renders parsed timeline entries with all/user/assistant/tool/event/error/unknown filters and preserves raw transcript plus raw-entry disclosures. It still uses the existing guarded `transport.readTranscript()` path. This did not add server routes, renderer IPC, file access policy changes, transcript mutation, artifact preview reads, reveal actions, config writes, CLI arguments, runtime/session lifecycle changes, response-ready inference, or Command Code settings mutation.
+
+### 2026-06-06 Phase 8 transcript artifact chips
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `159/159` |
+| Build | Pass | `npm run build`; renderer assets `index-mM3ke8qx.js` and `index-CgvJRcPm.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57395`; token proof returned `302`, cookie-authenticated `/` served built assets `index-mM3ke8qx.js` and `index-CgvJRcPm.css` |
+| Built asset UI proof | Pass | `rg -n "Referenced artifacts|outside scope or unavailable|transcript-artifacts|transcript-artifact|suggestTranscriptArtifacts|No previewable artifact paths" out/renderer/assets/index-mM3ke8qx.js out/renderer/assets/index-CgvJRcPm.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:63992` |
+| Browser plugin navigation | Not available | The Browser navigation tool was not exposed; route-level and built-asset receipts were used instead |
+
+Scope: transcript artifact preview package. Transcript previews now show explicit referenced-artifact chips detected by a browser-safe helper, and clicking a chip opens the existing right-inspector `FileViewer`. Actual file content reads still use the existing guarded `transport.readFile()` and `/api/files/read` route with workspace-root, symlink, size, and directory checks covered by existing server-security tests. This did not add renderer IPC, server routes, new filesystem capability, auto-open behavior, config writes, CLI arguments, transcript mutation, runtime/session lifecycle changes, response-ready inference, or Command Code settings mutation.
