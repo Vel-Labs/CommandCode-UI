@@ -9,7 +9,7 @@
 Validated on 2026-06-06:
 
 - `npm run typecheck` passes.
-- `npx vitest run` passes with `64/64`.
+- `npx vitest run` passes with `67/67`.
 - `npm run build` passes.
 - `npm run smoke:server` passes.
 - `npm run smoke:browser` passes with mock headless using `useMock:true`.

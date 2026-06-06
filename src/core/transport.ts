@@ -28,6 +28,7 @@ import type {
   WriteFileResult,
 } from './types'
 import type { PtyDoctorResult } from './ptyDoctor'
+import type { HookConfigDiscoveryResult } from './hooksConfig'
 
 export type SessionDataCallback = (data: string) => void
 export type SessionExitCallback = (payload: SessionExitPayload) => void
@@ -71,6 +72,7 @@ export type TransportAPI = {
   listSkills: () => Promise<{ skills: SkillEntry[] }>
   listMemories: (cwd?: string) => Promise<{ memories: MemoryFile[] }>
   saveMemory: (filePath: string, content: string, cwd?: string) => Promise<WriteFileResult>
+  discoverHookConfigs: (cwd?: string) => Promise<HookConfigDiscoveryResult>
   onSessionData: (sessionId: string, callback: SessionDataCallback) => Unsubscribe
   onSessionExit: (sessionId: string, callback: SessionExitCallback) => Unsubscribe
 }

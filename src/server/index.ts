@@ -30,6 +30,12 @@ import {
   saveMemory,
   projectCommandCodeReference
 } from '../core/discovery'
+import {
+  mergeHookConfigs,
+  parseHookSettingsJson,
+  type HookConfigSourceResult,
+  type HookScope
+} from '../core/hooksConfig'
 import type {
   CliExecResult,
   AppGuiPreferences,
@@ -358,6 +364,47 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
 
   function appPreferencesPath(): string {
     return path.join(os.homedir(), '.commandcode', 'gui-preferences.json')
+  }
+
+  function emptyHookConfigSource(sourceScope: HookScope, sourcePath: string, error?: string): HookConfigSourceResult {
+    return {
+      ok: !error,
+      sourceScope,
+      sourcePath,
+      exists: false,
+      hooks: [],
+      warnings: [],
+      errors: error ? [error] : []
+    }
+  }
+
+  function readHookConfigSource(sourceScope: HookScope, sourcePath: string): HookConfigSourceResult {
+    if (!existsSync(sourcePath)) {
+      return emptyHookConfigSource(sourceScope, sourcePath)
+    }
+
+    try {
+      const stat = statSync(sourcePath)
+      if (stat.isDirectory()) {
+        return emptyHookConfigSource(sourceScope, sourcePath, 'Hook config path is a directory')
+      }
+      if (stat.size > MAX_FILE_READ_BYTES) {
+        return emptyHookConfigSource(sourceScope, sourcePath, 'Hook config exceeds 1MB read limit')
+      }
+
+      return {
+        ...parseHookSettingsJson(readFileSync(sourcePath, 'utf8'), sourceScope, sourcePath),
+        exists: true,
+        sizeBytes: stat.size,
+        updatedAt: stat.mtime.toISOString()
+      }
+    } catch (err) {
+      return emptyHookConfigSource(
+        sourceScope,
+        sourcePath,
+        err instanceof Error ? err.message : 'Failed to read hook config'
+      )
+    }
   }
 
   function sanitizeStringArray(input: unknown, maxItems: number): string[] | undefined {
@@ -823,6 +870,22 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
   addRoute('POST', '/api/agents/list', async ({ body }) => {
     const { cwd } = body as { cwd?: string }
     return { agents: listAgents(cwd) }
+  })
+
+  addRoute('POST', '/api/hooks/configs', async ({ body }) => {
+    const { cwd } = body as { cwd?: string }
+    const userSource = readHookConfigSource('user', path.join(os.homedir(), '.commandcode', 'settings.json'))
+    const workspace = resolveWorkspaceRoot(cwd)
+    const projectSource = workspace.root
+      ? readHookConfigSource('project', path.join(workspace.root, '.commandcode', 'settings.json'))
+      : emptyHookConfigSource('project', '<project>/.commandcode/settings.json', workspace.error || 'Access denied — project root is required')
+    const merged = mergeHookConfigs(userSource, projectSource)
+    return {
+      sources: [projectSource, userSource],
+      hooks: merged.hooks,
+      warnings: merged.warnings,
+      errors: merged.errors
+    }
   })
 
   addRoute('POST', '/api/agents/save', async ({ body }) => {

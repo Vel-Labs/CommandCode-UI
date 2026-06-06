@@ -494,12 +494,14 @@ Status on 2026-06-06: started with a parser/gate package. `src/core/hooksConfig.
 
 Second read-only presentation package expanded Settings > Hooks with the Command Code-owned `settings.json` destination, project/user scopes, project-before-user precedence, parser gate status, execution ownership, and example recipes for risky shell blocking, sensitive read warnings, write audit, and Stop notification audio via `command-code-bonk`. This package did not add hook file reads/writes, server routes, renderer IPC, hook execution, test-payload execution, session readiness, OS notifications, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5223/` with assets `index-DwRVIZ21.js` and `index-BE4-R85S.css`, and Electron dev startup with renderer `http://localhost:5175/` plus embedded app server `http://127.0.0.1:52902`.
 
+Third read-only discovery package added a scoped `/api/hooks/configs` route and `transport.discoverHookConfigs(cwd)` for Settings > Hooks. The route derives only the documented `~/.commandcode/settings.json` and `<project>/.commandcode/settings.json` paths, uses the existing project root resolver for `cwd`, caps reads at 1 MB, parses through `src/core/hooksConfig.ts`, and returns source status, parsed hook rows, warnings, and errors without edit controls. Settings > Hooks now displays discovered project/user config status and parsed commands. This package did not add hook writes, arbitrary file reads, renderer IPC, hook execution, test-payload execution, session readiness, OS notifications, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `67/67`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5224/` with assets `index-CS7Xf2sx.js` and `index-BE4-R85S.css`, authenticated `/api/hooks/configs` proof against temp project `/tmp/ccgui-hooks-project-dX71Ss` showing `Stop/echo route-stop/project`, and Electron dev startup with renderer `http://localhost:5175/` plus embedded app server `http://127.0.0.1:53191`.
+
 ### Scope
 
 - Add Settings > Hooks.
-- Read hook config from documented user/project scopes.
+- Read hook config from documented user/project scopes. Implemented as read-only discovery through scoped derived paths; writes remain gated.
 - Surface `.commandcode/settings.json` and `~/.commandcode/settings.json`.
-- Show hook event, matcher, command, timeout, blocking behavior, execution order, enabled state, and source scope.
+- Show hook event, matcher, command, timeout, blocking behavior, execution order, enabled state, and source scope. Implemented for read-only parsed discovery rows.
 - Validate hook JSON before writing.
 - Preserve project-over-user precedence.
 - Add enable/disable controls per hook.

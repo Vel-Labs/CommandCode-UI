@@ -215,7 +215,7 @@ export function SettingsRoute(props: SettingsRouteProps): JSX.Element {
     case 'design':
       return <SettingsFrame title="Design"><DesignSettingsReadOnly /></SettingsFrame>
     case 'hooks':
-      return <SettingsFrame title="Hooks"><HooksSettingsReadOnly /></SettingsFrame>
+      return <SettingsFrame title="Hooks"><HooksSettingsReadOnly transport={transport} cwd={cwd} /></SettingsFrame>
     case 'about':
       return (
         <SettingsFrame title="About">

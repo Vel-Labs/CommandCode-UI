@@ -13,12 +13,14 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 - Project hooks are ordered before user hooks for display because project scope takes precedence over user scope.
 - Invalid JSON and invalid hook shapes are rejected before any future write path can use them.
 - Unknown events are preserved for diagnostics with warnings instead of silently dropped.
+- `/api/hooks/configs` reads exactly the documented user and selected-project settings paths and returns parsed source status for Settings > Hooks.
+- Settings > Hooks displays discovered project/user source status, parsed command rows, warnings, and errors without edit controls.
 
 ## Not Implemented
 
-- No hook config files are read by the app yet.
 - No hook config files are written by the app yet.
-- No server routes, renderer IPC, or file access permissions were added.
+- No arbitrary hook config path is accepted from the renderer.
+- No renderer IPC or broad file access permission was added.
 - No hook execution or test-payload runner was added.
 - No OS notifications, hook-triggered alerts, quiet mode, response-ready state, input-required state, or session readiness model was added.
 
@@ -42,5 +44,9 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 ## Validation Receipts
 
 - `npm run typecheck`
-- `npx vitest run` -> `64/64`
+- `npx vitest run` -> `67/67`
 - `npm run build`
+- `npm run smoke:browser`
+- Built browser route token proof at `http://127.0.0.1:5224/`
+- Authenticated `/api/hooks/configs` proof against isolated temp project
+- Electron dev startup with embedded server `http://127.0.0.1:53191`

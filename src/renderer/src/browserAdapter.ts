@@ -27,6 +27,7 @@ import type {
   WriteFileResult,
 } from '../../core/types'
 import type { PtyDoctorResult } from '../../core/ptyDoctor'
+import type { HookConfigDiscoveryResult } from '../../core/hooksConfig'
 
 let cachedToken = ''
 let serverUrl = ''
@@ -353,6 +354,12 @@ export function createBrowserTransport(): TransportAPI {
       fetchJson<WriteFileResult>('/api/memories/save', {
         method: 'POST',
         body: JSON.stringify({ path: filePath, content, cwd })
+      }),
+
+    discoverHookConfigs: async (cwd?) =>
+      fetchJson<HookConfigDiscoveryResult>('/api/hooks/configs', {
+        method: 'POST',
+        body: JSON.stringify({ cwd })
       }),
 
     onSessionData: (sessionId, callback) => {

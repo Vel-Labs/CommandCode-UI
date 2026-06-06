@@ -484,6 +484,20 @@ Scope: parser/gate package for Phase 3. `src/core/hooksConfig.ts` parses documen
 
 Scope: read-only Settings > Hooks presentation package. Hooks now shows the Command Code-owned `settings.json` destination, project/user scopes, project-before-user precedence, parser gate status, execution ownership, and example recipes for risky shell blocking, sensitive read warnings, write audit, and Stop notification audio via `command-code-bonk`. No hook file reads/writes, server routes, renderer IPC, hook execution, test payload execution, session readiness, OS notifications, or Command Code settings mutation were added.
 
+### 2026-06-06 Phase 3 Hooks config discovery
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `67/67` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser`; mock headless and mock interactive session paths passed |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5224`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets `index-CS7Xf2sx.js` and `index-BE4-R85S.css` |
+| Hook config endpoint | Pass | Authenticated `/api/hooks/configs` against temp project `/tmp/ccgui-hooks-project-dX71Ss` returned project source `true/true/1` and first hook `Stop/echo route-stop/project`; fixture was removed after verification |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:53191` |
+
+Scope: read-only hook config discovery package. Added scoped `/api/hooks/configs`, `transport.discoverHookConfigs(cwd)`, and Settings > Hooks source/parsed-command display. The route derives only documented user/project `settings.json` paths, uses the existing project root resolver for `cwd`, caps reads at 1 MB, and parses through `src/core/hooksConfig.ts`. No hook writes, arbitrary file reads, renderer IPC, hook execution, test payload execution, session readiness, OS notifications, or Command Code settings mutation were added.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |

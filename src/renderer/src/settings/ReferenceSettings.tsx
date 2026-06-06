@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 import type { JSX, ReactNode } from 'react'
 import type { UpdateState } from '../appTypes'
 import { commandPaletteItems, releaseNotes } from '../commandPalette'
+import type { TransportAPI } from '../../../core/transport'
+import type { HookConfigDiscoveryResult } from '../../../core/hooksConfig'
 import {
   NOTIFICATION_PREFERENCES_CHANGED_EVENT,
   defaultAudioPrefs,
@@ -211,13 +213,35 @@ export function DesignSettingsReadOnly(): JSX.Element {
   )
 }
 
-export function HooksSettingsReadOnly(): JSX.Element {
+export function HooksSettingsReadOnly({ transport, cwd }: { transport: TransportAPI; cwd: string }): JSX.Element {
+  const [discovery, setDiscovery] = useState<HookConfigDiscoveryResult | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const examples = [
     { label: 'Block risky shell', event: 'PreToolUse', matcher: 'Bash', command: 'node .commandcode/hooks/block-risky-shell.js' },
     { label: 'Sensitive read warning', event: 'PreToolUse', matcher: 'Read', command: 'node .commandcode/hooks/warn-sensitive-read.js' },
     { label: 'Write audit', event: 'PostToolUse', matcher: 'Write|Edit', command: 'node .commandcode/hooks/audit-write.js' },
     { label: 'Stop notification', event: 'Stop', matcher: 'Session stop', command: 'command-code-bonk --sound done' }
   ]
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setError('')
+    transport.discoverHookConfigs(cwd)
+      .then((result) => {
+        if (!cancelled) setDiscovery(result)
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : String(err))
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [cwd, transport])
 
   return (
     <SettingsReferenceCard title="Hooks">
@@ -232,6 +256,46 @@ export function HooksSettingsReadOnly(): JSX.Element {
       <ReferenceRow label="Documented events" value="PreToolUse, PostToolUse, Stop" />
       <ReferenceRow label="Parser gate" value="Invalid JSON and unsupported shapes fail before future writes" />
       <ReferenceRow label="Execution owner" value="Command Code runs hooks; the GUI only prepares display, validation, and diagnostics" />
+      <div className="settings-command-grid">
+        {(discovery?.sources ?? []).map((source) => (
+          <div key={`${source.sourceScope}:${source.sourcePath}`} className="settings-command-row">
+            <strong>{source.sourceScope === 'project' ? 'Project config' : 'User config'}</strong>
+            <code>{source.sourcePath}</code>
+            <span>
+              {source.exists
+                ? `${source.hooks.length} hook${source.hooks.length === 1 ? '' : 's'}${source.ok ? '' : ' / invalid'}`
+                : source.errors[0] || 'Not found'}
+            </span>
+          </div>
+        ))}
+      </div>
+      {loading && <p className="settings-muted">Loading hook settings from documented scopes.</p>}
+      {error && <p className="settings-muted">{error}</p>}
+      {discovery && discovery.hooks.length > 0 && (
+        <div className="settings-command-grid">
+          {discovery.hooks.map((hook) => (
+            <div key={`${hook.sourcePath}:${hook.order}:${hook.command}`} className="settings-command-row">
+              <strong>{hook.event}{hook.canBlock ? ' / blocking-capable' : ''}</strong>
+              <code>{hook.command}</code>
+              <span>{hook.sourceScope} / {hook.matcher || 'all tools'} / {hook.enabled ? 'enabled' : 'disabled'}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {discovery && discovery.hooks.length === 0 && !loading && (
+        <p className="settings-muted">No hook commands found in the documented project or user settings scopes.</p>
+      )}
+      {discovery && [...discovery.warnings, ...discovery.errors].length > 0 && (
+        <div className="settings-command-grid">
+          {[...discovery.warnings, ...discovery.errors].map((message) => (
+            <div key={message} className="settings-command-row">
+              <strong>Diagnostic</strong>
+              <code>{message}</code>
+              <span>read-only</span>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="settings-command-grid">
         {examples.map((example) => (
           <div key={example.label} className="settings-command-row">

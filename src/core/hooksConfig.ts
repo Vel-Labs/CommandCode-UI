@@ -26,6 +26,19 @@ export type HookConfigParseResult = {
   errors: string[]
 }
 
+export type HookConfigSourceResult = HookConfigParseResult & {
+  exists: boolean
+  sizeBytes?: number
+  updatedAt?: string
+}
+
+export type HookConfigDiscoveryResult = {
+  sources: HookConfigSourceResult[]
+  hooks: ParsedHookCommand[]
+  warnings: string[]
+  errors: string[]
+}
+
 export type MergedHookConfig = {
   hooks: ParsedHookCommand[]
   warnings: string[]

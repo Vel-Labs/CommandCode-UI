@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { createAppServer } from '../src/server/index'
@@ -179,6 +179,68 @@ describe('server filesystem boundaries', () => {
     })
     expect(staleRead.content).toBeUndefined()
     expect(staleRead.error).toContain('Access denied')
+  })
+
+  it('discovers hook configs only from documented project settings scope', async () => {
+    const app = await startServer()
+    const project = tempProject()
+    const settingsPath = path.join(project, '.commandcode', 'settings.json')
+
+    mkdirSync(path.dirname(settingsPath), { recursive: true })
+    writeFileSync(settingsPath, JSON.stringify({
+      hooks: {
+        Stop: [{ type: 'command', command: 'echo project-stop' }]
+      }
+    }), 'utf8')
+
+    const discovered = await apiPost<{
+      sources: Array<{ sourceScope: string; sourcePath: string; exists: boolean; ok: boolean; hooks: Array<{ command: string }> }>
+      hooks: Array<{ command: string; sourceScope: string }>
+      errors: string[]
+    }>(app, '/api/hooks/configs', { cwd: project })
+    const projectSource = discovered.sources.find((source) => source.sourceScope === 'project')
+
+    expect(projectSource).toMatchObject({
+      sourcePath: path.join(realpathSync(project), '.commandcode', 'settings.json'),
+      exists: true,
+      ok: true
+    })
+    expect(projectSource?.hooks.map((hook) => hook.command)).toEqual(['echo project-stop'])
+    expect(discovered.hooks[0]).toMatchObject({ command: 'echo project-stop', sourceScope: 'project' })
+  })
+
+  it('reports hook config parse errors without writing or executing hooks', async () => {
+    const app = await startServer()
+    const project = tempProject()
+    const settingsPath = path.join(project, '.commandcode', 'settings.json')
+
+    mkdirSync(path.dirname(settingsPath), { recursive: true })
+    writeFileSync(settingsPath, '{ nope', 'utf8')
+
+    const discovered = await apiPost<{
+      sources: Array<{ sourceScope: string; exists: boolean; ok: boolean; errors: string[] }>
+      errors: string[]
+    }>(app, '/api/hooks/configs', { cwd: project })
+    const projectSource = discovered.sources.find((source) => source.sourceScope === 'project')
+
+    expect(projectSource?.exists).toBe(true)
+    expect(projectSource?.ok).toBe(false)
+    expect(projectSource?.errors[0]).toContain('Invalid JSON')
+    expect(discovered.errors.some((error) => error.includes('Invalid JSON'))).toBe(true)
+  })
+
+  it('does not infer a project hook config path without an explicit workspace root', async () => {
+    const app = await startServer()
+
+    const discovered = await apiPost<{
+      sources: Array<{ sourceScope: string; exists: boolean; errors: string[] }>
+      hooks: unknown[]
+    }>(app, '/api/hooks/configs', {})
+    const projectSource = discovered.sources.find((source) => source.sourceScope === 'project')
+
+    expect(projectSource?.exists).toBe(false)
+    expect(projectSource?.errors[0]).toContain('Access denied')
+    expect(discovered.hooks.every((hook) => typeof hook === 'object')).toBe(true)
   })
 })
 
