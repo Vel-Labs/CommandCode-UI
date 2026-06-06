@@ -1,8 +1,8 @@
-import { chmodSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { chmodSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { listMcp, mcpAction } from '../src/core/discovery'
+import { discoverSessions, listMcp, mcpAction, readSessionMetadata } from '../src/core/discovery'
 
 const tempDirs: string[] = []
 
@@ -60,5 +60,46 @@ describe('MCP discovery', () => {
 
     const afterDisconnect = await listMcp(commandPath)
     expect(afterDisconnect[0]?.status).toBe('disconnected')
+  })
+})
+
+describe('session discovery metadata', () => {
+  it('reads trimmed title and model metadata without requiring additional runtime state', () => {
+    const dir = tempDir()
+    const metaPath = path.join(dir, 'session.meta.json')
+    writeFileSync(metaPath, JSON.stringify({
+      title: '  Resume bug fix  ',
+      model: '  deepseek/deepseek-v4-pro  '
+    }), 'utf8')
+
+    expect(readSessionMetadata(metaPath)).toEqual({
+      title: 'Resume bug fix',
+      model: 'deepseek/deepseek-v4-pro'
+    })
+  })
+
+  it('surfaces project transcript model metadata for resume labels', () => {
+    const commandCodeBase = tempDir()
+    const cwd = '/tmp/ccgui-discovery-my-project'
+    const projectDir = path.join(commandCodeBase, 'projects', 'tmp-ccgui-discovery-my-project')
+    mkdirSync(projectDir, { recursive: true })
+
+    const transcriptPath = path.join(projectDir, 'abc123.jsonl')
+    writeFileSync(transcriptPath, '{"type":"message"}\n', 'utf8')
+    writeFileSync(path.join(projectDir, 'abc123.meta.json'), JSON.stringify({
+      title: 'Implement labels',
+      model: 'kimi/k2.6'
+    }), 'utf8')
+
+    expect(discoverSessions(cwd, commandCodeBase)).toMatchObject([
+      {
+        id: 'abc123',
+        title: 'Implement labels',
+        model: 'kimi/k2.6',
+        transcriptPath,
+        cwd,
+        source: 'project'
+      }
+    ])
   })
 })

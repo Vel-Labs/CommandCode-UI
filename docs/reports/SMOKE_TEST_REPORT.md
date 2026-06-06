@@ -905,3 +905,17 @@ Scope: extracted documented model list parsing, favorite sorting, and search/fil
 | Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
 
 Scope: replaced the generic Models reference card with a read-only Settings > Models surface that separates single-session model selection, Command Code-owned task routing, model catalog search, and future/plugin-owned vision adapter routing. This did not change Command Code model routing, CLI arguments, IPC routes, config writes, filesystem access, or session lifecycle. Real CLI path was not retested for this renderer-only settings slice.
+
+### 2026-06-06 Phase 4 transcript model metadata discovery
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `112/112` |
+| Build | Pass | `npm run build`; renderer assets `index-0J8Ve054.js` and `index-X_jYjd9B.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57373`; token proof returned `302`, cookie-authenticated `/` served built assets `index-0J8Ve054.js` and `index-X_jYjd9B.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:58239` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
+
+Scope: extended the existing scoped project transcript `.meta.json` read to include trimmed model metadata, and added tests using an injected temporary Command Code base directory. This did not add file roots, IPC routes, config writes, CLI argument changes, Command Code model semantics, or session lifecycle behavior. Real CLI path was not retested for this metadata discovery slice.

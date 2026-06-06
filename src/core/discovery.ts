@@ -28,13 +28,21 @@ function projectSlug(cwd: string): string {
     .toLowerCase()
 }
 
-function readSessionTitle(metaPath: string): string | undefined {
-  if (!existsSync(metaPath)) return undefined
+export type SessionMetadata = {
+  title?: string
+  model?: string
+}
+
+export function readSessionMetadata(metaPath: string): SessionMetadata {
+  if (!existsSync(metaPath)) return {}
   try {
-    const parsed = JSON.parse(readFileSync(metaPath, 'utf8')) as { title?: unknown }
-    return typeof parsed.title === 'string' && parsed.title.trim() ? parsed.title.trim() : undefined
+    const parsed = JSON.parse(readFileSync(metaPath, 'utf8')) as { title?: unknown; model?: unknown }
+    return {
+      title: typeof parsed.title === 'string' && parsed.title.trim() ? parsed.title.trim() : undefined,
+      model: typeof parsed.model === 'string' && parsed.model.trim() ? parsed.model.trim() : undefined
+    }
   } catch {
-    return undefined
+    return {}
   }
 }
 
@@ -85,10 +93,10 @@ function section(
   }
 }
 
-export function discoverSessions(cwd?: string): DiscoveredSession[] {
+export function discoverSessions(cwd?: string, baseDir = BASE_DIR): DiscoveredSession[] {
   const sessions: DiscoveredSession[] = []
 
-  const dirs = [path.join(BASE_DIR, 'sessions'), path.join(BASE_DIR, 'transcripts')]
+  const dirs = [path.join(baseDir, 'sessions'), path.join(baseDir, 'transcripts')]
   for (const dir of dirs) {
     if (!existsSync(dir)) continue
     try {
@@ -112,7 +120,7 @@ export function discoverSessions(cwd?: string): DiscoveredSession[] {
   }
 
   if (cwd?.trim()) {
-    const projectDir = path.join(BASE_DIR, 'projects', projectSlug(cwd))
+    const projectDir = path.join(baseDir, 'projects', projectSlug(cwd))
     if (existsSync(projectDir)) {
       try {
         for (const entry of readdirSync(projectDir)) {
@@ -122,9 +130,11 @@ export function discoverSessions(cwd?: string): DiscoveredSession[] {
             const stat = statSync(full)
             if (!stat.isFile()) continue
             const id = entry.replace(/\.jsonl$/, '')
+            const metadata = readSessionMetadata(path.join(projectDir, `${id}.meta.json`))
             sessions.push({
               id,
-              title: readSessionTitle(path.join(projectDir, `${id}.meta.json`)),
+              title: metadata.title,
+              model: metadata.model,
               timestamp: stat.mtime.toISOString(),
               transcriptPath: full,
               sizeBytes: stat.size,
