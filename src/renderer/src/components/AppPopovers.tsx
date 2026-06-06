@@ -14,6 +14,7 @@ import { getCommandExecutionPreview } from '../commandPalette/commandPreview'
 import { searchCommandPalette } from '../commandPalette/search'
 import type { WorkflowRecipe } from '../commandPalette/workflowRecipes'
 import { workflowRecipes } from '../commandPalette/workflowRecipes'
+import { settingsRegistry } from '../settings/settingsRegistry'
 
 export function AppPopovers({
   popoverRef,
@@ -90,11 +91,12 @@ export function AppPopovers({
 }): JSX.Element | null {
   const [paletteQuery, setPaletteQuery] = useState('')
   const paletteResults = useMemo(
-    () => searchCommandPalette(commandPaletteItems, workflowRecipes, paletteQuery),
+    () => searchCommandPalette(commandPaletteItems, workflowRecipes, paletteQuery, settingsRegistry),
     [commandPaletteItems, paletteQuery]
   )
   const visibleCommands = paletteResults.filter((result) => result.kind === 'command')
   const visibleRecipes = paletteResults.filter((result) => result.kind === 'recipe')
+  const visibleSettings = paletteResults.filter((result) => result.kind === 'settings')
 
   return (
     <>
@@ -185,6 +187,24 @@ export function AppPopovers({
               <div className="command-group-title">Workflow recipes</div>
               {visibleRecipes.map((result) => (
                 <WorkflowRecipeRow key={result.item.id} recipe={result.item} openSettingsSection={openSettingsSection} />
+              ))}
+            </div>
+          )}
+          {visibleSettings.length > 0 && (
+            <div className="command-group command-group--settings">
+              <div className="command-group-title">Settings</div>
+              {visibleSettings.map((result) => (
+                <button
+                  key={result.item.id}
+                  className="popover-row command-row command-row--actionable"
+                  onClick={() => openSettingsSection(result.item.id)}
+                >
+                  <span className="command-row-main">
+                    <strong>{result.item.label}</strong>
+                    <code>Settings</code>
+                  </span>
+                  <span className="popover-row-description">{result.item.description}</span>
+                </button>
               ))}
             </div>
           )}

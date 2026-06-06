@@ -1015,3 +1015,17 @@ Scope: added tested display-only command execution previews for executable comma
 | Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
 
 Scope: added explicit Settings section metadata for `open-settings` workflow recipes and made those recipe rows route to Settings > MCP, Hooks, Notifications, or Agents. Runtime-start recipes remain preview-only with no settings target. This did not add runtime execution, prompt rewriting, config writes, renderer IPC, file access, CLI argument changes, Command Code settings mutation, or session lifecycle behavior. Real CLI path was not retested for this renderer-only navigation slice.
+
+### 2026-06-06 Phase 5 settings search results
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `130/130` |
+| Build | Pass | `npm run build`; renderer assets `index-DLm2HRQl.js` and `index-BYxtwXbi.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57380`; token proof returned `302`, cookie-authenticated `/` served built assets `index-DLm2HRQl.js` and `index-BYxtwXbi.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:59737` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
+
+Scope: extended palette search to return Settings sections from the existing registry for non-empty queries and render those matches as explicit Settings rows. Empty palette state still shows commands and workflow recipes only. This did not add runtime execution, prompt rewriting, config writes, renderer IPC, file access, CLI argument changes, Command Code settings mutation, or session lifecycle behavior. Real CLI path was not retested for this renderer-only search slice.

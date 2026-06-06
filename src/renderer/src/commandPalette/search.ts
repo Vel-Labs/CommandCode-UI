@@ -1,14 +1,17 @@
 import type { CommandPaletteItem } from '../appTypes'
+import type { SettingsRegistryItem } from '../settings/settingsRegistry'
 import type { WorkflowRecipe } from './workflowRecipes'
 
 export type PaletteSearchResult =
   | { kind: 'command'; item: CommandPaletteItem; score: number }
   | { kind: 'recipe'; item: WorkflowRecipe; score: number }
+  | { kind: 'settings'; item: SettingsRegistryItem; score: number }
 
 export function searchCommandPalette(
   commands: CommandPaletteItem[],
   recipes: WorkflowRecipe[],
-  query: string
+  query: string,
+  settings: SettingsRegistryItem[] = []
 ): PaletteSearchResult[] {
   const normalizedQuery = normalize(query)
   const results: PaletteSearchResult[] = []
@@ -21,6 +24,13 @@ export function searchCommandPalette(
   for (const item of recipes) {
     const score = scoreText(normalizedQuery, [item.title, item.command ?? '', item.description, item.surface, item.intent, item.keywords.join(' ')])
     if (score > 0) results.push({ kind: 'recipe', item, score })
+  }
+
+  if (normalizedQuery) {
+    for (const item of settings) {
+      const score = scoreText(normalizedQuery, [item.label, item.description, item.group, item.searchText, item.id])
+      if (score > 0) results.push({ kind: 'settings', item, score })
+    }
   }
 
   return results.sort((a, b) => b.score - a.score || labelFor(a).localeCompare(labelFor(b)))
@@ -42,7 +52,9 @@ function scoreText(query: string, values: string[]): number {
 }
 
 function labelFor(result: PaletteSearchResult): string {
-  return result.kind === 'command' ? result.item.label : result.item.title
+  if (result.kind === 'command') return result.item.label
+  if (result.kind === 'settings') return result.item.label
+  return result.item.title
 }
 
 function normalize(value: string): string {
