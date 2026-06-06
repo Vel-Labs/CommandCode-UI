@@ -1247,3 +1247,14 @@ Scope: added read-only Memory previews and made opening the existing editor an e
 | Direct agent save click-through | Not run | Existing `transport.saveAgent` route and server policy were not changed; previous isolated Settings Agent save receipts remain the write-path evidence |
 
 Scope: added read-only Agent raw-content previews and made opening the existing project editor an explicit `Edit` action while preserving the same visible destination and save route. This did not add renderer IPC, server routes, new config writes, file access changes, runtime/session lifecycle changes, agent CRUD beyond the existing project save behavior, agent routing semantics, default-agent semantics, or Command Code settings mutation.
+
+### 2026-06-06 Phase 7 closeout
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `148/148` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+
+Scope: documentation-only Phase 7 closeout. Agents, Skills, Memory, and Taste are first-class Settings routes with dedicated modules, source/destination visibility, scoped ownership labels, and Command Code ownership copy. Agents and Memory preserve the existing scoped save routes and prior isolated write click-through receipts remain the write-path evidence. Skills and Taste remain read-only. Memory templates, section-level editing, undo/revert, import/export/reset, skill activation, skill/taste CRUD, default-agent routing, and taste confidence semantics remain deferred behind persistence/write gates and upstream verification. No runtime code, renderer IPC, file access policy, config writes, CLI arguments, session lifecycle, skill/taste CRUD, agent routing behavior, or Command Code settings mutation changed in this closeout package.

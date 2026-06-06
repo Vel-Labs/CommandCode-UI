@@ -899,6 +899,19 @@ Sequential:
 
 Goal: make community extension surfaces understandable and scoped.
 
+Status on 2026-06-06: complete and validated for the current V1 contract. Agents, Skills, Memory, and Taste are first-class Settings routes with dedicated modules, visible source/destination paths, scoped ownership labels, and Command Code ownership copy. Agents and Memory preserve the existing scoped project save routes with visible destination and server-side path validation. Skills and Taste remain read-only, with activation/CRUD unavailable because upstream semantics are not implemented by the GUI. Memory templates, section-level editing, undo/revert, import/export/reset, skill activation, skill/taste CRUD, default-agent routing, and taste confidence semantics are deferred behind documented persistence/write gates and upstream verification.
+
+Phase closeout validation receipts on 2026-06-06:
+
+- `npm run typecheck`
+- `npx vitest run` -> `148/148`
+- `npm run build`
+- `npm run smoke:browser`
+- Latest built route token proof at `http://127.0.0.1:57393/` serving assets `index-cFVLxJPL.js` and `index-8BkyITsP.css`
+- Latest Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:62825`
+- Previous isolated Settings Agent and Memory save click-through receipts remain the write-path evidence because Phase 7 packages changed presentation and route ownership without changing those save routes or server policy.
+- Browser plugin navigation was not available in this thread, so route-level and built-asset receipts were used for the latest UI packages.
+
 Status update 2026-06-06: First Phase 7 renderer architecture package extracted Settings Agents, Skills, Memory, and Taste presentation from `src/renderer/src/settings/AdvancedReadOnlySettings.tsx` into dedicated modules: `AgentsSettings.tsx`, `SkillsSettings.tsx`, `MemorySettings.tsx`, and `TasteSettings.tsx`. It also added a shared `SettingsReadOnlyCard.tsx` used by those routes and MCP while preserving existing transport calls, project-scoped Agents/Memory save behavior, read-only Skills/Taste behavior, destination labels, and Command Code ownership copy. This package did not add renderer IPC, server routes, config writes, file access changes, runtime/session lifecycle changes, skill/taste CRUD, agent routing semantics, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npm run build`, `npm run smoke:browser`, built route token proof at `http://127.0.0.1:57389/` serving assets `index-Bap9IfZ3.js` and `index-8BkyITsP.css`, built asset text proof for `Agent configs`, `Skills`, `Memory files`, and `Taste packages`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:62327`. Browser plugin navigation was not available in this thread, so route-level and built-asset receipts were used.
 
 Status update 2026-06-06: Second Phase 7 read-only package improved `src/renderer/src/settings/TasteSettings.tsx` readability by making taste packages expandable and showing package path, Command Code-owned labeling, category confidence, up to four learning snippets per category, empty-category text, and hidden-learning counts. This package uses only the existing `transport.listTaste()` payload and did not add renderer IPC, server routes, config writes, file access changes, runtime/session lifecycle changes, taste CRUD, taste confidence semantics, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npm run build`, `npm run smoke:browser`, built route token proof at `http://127.0.0.1:57390/` serving assets `index-DdFlkBOV.js` and `index-8BkyITsP.css`, built asset text proof for `Taste packages`, `Command Code-owned`, `No taste categories discovered`, and `more learnings`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:62470`. Browser plugin navigation was not available in this thread, so route-level and built-asset receipts were used.
@@ -977,9 +990,9 @@ Sequential:
 
 ### Acceptance
 
-- The GUI does not invent Command Code semantics for skills, taste confidence, or default agent/model behavior.
-- Any CRUD behavior that depends on upstream semantics is verified first or marked experimental.
-- Operators can inspect extension surfaces without leaving Settings or the right inspector.
+- The GUI does not invent Command Code semantics for skills, taste confidence, or default agent/model behavior. Implemented: Skills/Taste are read-only, Taste confidence is displayed from existing discovery only, and default agent/model behavior is not added.
+- Any CRUD behavior that depends on upstream semantics is verified first or marked experimental. Implemented: only the previously validated project-scoped Agent/Memory save paths are exposed; skill/taste CRUD, import/export/reset, default-agent routing, memory templates, section-level editing, and undo/revert remain deferred.
+- Operators can inspect extension surfaces without leaving Settings or the right inspector. Implemented in Settings routes for Agents, Skills, Memory, and Taste with source/destination paths and previews.
 
 ## Phase 8: Transcript, Artifacts, And Multi-Session Workbench
 
