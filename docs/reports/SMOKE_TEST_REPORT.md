@@ -1085,3 +1085,18 @@ Scope: added tested MCP scope/path and policy metadata, then rendered read-only 
 | Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
 
 Scope: added tested MCP list-output parsing for optional registered tool names and rendered parsed tool chips in Settings > MCP when the existing list output contains names like `mcp__server__tool`. This did not add new MCP commands, config reads or writes, renderer IPC, secret storage, runtime mutation, or Command Code settings mutation. Real external MCP mutation was not retested for this read-only parsing slice.
+
+### 2026-06-06 Phase 6 MCP gated command previews
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `144/144` |
+| Build | Pass | `npm run build`; renderer assets `index-Cym8am9P.js` and `index-NxwaFrMv.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57385`; token proof returned `302`, cookie-authenticated `/` served built assets `index-Cym8am9P.js` and `index-NxwaFrMv.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:60930` |
+| CLI syntax checks | Pass | `cmd mcp --help`, `cmd mcp remove --help`, `cmd mcp auth --help`, `cmd mcp add --help`, and `cmd mcp add-json --help` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
+
+Scope: added tested preview builders and Settings > MCP display rows for gated MCP details, remove, auth status, auth clear, and auth list commands. This did not add execution buttons, MCP add/remove/auth flows, config reads or writes, renderer IPC, secret storage, runtime mutation, or Command Code settings mutation. Existing connect/disconnect behavior was left unchanged even though current top-level MCP help does not list those subcommands.

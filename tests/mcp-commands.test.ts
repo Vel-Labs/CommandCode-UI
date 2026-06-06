@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { buildMcpActionArgs, buildMcpActionPreview } from '../src/core/mcpCommands'
+import {
+  buildMcpActionArgs,
+  buildMcpActionPreview,
+  buildMcpGatedCommandArgs,
+  buildMcpGatedCommandPreview
+} from '../src/core/mcpCommands'
 
 describe('MCP command builders', () => {
   it('builds explicit connect and disconnect args', () => {
@@ -15,5 +20,22 @@ describe('MCP command builders', () => {
     expect(buildMcpActionPreview('/opt/Command Code/cmd', 'disconnect', "team's server")).toBe(
       "'/opt/Command Code/cmd' mcp disconnect 'team'\\''s server'"
     )
+  })
+
+  it('builds exact gated mutation previews without executing them', () => {
+    expect(buildMcpGatedCommandArgs({ kind: 'remove', serverName: 'github', scope: 'project' })).toEqual([
+      'mcp',
+      'remove',
+      '--scope',
+      'project',
+      'github'
+    ])
+    expect(buildMcpGatedCommandPreview(undefined, { kind: 'auth-clear', serverName: 'github' })).toBe('cmd mcp auth --clear github')
+  })
+
+  it('builds read-only MCP diagnostics previews', () => {
+    expect(buildMcpGatedCommandPreview(undefined, { kind: 'get', serverName: 'github' })).toBe('cmd mcp get github')
+    expect(buildMcpGatedCommandPreview(undefined, { kind: 'auth-status', serverName: 'github' })).toBe('cmd mcp auth --status github')
+    expect(buildMcpGatedCommandPreview(undefined, { kind: 'auth-list' })).toBe('cmd mcp auth --list')
   })
 })

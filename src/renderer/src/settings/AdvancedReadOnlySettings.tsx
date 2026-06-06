@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { JSX, ReactNode } from 'react'
-import { buildMcpActionPreview } from '../../../core/mcpCommands'
+import { buildMcpActionPreview, buildMcpGatedCommandPreview } from '../../../core/mcpCommands'
 import { mcpPolicyReferences, mcpScopeReferences } from '../../../core/mcpReference'
 import type { TransportAPI } from '../../../core/transport'
 import type { AgentConfig, DiscoveredSession, ProjectCommandCodeReference } from '../../../core/types'
@@ -184,6 +184,22 @@ export function McpSettingsReadOnly({ transport, commandExecutable }: { transpor
           <div className="settings-command-preview">
             <span>Disconnect preview</span>
             <code>{buildMcpActionPreview(commandExecutable, 'disconnect', server.name)}</code>
+          </div>
+          <div className="settings-command-preview">
+            <span>Details preview</span>
+            <code>{buildMcpGatedCommandPreview(commandExecutable, { kind: 'get', serverName: server.name })}</code>
+          </div>
+          <div className="settings-command-preview">
+            <span>Remove preview</span>
+            <code>{buildMcpGatedCommandPreview(commandExecutable, { kind: 'remove', serverName: server.name })}</code>
+          </div>
+          <div className="settings-command-preview">
+            <span>Auth status</span>
+            <code>{buildMcpGatedCommandPreview(commandExecutable, { kind: 'auth-status', serverName: server.name })}</code>
+          </div>
+          <div className="settings-command-preview">
+            <span>Auth clear</span>
+            <code>{buildMcpGatedCommandPreview(commandExecutable, { kind: 'auth-clear', serverName: server.name })}</code>
           </div>
           <div className="settings-inline-actions">
             <button className="ghost-button native-ghost settings-inline-action" onClick={() => void runMcpAction('connect', server.name)} disabled={server.status === 'connected'}>Connect</button>
