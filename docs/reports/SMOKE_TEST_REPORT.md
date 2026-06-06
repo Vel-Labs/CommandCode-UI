@@ -1392,3 +1392,18 @@ Scope: regression-test package. `tests/cli.test.ts` now verifies that a mock ses
 | Browser/API smoke | Pass | `npm run smoke:browser` -> `7.3b Multi-session independence: PASS` |
 
 Scope: validation script package. `scripts/smoke-browser.ts` now starts three mock sessions, holds one at partial input, exits a second, verifies a third still accepts input, and cleans up active sessions. This did not change app runtime code, renderer IPC, server routes, terminal behavior, config writes, file access, or Command Code invocation behavior.
+
+### 2026-06-06 Phase 8 file source labels
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `162/162` |
+| Build | Pass | `npm run build`; renderer assets `index-Bmylt_JS.js` and `index-AJSFYY41.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` -> `7.3b Multi-session independence: PASS` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57400`; token proof returned `302`, cookie-authenticated `/` served built assets `index-Bmylt_JS.js` and `index-AJSFYY41.css` |
+| Built asset UI proof | Pass | `rg -n "file-viewer-source|Artifact from|Project file|sourceLabel|onSelectArtifact" out/renderer/assets/index-Bmylt_JS.js out/renderer/assets/index-AJSFYY41.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:49233` |
+| Browser plugin navigation | Not available | The Browser navigation tool was not exposed; route-level and built-asset receipts were used instead |
+
+Scope: artifact traceability UI package. Right-inspector file previews now show whether the selected file came from project browsing or from a specific transcript/session artifact. This did not add renderer IPC, server routes, file access, write paths, session lifecycle changes, or Command Code invocation behavior.

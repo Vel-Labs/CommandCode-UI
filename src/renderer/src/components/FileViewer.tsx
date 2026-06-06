@@ -6,6 +6,7 @@ type FileViewerProps = {
   transport: TransportAPI
   filePath?: string
   cwd?: string
+  sourceLabel?: string
   onClose: () => void
   variant?: 'overlay' | 'inline'
 }
@@ -19,7 +20,7 @@ export function fileViewerMode(ext: string, filePath: string): FileViewerMode {
   return 'source'
 }
 
-export function FileViewer({ transport, filePath, cwd, onClose, variant = 'overlay' }: FileViewerProps): JSX.Element | null {
+export function FileViewer({ transport, filePath, cwd, sourceLabel, onClose, variant = 'overlay' }: FileViewerProps): JSX.Element | null {
   const [content, setContent] = useState('')
   const [ext, setExt] = useState('')
   const [error, setError] = useState('')
@@ -53,7 +54,10 @@ export function FileViewer({ transport, filePath, cwd, onClose, variant = 'overl
   const contentNode = (
     <div className={`file-viewer ${variant === 'inline' ? 'file-viewer--inline' : ''}`}>
       <div className="file-viewer-header">
-        <span className="file-viewer-name">{filePath.split('/').pop()}</span>
+        <span className="file-viewer-title">
+          <span className="file-viewer-name">{filePath.split('/').pop()}</span>
+          {sourceLabel && <span className="file-viewer-source">{sourceLabel}</span>}
+        </span>
         <span className="file-viewer-meta">{lines} lines, {sizeLabel}</span>
         <button className="ghost-button file-viewer-close" onClick={onClose}>×</button>
       </div>

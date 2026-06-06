@@ -1263,11 +1263,30 @@ input[type="range"]::-webkit-slider-thumb {
   flex-shrink: 0;
 }
 
+.file-viewer-title {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
 .file-viewer-name {
+  min-width: 0;
+  overflow: hidden;
   color: #f4f4f5;
   font-family: "JetBrains Mono", SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 13px;
   font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-viewer-source {
+  min-width: 0;
+  overflow: hidden;
+  color: #8f8f96;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .file-viewer-meta {

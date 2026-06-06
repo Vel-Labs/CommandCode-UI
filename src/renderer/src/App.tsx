@@ -187,6 +187,7 @@ export function App(): JSX.Element {
   const [statusLine, setStatusLine] = useState('')
   const [headlessJobs, setHeadlessJobs] = useState<HeadlessJob[]>([])
   const [viewingFile, setViewingFile] = useState<string | undefined>()
+  const [viewingFileSource, setViewingFileSource] = useState<string | undefined>()
   const [rightInspector, setRightInspector] = useState<RightInspector>('none')
   const [bottomTerminalOpen, setBottomTerminalOpen] = useState(false)
   const [shellSessionId, setShellSessionId] = useState<string | undefined>()
@@ -1146,7 +1147,7 @@ export function App(): JSX.Element {
               onResume={() => void resumeProjectSession(selectedTranscript)}
               onReveal={() => transport.revealTranscript(selectedTranscript.transcriptPath)}
               onOpenTranscript={() => openRightInspector('transcript')}
-              onOpenArtifact={(path) => { setViewingFile(path); setRightInspector('file'); addWorkEvent('Opened artifact', displayPath(path)) }}
+              onOpenArtifact={(path) => { setViewingFile(path); setViewingFileSource(`Artifact from ${selectedTranscript.title || selectedTranscript.id}`); setRightInspector('file'); addWorkEvent('Opened artifact', displayPath(path)) }}
             />
             <RightInspectorPanel
               mode={rightInspector}
@@ -1154,9 +1155,11 @@ export function App(): JSX.Element {
               cwd={cwd}
               commandExecutable={commandExecutable}
               filePath={viewingFile}
+              fileSourceLabel={viewingFileSource}
               transcript={selectedTranscript}
               onClose={() => setRightInspector('none')}
-              onSelectFile={(path) => { setViewingFile(path); setRightInspector('file'); addWorkEvent('Opened file', displayPath(path)) }}
+              onSelectFile={(path) => { setViewingFile(path); setViewingFileSource('Project file'); setRightInspector('file'); addWorkEvent('Opened file', displayPath(path)) }}
+              onSelectArtifact={(path, session) => { setViewingFile(path); setViewingFileSource(`Artifact from ${session.title || session.id}`); setRightInspector('file'); addWorkEvent('Opened artifact', displayPath(path)) }}
               onOpenFiles={() => setRightInspector('files')}
               onOpenTranscript={() => setRightInspector('transcript')}
               onOpenDocs={() => setRightInspector('docs')}
@@ -1218,6 +1221,7 @@ export function App(): JSX.Element {
               cwd={cwd}
               commandExecutable={commandExecutable}
               filePath={viewingFile}
+              fileSourceLabel={viewingFileSource}
               transcript={selectedTranscript || projectSessions[0] || (activeTab ? {
                 id: activeTab.id,
                 timestamp: new Date().toISOString(),
@@ -1229,7 +1233,8 @@ export function App(): JSX.Element {
                 source: 'global'
               } : undefined)}
               onClose={() => setRightInspector('none')}
-              onSelectFile={(path) => { setViewingFile(path); setRightInspector('file'); addWorkEvent('Opened file', displayPath(path)) }}
+              onSelectFile={(path) => { setViewingFile(path); setViewingFileSource('Project file'); setRightInspector('file'); addWorkEvent('Opened file', displayPath(path)) }}
+              onSelectArtifact={(path, session) => { setViewingFile(path); setViewingFileSource(`Artifact from ${session.title || session.id}`); setRightInspector('file'); addWorkEvent('Opened artifact', displayPath(path)) }}
               onOpenFiles={() => setRightInspector('files')}
               onOpenTranscript={() => setRightInspector('transcript')}
               onOpenDocs={() => setRightInspector('docs')}

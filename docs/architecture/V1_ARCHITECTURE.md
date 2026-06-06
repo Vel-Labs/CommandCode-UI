@@ -273,4 +273,5 @@ Current Phase 8 status on 2026-06-06:
 - Sidebar session labels distinguish recent transcript contexts from live sessions, and live session rows show compact readiness/runtime metadata from existing `SessionReadinessState`.
 - `SessionWorkspace` keeps one mounted `TerminalPane` per live session. Inactive panes remain hidden and subscribed to their own output, while only the active pane accepts input and emits resize calls. This preserves terminal buffers across tab switches and inspector/layout changes without terminal-output scraping.
 - `FileViewer` treats `.html` and `.htm` as source-only previews with explicit safety copy. The GUI does not execute HTML in artifact previews.
+- Right-inspector file previews carry a source label. Transcript artifact chips label previews as artifacts from the selected session/transcript, while file-browser selections label previews as project files.
 - File reveal actions from artifact chips, manual three-session dogfood, and deeper response-ready state remain planned or gated.

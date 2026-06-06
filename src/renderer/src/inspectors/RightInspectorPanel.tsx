@@ -16,9 +16,11 @@ export function RightInspectorPanel({
   cwd,
   commandExecutable,
   filePath,
+  fileSourceLabel,
   transcript,
   onClose,
   onSelectFile,
+  onSelectArtifact,
   onOpenFiles,
   onRevealTranscript,
   onResizeStart
@@ -28,9 +30,11 @@ export function RightInspectorPanel({
   cwd: string
   commandExecutable: string
   filePath?: string
+  fileSourceLabel?: string
   transcript?: DiscoveredSession
   onClose: () => void
   onSelectFile: (path: string) => void
+  onSelectArtifact?: (path: string, session: DiscoveredSession) => void
   onOpenFiles: () => void
   onOpenTranscript: () => void
   onOpenDocs: () => void
@@ -66,7 +70,7 @@ export function RightInspectorPanel({
         {mode === 'files' && <FileBrowser transport={transport} cwd={cwd} onSelectFile={onSelectFile} />}
         {mode === 'file' && (
           filePath
-            ? <FileViewer transport={transport} filePath={filePath} cwd={cwd} onClose={onOpenFiles} variant="inline" />
+            ? <FileViewer transport={transport} filePath={filePath} cwd={cwd} sourceLabel={fileSourceLabel} onClose={onOpenFiles} variant="inline" />
             : <InspectorEmpty title="No file selected" detail="Choose a project file to preview it here." />
         )}
         {mode === 'transcript' && (
@@ -76,7 +80,7 @@ export function RightInspectorPanel({
                 <div className="inspector-button-row">
                   <button className="ghost-button native-ghost" onClick={onRevealTranscript}>Reveal transcript</button>
                 </div>
-                <TranscriptPreview transport={transport} session={transcript} cwd={cwd} onOpenArtifact={onSelectFile} />
+                <TranscriptPreview transport={transport} session={transcript} cwd={cwd} onOpenArtifact={(path) => onSelectArtifact ? onSelectArtifact(path, transcript) : onSelectFile(path)} />
               </>
             )
             : <InspectorEmpty title="No transcript selected" detail="Open a recent context or active session transcript." />

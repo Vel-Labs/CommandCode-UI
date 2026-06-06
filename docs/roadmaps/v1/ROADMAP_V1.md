@@ -1018,6 +1018,8 @@ Ninth status update on 2026-06-06: added `tests/cli.test.ts` coverage proving a 
 
 Tenth status update on 2026-06-06: `npm run smoke:browser` now includes repeatable three-session API coverage. The new `7.3b Multi-session independence` step starts three mock sessions, holds one at partial input, exits a second, verifies a third can still receive input, and cleans up the active sessions. Validation receipts: `npm run typecheck`, `npx vitest run` -> `162/162`, and `npm run smoke:browser` -> `7.3b Multi-session independence: PASS`.
 
+Eleventh status update on 2026-06-06: right-inspector file previews now show source labels so project-file previews and transcript artifact previews stay visibly associated with their source. Artifact chips set labels such as `Artifact from <session>`; file-browser selections set `Project file`. Validation receipts: `npm run typecheck`, `npx vitest run` -> `162/162`, `npm run build`, `npm run smoke:browser`, built route token proof at `http://127.0.0.1:57400/` serving `index-Bmylt_JS.js` and `index-AJSFYY41.css`, built asset proof for `file-viewer-source`, `Artifact from`, `Project file`, `sourceLabel`, and `onSelectArtifact`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:49233`. This did not add renderer IPC, server routes, file access, write paths, session lifecycle changes, or Command Code invocation behavior.
+
 ### Scope
 
 - Parse transcript JSONL into readable conversation/timeline entries. Implemented for the transcript preview UI.
@@ -1065,7 +1067,7 @@ Likely new files:
 - HTML preview is sandboxed or falls back safely. Implemented as source-only fallback with a visible non-execution note.
 - Active sessions restore visually after tab changes, inspector resizing, and terminal input toggles. Implemented for tab/layout restoration with mounted per-session panes; manual multi-session dogfood remains part of Phase 8 closeout.
 - One blocked interactive session does not block rendering or state in other sessions. Mock session independence is covered in `tests/cli.test.ts` and `npm run smoke:browser`; manual UI dogfood remains part of Phase 8 closeout.
-- Per-session artifacts remain associated with the correct session.
+- Per-session artifacts remain associated with the correct session. Implemented with right-inspector file preview source labels for transcript artifact chips.
 - `npm run typecheck`
 - `npx vitest run`
 - Browser/Electron dogfood with at least three sessions.
