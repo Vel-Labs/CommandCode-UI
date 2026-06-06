@@ -3886,6 +3886,14 @@ input[type="range"]::-webkit-slider-thumb {
   white-space: nowrap;
 }
 
+.profile-action-card {
+  margin-top: 0;
+}
+
+.profile-action-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .settings-card {
   margin-top: 24px;
   padding: 18px;
@@ -4166,6 +4174,8 @@ input[type="range"]::-webkit-slider-thumb {
 
   .profile-stat-strip,
   .settings-profile-grid,
+  .settings-action-grid,
+  .profile-action-grid,
   .appearance-options {
     grid-template-columns: 1fr;
   }

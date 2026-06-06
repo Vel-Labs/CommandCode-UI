@@ -1,5 +1,5 @@
 import type { JSX } from 'react'
-import { Activity, Bot, Braces, GitBranch, Keyboard, MemoryStick, Monitor, Plug, Sparkles, Terminal } from 'lucide-react'
+import { Activity, Bot, Braces, CreditCard, Database, GitBranch, Keyboard, MemoryStick, Monitor, Plug, Settings, Sparkles, Terminal, Wrench } from 'lucide-react'
 import type { PermissionMode } from '../../../shared/types'
 import type { PtyDoctorResult } from '../../../core/ptyDoctor'
 import type { TransportAPI } from '../../../core/transport'
@@ -42,6 +42,19 @@ const appearanceOptions: Array<{
   }
 ]
 
+const profileActions: Array<{
+  section: SettingsSection
+  label: string
+  description: string
+  icon: JSX.Element
+}> = [
+  { section: 'general', label: 'General', description: 'Command binary and onboarding behavior.', icon: <Settings size={16} /> },
+  { section: 'runtime', label: 'Runtime', description: 'PTY health, mode, permissions, model, auth, and IDE diagnostics.', icon: <Wrench size={16} /> },
+  { section: 'usage', label: 'Usage', description: 'Headless history and local run counters.', icon: <CreditCard size={16} /> },
+  { section: 'data', label: 'Project state', description: 'Read project .commandcode paths and local state.', icon: <Database size={16} /> },
+  { section: 'integrations', label: 'Integrations', description: 'Open MCP, hooks, agents, skills, design, memory, and taste.', icon: <Plug size={16} /> }
+]
+
 export function ProfileSettings({
   cwd,
   projectLabel,
@@ -52,7 +65,8 @@ export function ProfileSettings({
   trust,
   headlessJobs,
   sessionCount,
-  runtimeMode
+  runtimeMode,
+  openSection
 }: {
   cwd: string
   projectLabel: string
@@ -64,6 +78,7 @@ export function ProfileSettings({
   headlessJobs: HeadlessJob[]
   sessionCount: number
   runtimeMode: RuntimeMode
+  openSection: (section: SettingsSection) => void
 }): JSX.Element {
   const runtimeHealth = ptyHealth ? (ptyHealth.healthy ? 'Healthy' : 'Unavailable') : 'Checking'
   const completedHeadless = headlessJobs.filter((job) => job.result).length
@@ -103,6 +118,20 @@ export function ProfileSettings({
             <div><dt>Trust flag</dt><dd>{trust ? 'Enabled' : 'Disabled'}</dd></div>
           </dl>
         </section>
+      </div>
+      <div className="settings-card settings-card--wide profile-action-card">
+        <div className="settings-readonly-header">
+          <strong>Settings shortcuts</strong>
+        </div>
+        <div className="settings-action-grid profile-action-grid">
+          {profileActions.map((item) => (
+            <button key={item.section} className="settings-action-tile" onClick={() => openSection(item.section)}>
+              <span>{item.icon}</span>
+              <strong>{item.label}</strong>
+              <small>{item.description}</small>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   )

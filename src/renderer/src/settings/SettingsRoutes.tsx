@@ -134,6 +134,7 @@ export function SettingsRoute(props: SettingsRouteProps): JSX.Element {
           headlessJobs={headlessJobs}
           sessionCount={sessionCount}
           runtimeMode={runtimeMode}
+          openSection={openSection}
         />
       )
     case 'general':

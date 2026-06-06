@@ -120,6 +120,20 @@ Scope: gate and validation package. `docs/reports/SETTINGS_PERSISTENCE_GATE.md` 
 
 Scope: read-only Integrations hub package. The Integrations Settings page now routes to existing MCP, Hooks, Agents, Skills, Design, Memory, and Taste Settings sections and keeps local/CLI docs links visible. No connect, edit, save, auth, config mutation, server routes, renderer IPC expansion, runtime/session changes, or Command Code settings mutation were added.
 
+### 2026-06-06 Phase 2 actionable Profile dashboard
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `48/48` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5199`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets `index-drvw5pEk.js` and `index-DfzWLTVF.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:64302` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; no new dependency was added for this settings package |
+
+Scope: read-only Profile dashboard package. Profile now includes shortcut tiles to General, Runtime, Usage, Project state, and Integrations while preserving runtime receipts. No config writes, persistence fields, server routes, renderer IPC expansion, runtime/session changes, or Command Code settings mutation were added.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |
