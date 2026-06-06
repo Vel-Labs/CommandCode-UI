@@ -11,6 +11,7 @@ import type {
   TastePackage,
   TasteCategory,
   AgentConfig,
+  McpListResult,
   McpServer,
   SkillEntry,
   MemoryFile,
@@ -396,10 +397,28 @@ export function saveAgent(agentPath: string, content: string): boolean {
 }
 
 export async function listMcp(commandExecutable?: string): Promise<McpServer[]> {
-  const result = await runCli(commandExecutable, undefined, ['mcp', 'list'], 30_000)
-  if (!result.ok) return []
+  return (await listMcpDetailed(commandExecutable)).servers
+}
 
-  return parseMcpListOutput(result.stdout)
+export async function listMcpDetailed(commandExecutable?: string): Promise<McpListResult> {
+  const result = await runCli(commandExecutable, undefined, ['mcp', 'list'], 30_000)
+  if (!result.ok) {
+    return {
+      ok: false,
+      servers: [],
+      stdout: result.stdout,
+      stderr: result.stderr,
+      error: result.stderr || result.stdout || result.error || 'MCP list failed'
+    }
+  }
+
+  return {
+    ok: true,
+    servers: parseMcpListOutput(result.stdout),
+    stdout: result.stdout,
+    stderr: result.stderr,
+    error: result.error
+  }
 }
 
 export async function mcpAction(commandExecutable: string | undefined, action: McpAction, serverName: string): Promise<CliExecResult> {

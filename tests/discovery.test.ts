@@ -2,7 +2,7 @@ import { chmodSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:f
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { discoverSessions, listMcp, mcpAction, readSessionMetadata } from '../src/core/discovery'
+import { discoverSessions, listMcp, listMcpDetailed, mcpAction, readSessionMetadata } from '../src/core/discovery'
 
 const tempDirs: string[] = []
 
@@ -60,6 +60,25 @@ describe('MCP discovery', () => {
 
     const afterDisconnect = await listMcp(commandPath)
     expect(afterDisconnect[0]?.status).toBe('disconnected')
+  })
+
+  it('preserves list failure diagnostics without treating failure as no servers', async () => {
+    const dir = tempDir()
+    const commandPath = path.join(dir, 'fake-cmd')
+    writeFileSync(commandPath, [
+      '#!/usr/bin/env node',
+      "console.error('mcp unavailable')",
+      'process.exit(7)'
+    ].join('\n'), 'utf8')
+    chmodSync(commandPath, 0o755)
+
+    await expect(listMcp(commandPath)).resolves.toEqual([])
+    await expect(listMcpDetailed(commandPath)).resolves.toMatchObject({
+      ok: false,
+      servers: [],
+      stderr: expect.stringContaining('mcp unavailable'),
+      error: expect.stringContaining('mcp unavailable')
+    })
   })
 })
 

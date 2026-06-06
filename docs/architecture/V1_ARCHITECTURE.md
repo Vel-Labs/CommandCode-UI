@@ -173,6 +173,7 @@ Phase 6 has started with a pure command-builder package:
 - Settings > MCP renders read-only scope/path and policy tiles before server actions so operators can see the relevant config ownership and secret boundary before future writes.
 - Settings > MCP renders parsed `mcp__server__tool` names when the existing list output includes them. No additional tool-inspection command is run.
 - Settings > MCP shows preview-only gated commands for details, remove, auth status, and auth clear. Those previews are not executable from the GUI yet.
+- `/api/mcp/list` returns read-only list diagnostics (`ok`, `stdout`, `stderr`, `error`) alongside `servers`, and Settings > MCP surfaces failures instead of treating failed list commands as empty state.
 - MCP add, remove, auth, server edit, connection test, diagnostics, and log viewing remain planned or gated. No MCP secrets are stored in GUI preferences.
 
 Suggested sections:

@@ -1100,3 +1100,17 @@ Scope: added tested MCP list-output parsing for optional registered tool names a
 | Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
 
 Scope: added tested preview builders and Settings > MCP display rows for gated MCP details, remove, auth status, auth clear, and auth list commands. This did not add execution buttons, MCP add/remove/auth flows, config reads or writes, renderer IPC, secret storage, runtime mutation, or Command Code settings mutation. Existing connect/disconnect behavior was left unchanged even though current top-level MCP help does not list those subcommands.
+
+### 2026-06-06 Phase 6 MCP list diagnostics
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `145/145` |
+| Build | Pass | `npm run build`; renderer assets `index-ClhC1Mch.js` and `index-8BkyITsP.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57386`; token proof returned `302`, cookie-authenticated `/` served built assets `index-ClhC1Mch.js` and `index-8BkyITsP.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:61209` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
+
+Scope: extended the existing read-only MCP list route to return list diagnostics and made Settings > MCP show failure text instead of silently treating failed list commands as empty results. This did not add new MCP commands, config reads or writes, renderer IPC, secret storage, runtime mutation, or Command Code settings mutation. Real external MCP mutation was not retested for this read-only diagnostics slice.

@@ -260,6 +260,14 @@ export type McpServer = {
   raw: string
 }
 
+export type McpListResult = {
+  ok: boolean
+  servers: McpServer[]
+  stdout: string
+  stderr: string
+  error?: string
+}
+
 export type SkillEntry = {
   path: string
   name: string

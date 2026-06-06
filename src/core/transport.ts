@@ -13,6 +13,7 @@ import type {
   HeadlessRunOptions,
   HeadlessRunResult,
   IdeStatusResult,
+  McpListResult,
   McpServer,
   MemoryFile,
   ModelListResult,
@@ -79,7 +80,7 @@ export type TransportAPI = {
   listTaste: () => Promise<{ packages: TastePackage[] }>
   listAgents: (cwd?: string) => Promise<{ agents: AgentConfig[] }>
   saveAgent: (agentPath: string, content: string, cwd?: string) => Promise<WriteFileResult>
-  listMcp: (commandExecutable?: string) => Promise<{ servers: McpServer[] }>
+  listMcp: (commandExecutable?: string) => Promise<McpListResult>
   mcpAction: (commandExecutable: string | undefined, action: 'connect' | 'disconnect', serverName: string) => Promise<CliExecResult>
   listSkills: () => Promise<{ skills: SkillEntry[] }>
   listMemories: (cwd?: string) => Promise<{ memories: MemoryFile[] }>

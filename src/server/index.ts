@@ -23,7 +23,7 @@ import {
   listTastePackages,
   listAgents,
   saveAgent,
-  listMcp,
+  listMcpDetailed,
   mcpAction,
   listSkills,
   listMemories,
@@ -1236,7 +1236,7 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
 
   addRoute('POST', '/api/mcp/list', async ({ body }) => {
     const { commandExecutable } = body as { commandExecutable?: string }
-    return { servers: await listMcp(commandExecutable) }
+    return listMcpDetailed(commandExecutable)
   })
 
   addRoute('POST', '/api/mcp/action', async ({ body }) => {

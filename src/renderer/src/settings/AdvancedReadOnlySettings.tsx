@@ -121,13 +121,17 @@ export function McpSettingsReadOnly({ transport, commandExecutable }: { transpor
   const [servers, setServers] = useState<Array<{ name: string; status: string; toolCount?: number; tools?: string[]; raw: string }>>([])
   const [loading, setLoading] = useState(false)
   const [actionResult, setActionResult] = useState('')
+  const [listDiagnostics, setListDiagnostics] = useState('')
 
   const load = async (): Promise<void> => {
     setLoading(true)
     try {
-      setServers((await transport.listMcp(commandExecutable || undefined)).servers)
-    } catch {
+      const result = await transport.listMcp(commandExecutable || undefined)
+      setServers(result.servers)
+      setListDiagnostics(result.ok ? '' : (result.error || result.stderr || 'MCP list failed'))
+    } catch (error) {
       setServers([])
+      setListDiagnostics(error instanceof Error ? error.message : 'MCP list failed')
     } finally {
       setLoading(false)
     }
@@ -168,6 +172,7 @@ export function McpSettingsReadOnly({ transport, commandExecutable }: { transpor
         ))}
       </div>
       {actionResult && <p className="settings-muted">{actionResult}</p>}
+      {listDiagnostics && <p className="settings-muted settings-muted--warn">{listDiagnostics}</p>}
       {servers.map((server) => (
         <div key={server.name} className="settings-readonly-row">
           <strong>{server.name}</strong>

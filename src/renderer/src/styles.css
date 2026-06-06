@@ -4156,6 +4156,10 @@ input[type="range"]::-webkit-slider-thumb {
   line-height: 1.45;
 }
 
+.settings-muted--warn {
+  color: #fed7aa;
+}
+
 .settings-placeholder-heading {
   display: flex;
   align-items: center;

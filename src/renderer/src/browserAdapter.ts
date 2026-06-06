@@ -13,6 +13,7 @@ import type {
   HeadlessRunOptions,
   HeadlessRunResult,
   IdeStatusResult,
+  McpListResult,
   McpServer,
   MemoryFile,
   ModelListResult,
@@ -330,7 +331,7 @@ export function createBrowserTransport(): TransportAPI {
       }),
 
     listMcp: async (commandExecutable?) =>
-      fetchJson<{ servers: McpServer[] }>('/api/mcp/list', {
+      fetchJson<McpListResult>('/api/mcp/list', {
         method: 'POST',
         body: JSON.stringify({ commandExecutable })
       }),
