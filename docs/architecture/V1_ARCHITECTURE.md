@@ -125,6 +125,7 @@ Current implementation status on 2026-06-06:
 - Existing editable Settings controls now show GUI preference destination labels for command binary, onboarding, permissions, trust, model, and appearance.
 - Usage now includes the existing Command Code usage summary refresh alongside local headless history, using the pre-existing `transport.usage` capability.
 - Skills now include read-only content preview expansion in Settings while insert/use actions remain planned.
+- Skills now show discovered source paths, derived read-only source labels for current discovery roots, and explicit insert/use unavailability without executing skill commands.
 - Sessions now include discovery, project-session resume, and transcript reveal actions in Settings using existing App/transport paths.
 - MCP now shows connect/disconnect command previews and execution in Settings using the existing `transport.mcpAction` path.
 - Notifications now edits the existing renderer-local toast/audio preference keys (`ccgui.toast-preferences`, `ccgui.audio-preferences`) through `src/renderer/src/settings/notificationPreferences.ts`; OS notifications, hook alerts, quiet mode, and session readiness remain planned.

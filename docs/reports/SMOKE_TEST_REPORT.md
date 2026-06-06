@@ -1205,3 +1205,17 @@ Scope: extracted Settings Agents, Skills, Memory, and Taste presentation into de
 | Browser plugin navigation | Not available | The Browser navigation tool was not exposed in this thread; route-level receipts were used instead |
 
 Scope: improved read-only Settings > Taste readability with expandable packages, path display, category confidence, learning snippets, empty-category text, and hidden-learning counts from the existing `transport.listTaste()` payload. This did not add renderer IPC, server routes, config writes, file access changes, runtime/session lifecycle changes, taste CRUD, taste confidence semantics, or Command Code settings mutation.
+
+### 2026-06-06 Phase 7 Skills source labels
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Build | Pass | `npm run build`; renderer assets `index-0YZ7cnKj.js` and `index-8BkyITsP.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57391`; token proof returned `302`, cookie-authenticated `/` served built assets `index-0YZ7cnKj.js` and `index-8BkyITsP.css` |
+| Built asset UI proof | Pass | `rg -n "Insert/use not available in this package|user Command Code|agent plugin|read-only|skillScopeLabel" out/renderer/assets/index-0YZ7cnKj.js` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:62593` |
+| Browser plugin navigation | Not available | The Browser navigation tool was not exposed in this thread; route-level receipts were used instead |
+
+Scope: improved read-only Settings > Skills source visibility with discovered paths, derived source labels for existing skill roots, and an explicit insert/use unavailable row on expanded skills. This did not add renderer IPC, server routes, config writes, file access changes, runtime/session lifecycle changes, skill activation, skill CRUD, hidden command execution, or Command Code settings mutation.
