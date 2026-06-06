@@ -3127,6 +3127,10 @@ input[type="range"]::-webkit-slider-thumb {
   cursor: default;
 }
 
+.command-row--actionable {
+  cursor: pointer;
+}
+
 .command-preview-summary {
   color: #d4d4d8;
   font-size: 12px;

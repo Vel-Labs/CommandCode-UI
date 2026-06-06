@@ -1001,3 +1001,17 @@ Scope: added a tested Agent Draft preview helper with project scope, destination
 | Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
 
 Scope: added tested display-only command execution previews for executable command palette rows. Rows now distinguish active-session sends, composer inserts, and headless runs, and mark plan-mode/runtime/Command Code-owned boundaries. This did not change `runCommand(item)` execution, prompt contents, config writes, renderer IPC, file access, CLI argument behavior, or session lifecycle. Real CLI path was not retested for this renderer-only palette metadata slice.
+
+### 2026-06-06 Phase 5 settings recipe navigation
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `129/129` |
+| Build | Pass | `npm run build`; renderer assets `index-CgUo9V_S.js` and `index-BYxtwXbi.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57379`; token proof returned `302`, cookie-authenticated `/` served built assets `index-CgUo9V_S.js` and `index-BYxtwXbi.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:59571` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
+
+Scope: added explicit Settings section metadata for `open-settings` workflow recipes and made those recipe rows route to Settings > MCP, Hooks, Notifications, or Agents. Runtime-start recipes remain preview-only with no settings target. This did not add runtime execution, prompt rewriting, config writes, renderer IPC, file access, CLI argument changes, Command Code settings mutation, or session lifecycle behavior. Real CLI path was not retested for this renderer-only navigation slice.

@@ -4,7 +4,7 @@ import { Folder, FolderOpen } from 'lucide-react'
 import type { PermissionMode } from '../../../shared/types'
 import type { PtyDoctorResult } from '../../../core/ptyDoctor'
 import type { TransportAPI } from '../../../core/transport'
-import type { CommandPaletteItem, PopoverKey, RuntimeMode } from '../appTypes'
+import type { CommandPaletteItem, PopoverKey, RuntimeMode, SettingsSection } from '../appTypes'
 import type { HeadlessJob } from './HeadlessHistory'
 import { AuthCard } from './AuthCard'
 import { HeadlessHistory } from './HeadlessHistory'
@@ -12,6 +12,7 @@ import { IdePanel } from './IdePanel'
 import { ModelDropdown } from './ModelDropdown'
 import { getCommandExecutionPreview } from '../commandPalette/commandPreview'
 import { searchCommandPalette } from '../commandPalette/search'
+import type { WorkflowRecipe } from '../commandPalette/workflowRecipes'
 import { workflowRecipes } from '../commandPalette/workflowRecipes'
 
 export function AppPopovers({
@@ -33,6 +34,7 @@ export function AppPopovers({
   commandGroups,
   commandPaletteItems,
   hasActiveSession,
+  openSettingsSection,
   chooseProject,
   setCwd,
   setOpenPopover,
@@ -68,6 +70,7 @@ export function AppPopovers({
   commandGroups: CommandPaletteItem['group'][]
   commandPaletteItems: CommandPaletteItem[]
   hasActiveSession: boolean
+  openSettingsSection: (section: SettingsSection) => void
   chooseProject: () => Promise<void>
   setCwd: (project: string) => void
   setOpenPopover: (value: PopoverKey) => void
@@ -181,15 +184,7 @@ export function AppPopovers({
             <div className="command-group command-group--recipes">
               <div className="command-group-title">Workflow recipes</div>
               {visibleRecipes.map((result) => (
-                <div key={result.item.id} className="popover-row command-row command-row--recipe">
-                  <span className="command-row-main">
-                    <strong>{result.item.title}</strong>
-                    <code>{result.item.command ?? result.item.intent}</code>
-                  </span>
-                  <span className="popover-row-description">{result.item.description}</span>
-                  <span className="command-recipe-preview">{result.item.preview}</span>
-                  <span className={`command-recipe-risk command-recipe-risk--${result.item.risk}`}>{result.item.risk}</span>
-                </div>
+                <WorkflowRecipeRow key={result.item.id} recipe={result.item} openSettingsSection={openSettingsSection} />
               ))}
             </div>
           )}
@@ -197,6 +192,42 @@ export function AppPopovers({
       )}
     </>
   )
+}
+
+function WorkflowRecipeRow({
+  recipe,
+  openSettingsSection
+}: {
+  recipe: WorkflowRecipe
+  openSettingsSection: (section: SettingsSection) => void
+}): JSX.Element {
+  const content = (
+    <>
+      <span className="command-row-main">
+        <strong>{recipe.title}</strong>
+        <code>{recipe.command ?? recipe.intent}</code>
+      </span>
+      <span className="popover-row-description">{recipe.description}</span>
+      <span className="command-recipe-preview">{recipe.preview}</span>
+      <span className="command-preview-badges">
+        <span className="command-preview-badge command-preview-badge--intent">{recipe.intent}</span>
+        <span className={`command-recipe-risk command-recipe-risk--${recipe.risk}`}>{recipe.risk}</span>
+      </span>
+    </>
+  )
+
+  if (recipe.intent === 'open-settings' && recipe.settingsSection) {
+    return (
+      <button
+        className="popover-row command-row command-row--recipe command-row--actionable"
+        onClick={() => openSettingsSection(recipe.settingsSection as SettingsSection)}
+      >
+        {content}
+      </button>
+    )
+  }
+
+  return <div className="popover-row command-row command-row--recipe">{content}</div>
 }
 
 function CommandPaletteButton({

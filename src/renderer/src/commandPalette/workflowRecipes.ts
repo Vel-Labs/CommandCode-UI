@@ -1,8 +1,11 @@
+import type { SettingsSection } from '../appTypes'
+
 export type WorkflowRecipe = {
   id: string
   title: string
   surface: 'Session' | 'Planning' | 'Design' | 'Agents' | 'Runtime' | 'Project' | 'Settings'
   intent: 'send-active-session' | 'start-new-session' | 'open-settings' | 'preview-only'
+  settingsSection?: SettingsSection
   command?: string
   description: string
   preview: string
@@ -90,6 +93,7 @@ export const workflowRecipes: WorkflowRecipe[] = [
     title: 'MCP setup',
     surface: 'Settings',
     intent: 'open-settings',
+    settingsSection: 'mcp',
     description: 'Inspect MCP servers, auth state, and setup actions from Settings > MCP.',
     preview: 'Open Settings > MCP before running any connect/disconnect command.',
     keywords: ['mcp', 'server', 'tools', 'connect', 'auth'],
@@ -100,6 +104,7 @@ export const workflowRecipes: WorkflowRecipe[] = [
     title: 'Hook setup',
     surface: 'Settings',
     intent: 'open-settings',
+    settingsSection: 'hooks',
     description: 'Inspect hook config, previews, dry-runs, and logs from Settings > Hooks.',
     preview: 'Open Settings > Hooks; hook execution remains Command Code-owned.',
     keywords: ['hooks', 'hook', 'stop', 'pretooluse', 'posttooluse', 'dry-run'],
@@ -110,6 +115,7 @@ export const workflowRecipes: WorkflowRecipe[] = [
     title: 'Notification setup',
     surface: 'Settings',
     intent: 'open-settings',
+    settingsSection: 'notifications',
     description: 'Adjust GUI toast/audio preferences for implemented categories.',
     preview: 'Open Settings > Notifications; readiness dispatch remains gated.',
     keywords: ['notifications', 'toast', 'audio', 'readiness', 'response'],
@@ -120,6 +126,7 @@ export const workflowRecipes: WorkflowRecipe[] = [
     title: 'Agent creation',
     surface: 'Agents',
     intent: 'open-settings',
+    settingsSection: 'agents',
     command: '/agents',
     description: 'Use Command Code agent surfaces or Settings > Agents with explicit scope display.',
     preview: 'Do not write unsupported agent semantics without preview and validation.',

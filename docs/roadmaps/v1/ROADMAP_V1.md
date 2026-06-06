@@ -711,11 +711,14 @@ Status update 2026-06-06: Third workflow-helper package added `src/renderer/src/
 
 Status update 2026-06-06: Fourth workflow-helper package added `src/renderer/src/commandPalette/commandPreview.ts` and command-row behavior badges in `src/renderer/src/components/AppPopovers.tsx`. Executable palette rows now visibly distinguish `send-active-session`, `insert-composer`, and `headless-run`, with plan-mode, runtime, active-session/composer, and Command Code-owned model-routing badges. This is display-only metadata for the existing `runCommand(item)` path; it does not change execution, prompt contents, config writes, renderer IPC, file access, CLI arguments, or session lifecycle. Validation receipts: `npm run typecheck`, `npx vitest run` -> `127/127`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:57378/` serving assets `index-BCeYJrJ3.js` and `index-BIafH59q.css`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:59366`. Browser screenshot automation remains not run because Playwright is not installed in this project.
 
+Status update 2026-06-06: Fifth workflow-helper package made `open-settings` workflow recipes actionable from the slash popover by adding explicit `settingsSection` metadata in `src/renderer/src/commandPalette/workflowRecipes.ts` and routing those rows to Settings > MCP, Hooks, Notifications, or Agents. Runtime-start recipes remain preview-only and have no settings target, so the palette still does not invent new session lifecycle behavior. This package did not add runtime execution, prompt rewriting, config writes, renderer IPC, file access, CLI argument changes, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `129/129`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:57379/` serving assets `index-CgUo9V_S.js` and `index-BYxtwXbi.css`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:59571`. Browser screenshot automation remains not run because Playwright is not installed in this project.
+
 ### Scope
 
 - Replace static command buttons with searchable command/workflow palette.
 - Add fuzzy search over commands, settings, projects, sessions, agents, skills, docs, and recent workflows.
 - Add recipes for interactive, headless, plan, design, resume, continue, configure models, MCP setup, hook setup, notification setup, and agent creation.
+- Route settings-backed recipes to their Settings sections without executing runtime commands.
 - Add guided `/design` helper with mode, target, goal, and command preview.
 - Shape `/design` helper inputs so future visual design plugins can add selected element metadata, screenshot/frame context, drawn annotations, and voice transcripts without rewriting the core helper.
 - Add guided `/agents` helper with templates, validation, and scope display.

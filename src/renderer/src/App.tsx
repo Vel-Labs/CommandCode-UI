@@ -1256,6 +1256,12 @@ export function App(): JSX.Element {
           commandGroups={commandGroups}
           commandPaletteItems={commandPaletteItems}
           hasActiveSession={Boolean(activeTabId)}
+          openSettingsSection={(section) => {
+            setRailCollapsed(false)
+            setOpenPopover(null)
+            setSettingsOpen(true)
+            setSettingsSection(section)
+          }}
           chooseProject={chooseProject}
           setCwd={setCwd}
           setOpenPopover={setOpenPopover}
