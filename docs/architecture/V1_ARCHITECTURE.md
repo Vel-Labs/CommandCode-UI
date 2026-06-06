@@ -116,6 +116,7 @@ Current implementation status on 2026-06-06:
 - Profile is now an actionable Settings dashboard that routes to General, Runtime, Usage, Project state, and Integrations while preserving its runtime receipt display.
 - Existing editable Settings controls now show GUI preference destination labels for command binary, onboarding, permissions, trust, model, and appearance.
 - Usage now includes the existing Command Code usage summary refresh alongside local headless history, using the pre-existing `transport.usage` capability.
+- Skills now include read-only content preview expansion in Settings while insert/use actions remain planned.
 - No new config write, persistence, server route, or Command Code settings mutation was added by these read-only Settings Center packages.
 - `docs/reports/SETTINGS_PERSISTENCE_GATE.md` defines the Phase 2 ownership boundary for GUI-owned preferences versus Command Code-owned `settings.json` before additional editable sections add writes.
 - `docs/reports/ADVANCED_PANEL_REMOVAL_GATE.md` defines which AdvancedPanel behavior has Settings replacement coverage and which advanced-only actions still block modal removal.

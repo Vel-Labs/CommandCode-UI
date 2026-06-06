@@ -13,7 +13,7 @@ This gate records what Settings replaces from `src/renderer/src/components/Advan
 | Taste | Taste | Implemented read-only |
 | Agents | Agents | Implemented read-only discovery |
 | MCP | MCP | Implemented read-only `cmd mcp list` view |
-| Skills | Skills | Implemented read-only discovery |
+| Skills | Skills | Implemented read-only discovery and content preview expansion |
 | Memory | Memory | Implemented read-only discovery |
 | Sessions | None | Blocking |
 
@@ -27,7 +27,6 @@ The Advanced modal must stay available until each behavior below has a Settings 
 - Agent editing and `transport.saveAgent(agentPath, content, cwd)`.
 - Memory editing and `transport.saveMemory(filePath, content, cwd)`.
 - MCP connect/disconnect actions through `transport.mcpAction(commandExecutable, action, serverName)`.
-- Skill content preview expansion.
 
 ## Removal Rules
 
@@ -44,4 +43,4 @@ Do not remove `AdvancedPanel` until:
 
 Keep `AdvancedPanel` as the explicit advanced tool surface.
 
-Settings is now the primary navigation home for read-only configuration and diagnostics, but Advanced remains the only place for session discovery/resume, transcript reveal, agent writes, memory writes, MCP connect/disconnect, and expanded skill previews.
+Settings is now the primary navigation home for read-only configuration and diagnostics, but Advanced remains the only place for session discovery/resume, transcript reveal, agent writes, memory writes, and MCP connect/disconnect.

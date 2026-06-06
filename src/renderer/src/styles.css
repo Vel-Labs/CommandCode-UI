@@ -4131,6 +4131,34 @@ input[type="range"]::-webkit-slider-thumb {
   overflow-wrap: anywhere;
 }
 
+.settings-readonly-toggle {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+}
+
+.settings-readonly-toggle:hover strong {
+  color: #fff;
+}
+
+.settings-preview-block {
+  max-height: 260px;
+  margin: 10px 0 0;
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: #d4d4d8;
+  background: rgba(0, 0, 0, 0.2);
+  white-space: pre-wrap;
+}
+
 .settings-destination-note {
   display: grid;
   grid-template-columns: minmax(130px, auto) minmax(0, 1fr) auto;
