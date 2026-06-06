@@ -156,7 +156,17 @@ export function GeneralSettings({
       <div className="settings-card">
         <label className="field-label">Command binary</label>
         <input className="native-input" value={commandExecutable} onChange={(event) => setCommandExecutable(event.target.value)} />
+        <SettingsDestinationNote
+          scope="GUI app preference"
+          path="~/.commandcode/gui-preferences.json"
+          fields="commandExecutable"
+        />
         <label className="checkbox-row"><input type="checkbox" checked={skipOnboarding} onChange={(event) => setSkipOnboarding(event.target.checked)} /> Skip Command Code onboarding prompts</label>
+        <SettingsDestinationNote
+          scope="GUI project preference"
+          path="<project>/.commandcode/gui-preferences.json"
+          fields="skipOnboarding"
+        />
         <button className="ghost-button native-ghost settings-inline-action" onClick={() => void runCheck()}>Check CLI</button>
       </div>
     </div>
@@ -212,7 +222,17 @@ export function RuntimeSettings({
           ))}
           <button className={`popover-row popover-row--warn ${trust ? 'popover-row--active' : ''}`} onClick={() => { setPermissionMode('standard'); setTrust(true) }}>trust</button>
         </div>
+        <SettingsDestinationNote
+          scope="GUI project preference"
+          path="<project>/.commandcode/gui-preferences.json"
+          fields="permissionMode, trust"
+        />
         <ModelDropdown transport={transport} model={model} setModel={setModel} commandExecutable={commandExecutable} cwd={cwd} onConfigureModels={openConfigureModels} />
+        <SettingsDestinationNote
+          scope="GUI app and project preferences"
+          path="~/.commandcode/gui-preferences.json and <project>/.commandcode/gui-preferences.json"
+          fields="model, projectModels"
+        />
         <AuthCard transport={transport} commandExecutable={commandExecutable} cwd={cwd} />
         <IdePanel transport={transport} commandExecutable={commandExecutable} cwd={cwd} />
       </div>
@@ -253,6 +273,11 @@ export function AppearanceSettings({
             </button>
           ))}
         </div>
+        <SettingsDestinationNote
+          scope="GUI app and project preferences"
+          path="~/.commandcode/gui-preferences.json and <project>/.commandcode/gui-preferences.json"
+          fields="appearanceTheme"
+        />
         <p className="settings-muted">Theme changes are saved on this machine and only affect the desktop adapter presentation. Command Code CLI behavior and permission semantics stay unchanged.</p>
       </div>
     </div>
@@ -351,4 +376,22 @@ function modeLabel(mode: RuntimeMode): string {
 function permissionLabel(permissionMode: PermissionMode, trust: boolean): string {
   if (trust || permissionMode === 'auto-accept') return 'Full access'
   return 'Standard'
+}
+
+function SettingsDestinationNote({
+  scope,
+  path,
+  fields
+}: {
+  scope: string
+  path: string
+  fields: string
+}): JSX.Element {
+  return (
+    <div className="settings-destination-note">
+      <span>{scope}</span>
+      <code>{path}</code>
+      <small>{fields}</small>
+    </div>
+  )
 }

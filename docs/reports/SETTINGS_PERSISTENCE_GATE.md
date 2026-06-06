@@ -87,10 +87,18 @@ Current executable coverage:
 - `tests/settings-registry.test.ts` covers Settings registry/search/route coverage.
 - `tests/server-security.test.ts` covers project GUI preference sanitization and project-scoped preference writes.
 
+Current visible destination coverage:
+
+- General shows the GUI app preference destination for `commandExecutable`.
+- General shows the GUI project preference destination for `skipOnboarding`.
+- Runtime shows the GUI project preference destination for `permissionMode` and `trust`.
+- Runtime shows the GUI app/project preference destinations for `model` and `projectModels`.
+- Appearance shows the GUI app/project preference destinations for `appearanceTheme`.
+
 Known unimplemented acceptance:
 
 - notification preferences persist and load
 - terminal preferences persist without breaking xterm
-- editable settings show destination path before write
+- editable settings destination labels for future write-capable sections
 - data controls write/delete only within approved roots
 - AdvancedPanel removal after Settings replacement paths exist

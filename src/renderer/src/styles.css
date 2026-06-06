@@ -4126,6 +4126,32 @@ input[type="range"]::-webkit-slider-thumb {
   overflow-wrap: anywhere;
 }
 
+.settings-destination-note {
+  display: grid;
+  grid-template-columns: minmax(130px, auto) minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  margin: 8px 0 14px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: #a0a0a6;
+  background: rgba(0, 0, 0, 0.16);
+  font-size: 12px;
+}
+
+.settings-destination-note code {
+  min-width: 0;
+  overflow: hidden;
+  color: #f4f4f5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-destination-note small {
+  color: #c4c4cc;
+}
+
 .settings-about-details {
   max-height: 160px;
   overflow: auto;
@@ -4183,5 +4209,14 @@ input[type="range"]::-webkit-slider-thumb {
   .profile-stat-strip div + div {
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     border-left: 0;
+  }
+
+  .settings-destination-note {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-destination-note code {
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 }

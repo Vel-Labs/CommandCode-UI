@@ -114,6 +114,7 @@ Current implementation status on 2026-06-06:
 - `src/renderer/src/settings/SettingsRoutes.tsx` owns the Settings section dispatcher, shared frame, and placeholder fallback so `SettingsWorkspace` stays a shell container.
 - Integrations is now a read-only Settings hub that routes to MCP, Hooks, Agents, Skills, Design, Memory, and Taste replacement sections without adding connect, edit, save, auth, or config mutation actions.
 - Profile is now an actionable Settings dashboard that routes to General, Runtime, Usage, Project state, and Integrations while preserving its runtime receipt display.
+- Existing editable Settings controls now show GUI preference destination labels for command binary, onboarding, permissions, trust, model, and appearance.
 - No new config write, persistence, server route, or Command Code settings mutation was added by these read-only Settings Center packages.
 - `docs/reports/SETTINGS_PERSISTENCE_GATE.md` defines the Phase 2 ownership boundary for GUI-owned preferences versus Command Code-owned `settings.json` before additional editable sections add writes.
 - `docs/reports/ADVANCED_PANEL_REMOVAL_GATE.md` defines which AdvancedPanel behavior has Settings replacement coverage and which advanced-only actions still block modal removal.

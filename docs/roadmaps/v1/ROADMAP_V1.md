@@ -352,6 +352,8 @@ Eighth read-only package made Profile an actionable Settings dashboard by adding
 
 Ninth gate package added `docs/reports/ADVANCED_PANEL_REMOVAL_GATE.md` to record Settings replacement coverage for AdvancedPanel tabs and the advanced-only actions that still block removal: session discovery/resume/reveal, Command Code usage summary refresh, agent writes, memory writes, MCP connect/disconnect, and expanded skill previews. This package did not change runtime behavior, renderer IPC, server routes, config writes, persistence fields, transport/session lifecycle, or Command Code settings mutation. Validation receipt: `npm run typecheck`.
 
+Tenth presentation package added visible GUI preference destination labels to existing editable Settings controls in General, Runtime, and Appearance. The labels name the app and project GUI preference paths for command binary, onboarding, permissions, trust, model, project model routing, and appearance. This package did not add config writes, persistence fields, server routes, renderer IPC expansion, runtime/session changes, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `48/48`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5201/`, and Electron dev startup with embedded app server `http://127.0.0.1:64697`.
+
 ### Scope
 
 - Fold AdvancedPanel content into Settings as first-class sections. Read-only replacement coverage is started; AdvancedPanel removal remains gated by `docs/reports/ADVANCED_PANEL_REMOVAL_GATE.md`.
@@ -365,7 +367,7 @@ Ninth gate package added `docs/reports/ADVANCED_PANEL_REMOVAL_GATE.md` to record
 - Add startup behavior settings: default project, window restore, startup session behavior.
 - Add data controls: transcript deletion, cache clearing, preference reset, export/import.
 - Add About/version/release-history/update visibility.
-- Add loading states and undo/revert affordances for editable settings where appropriate.
+- Add loading states and undo/revert affordances for editable settings where appropriate. Existing editable Settings controls now show destination labels; future write-capable sections remain gated by `docs/reports/SETTINGS_PERSISTENCE_GATE.md`.
 
 ### Likely Impacted Files
 
@@ -399,7 +401,7 @@ Likely new files:
 - Settings navigation reaches every formerly advanced section.
 - Notification preferences persist and load.
 - Terminal preferences persist without breaking xterm.
-- Editable settings show destination path before write.
+- Editable settings show destination path before write. Implemented for existing editable GUI preference controls; future write-capable sections remain gated.
 - Browser/Electron screenshots for Settings at desktop and narrow widths.
 - `npm run typecheck`
 - `npx vitest run`
