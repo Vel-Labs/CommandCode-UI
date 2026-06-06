@@ -10,6 +10,14 @@ export type SessionReadinessStatus =
 
 export type ReadinessNotification = 'response-ready' | 'input-required'
 
+export type SessionReadinessTone = 'default' | 'good' | 'warn' | 'bad' | 'purple'
+
+export type SessionReadinessDisplay = {
+  label: string
+  tone: SessionReadinessTone
+  title: string
+}
+
 export type SessionReadinessState = {
   sessionId: string
   status: SessionReadinessStatus
@@ -46,6 +54,29 @@ export function initialSessionReadiness(sessionId: string): SessionReadinessStat
     unread: false,
     responseReady: false,
     inputRequired: false
+  }
+}
+
+export function sessionReadinessDisplay(state: SessionReadinessState): SessionReadinessDisplay {
+  switch (state.status) {
+    case 'attaching':
+      return { label: 'attaching', tone: 'purple', title: 'Attaching to the Command Code session' }
+    case 'replaying':
+      return { label: 'replaying', tone: 'purple', title: 'Replaying existing session output' }
+    case 'waiting-for-input':
+      return { label: 'waiting for input', tone: 'warn', title: 'Command Code is waiting for operator input' }
+    case 'response-ready':
+      return { label: 'response ready', tone: 'good', title: 'Command Code has a response ready' }
+    case 'exited':
+      return { label: 'completed', tone: 'default', title: 'The session has exited' }
+    case 'errored':
+      return { label: 'errored', tone: 'bad', title: state.errorMessage || 'The session reported an error' }
+    case 'running':
+      if (state.unread) return { label: 'unread output', tone: 'purple', title: 'Background session has unread output' }
+      return { label: 'running', tone: 'default', title: 'Session is running' }
+    case 'idle':
+      if (state.unread) return { label: 'unread output', tone: 'purple', title: 'Session has unread output' }
+      return { label: 'attached', tone: 'default', title: 'Session is attached' }
   }
 }
 

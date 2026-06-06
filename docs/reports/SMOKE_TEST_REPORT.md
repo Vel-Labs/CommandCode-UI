@@ -1422,3 +1422,18 @@ Scope: artifact traceability UI package. Right-inspector file previews now show 
 | Browser plugin navigation | Not available | The Browser navigation tool was not exposed; route-level and built-asset receipts were used instead |
 
 Scope: sidebar session-search package. `Recent contexts` now filters discovered sessions locally by title, id, transcript path, cwd, model, and source. This did not change transcript discovery, resume behavior, session lifecycle, transport, renderer IPC, file access, config writes, or Command Code invocation behavior.
+
+### 2026-06-06 Phase 8 session readiness labels
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `163/163` |
+| Build | Pass | `npm run build`; renderer assets `index-KrviLkPx.js` and `index-Bo3FjM3z.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` -> `7.3b Multi-session independence: PASS` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57402`; token proof returned `302`, cookie-authenticated `/` served built assets `index-KrviLkPx.js` and `index-Bo3FjM3z.css` |
+| Built asset UI proof | Pass | `rg -n "waiting for input|response ready|completed|sessionReadinessDisplay|tab-readiness--good|tab-readiness--bad|unread output" out/renderer/assets/index-KrviLkPx.js out/renderer/assets/index-Bo3FjM3z.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:49704` |
+| Browser plugin navigation | Not available | Tool discovery did not expose a direct in-app Browser navigation tool; route-level and built-asset receipts were used instead |
+
+Scope: session-readiness presentation package. Tabs, active-session header chips, and Live sessions sidebar metadata now use a shared display formatter for existing readiness reducer states. This did not add readiness events, terminal-output scraping, private runtime inference, notification dispatch, session lifecycle changes, transport changes, renderer IPC, file access, config writes, or Command Code invocation behavior.

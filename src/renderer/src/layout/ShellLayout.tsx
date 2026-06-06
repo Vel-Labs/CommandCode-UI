@@ -25,6 +25,7 @@ import type {
   UpdateState
 } from '../appTypes'
 import type { DiscoveredSession } from '../../../core/types'
+import { sessionReadinessDisplay } from '../services/sessionReadiness'
 import { groupedSettings } from '../settings/settingsRegistry'
 
 export function ShellLayout({
@@ -277,16 +278,19 @@ export function ShellLayout({
                     </button>
                     {!collapsedSidebarSections.activeSessions && (
                       <div className="sidebar-section-body">
-                        {tabs.slice(-6).reverse().map((tab) => (
-                          <button key={tab.id} className={`project-row ${tab.id === activeTabId ? 'project-row--active' : ''}`} onClick={() => onSelectActiveTab(tab.id)} title={tab.transcriptPath}>
-                            <Terminal size={16} />
-                            <span className="sidebar-row-copy">
-                              <span className="sidebar-row-main">{tab.label}</span>
-                              <span className="sidebar-row-meta">{sessionVisibilityLabel(tab)} · {tab.runtimeMode === 'mock' ? 'demo' : 'real'}</span>
-                            </span>
-                            {tab.readiness.unread && <span className="sidebar-readiness-dot" title="Unread session output" />}
-                          </button>
-                        ))}
+                        {tabs.slice(-6).reverse().map((tab) => {
+                          const readiness = sessionReadinessDisplay(tab.readiness)
+                          return (
+                            <button key={tab.id} className={`project-row ${tab.id === activeTabId ? 'project-row--active' : ''}`} onClick={() => onSelectActiveTab(tab.id)} title={`${readiness.title} - ${tab.transcriptPath}`}>
+                              <Terminal size={16} />
+                              <span className="sidebar-row-copy">
+                                <span className="sidebar-row-main">{tab.label}</span>
+                                <span className="sidebar-row-meta">{readiness.label} · {tab.runtimeMode === 'mock' ? 'demo' : 'real'}</span>
+                              </span>
+                              {tab.readiness.unread && <span className="sidebar-readiness-dot" title="Unread session output" />}
+                            </button>
+                          )
+                        })}
                       </div>
                     )}
                   </div>
@@ -331,13 +335,6 @@ function formatSessionTimestamp(timestamp: string): string {
   const date = new Date(timestamp)
   if (Number.isNaN(date.getTime())) return 'unknown time'
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-}
-
-function sessionVisibilityLabel(tab: SessionTab): string {
-  if (tab.readiness.responseReady) return 'ready'
-  if (tab.readiness.inputRequired) return 'waiting'
-  if (tab.readiness.unread) return 'unread'
-  return tab.id ? 'attached' : 'starting'
 }
 
 function displayPath(input: string): string {

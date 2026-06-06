@@ -1,5 +1,5 @@
 import type { JSX } from 'react'
-import type { SessionReadinessState } from '../services/sessionReadiness'
+import { sessionReadinessDisplay, type SessionReadinessState } from '../services/sessionReadiness'
 import { sessionModelLabel } from '../services/sessionModelIdentity'
 
 type SessionTab = {
@@ -24,29 +24,32 @@ export function TabBar({ tabs, activeId, onSelect, onKill }: TabBarProps): JSX.E
 
   return (
     <div className="tab-bar">
-      {tabs.map((tab) => (
-        <button
-          key={tab.id}
-          className={`tab ${tab.id === activeId ? 'tab--active' : ''}`}
-          onClick={() => onSelect(tab.id)}
-        >
-          <span className={`tab-dot ${tab.mock ? 'tab-dot--mock' : 'tab-dot--live'}`} />
-          <span className="tab-label">{tab.label}</span>
-          <span className="tab-model">{sessionModelLabel({ model: tab.model })}</span>
-          {tab.readiness.unread && <span className="tab-readiness tab-readiness--unread">new</span>}
-          {tab.readiness.inputRequired && <span className="tab-readiness tab-readiness--input">input</span>}
-          {tab.readiness.responseReady && <span className="tab-readiness tab-readiness--ready">ready</span>}
-          <span
-            className="tab-close"
-            onClick={(e) => {
-              e.stopPropagation()
-              onKill(tab.id)
-            }}
+      {tabs.map((tab) => {
+        const readiness = sessionReadinessDisplay(tab.readiness)
+        return (
+          <button
+            key={tab.id}
+            className={`tab ${tab.id === activeId ? 'tab--active' : ''}`}
+            onClick={() => onSelect(tab.id)}
+            title={readiness.title}
           >
-            ×
-          </span>
-        </button>
-      ))}
+            <span className={`tab-dot ${tab.mock ? 'tab-dot--mock' : 'tab-dot--live'}`} />
+            <span className="tab-label">{tab.label}</span>
+            <span className="tab-model">{sessionModelLabel({ model: tab.model })}</span>
+            <span className={`tab-readiness tab-readiness--${readiness.tone}`}>{readiness.label}</span>
+            {tab.readiness.unread && readiness.label !== 'unread output' && <span className="tab-readiness tab-readiness--purple">new</span>}
+            <span
+              className="tab-close"
+              onClick={(e) => {
+                e.stopPropagation()
+                onKill(tab.id)
+              }}
+            >
+              ×
+            </span>
+          </button>
+        )
+      })}
     </div>
   )
 }

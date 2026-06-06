@@ -1022,6 +1022,8 @@ Eleventh status update on 2026-06-06: right-inspector file previews now show sou
 
 Twelfth status update on 2026-06-06: the `Recent contexts` sidebar group now includes local search over discovered session title, id, transcript path, cwd, model, and source. Filtering stays presentation-only and does not change transcript discovery, resume behavior, session lifecycle, transport, file access, config writes, or Command Code invocation behavior. Validation receipts: `npm run typecheck`, `npx vitest run` -> `162/162`, `npm run build`, `npm run smoke:browser`, built route token proof at `http://127.0.0.1:57401/` serving `index-lMGg5-XN.js` and `index-wn1oizx1.css`, built asset proof for `Search contexts`, `sidebar-context-search`, `No contexts match`, `filteredRecentContexts`, and `recentContextQuery`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:49404`.
 
+Thirteenth status update on 2026-06-06: live session tabs, the active-session header, and the `Live sessions` sidebar now use a shared `sessionReadinessDisplay()` formatter so attaching, replaying, running, waiting for input, response ready, completed, errored, and unread-output states are visibly labeled from existing reducer state. This improves presentation only; it does not add readiness events, terminal-output scraping, private runtime inference, notification dispatch, session lifecycle changes, transport changes, renderer IPC, file access, config writes, or Command Code invocation behavior. Validation receipts: `npm run typecheck`, `npx vitest run` -> `163/163`, `npm run build`, `npm run smoke:browser`, built route token proof at `http://127.0.0.1:57402/` serving `index-KrviLkPx.js` and `index-Bo3FjM3z.css`, built asset proof for `sessionReadinessDisplay`, `waiting for input`, `response ready`, `completed`, `unread output`, `tab-readiness--good`, and `tab-readiness--bad`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:49704`.
+
 ### Scope
 
 - Parse transcript JSONL into readable conversation/timeline entries. Implemented for the transcript preview UI.
@@ -1033,7 +1035,7 @@ Twelfth status update on 2026-06-06: the `Recent contexts` sidebar group now inc
 - Add safe HTML rendering rules, sandboxing, or fallback-to-source behavior. Implemented with explicit fallback-to-source behavior and safety copy for `.html` and `.htm` previews.
 - Add session search, grouping, labels/notes, and safe bulk operations. Recent context search and sidebar grouping are implemented; editable labels/notes and bulk operations remain planned behind persistence and safe-bulk gates.
 - Fix hidden/background terminal restoration so resize is not needed to repaint. Implemented by keeping one mounted terminal pane per live session and activating panes without clearing their buffers.
-- Add explicit states for attaching, replaying, waiting for input, running, completed, errored, unread, and response-ready.
+- Add explicit states for attaching, replaying, waiting for input, running, completed, errored, unread, and response-ready. Implemented as visible labels from the existing readiness reducer; notification dispatch and deeper runtime-state provenance remain planned/gated.
 - Clarify sidebar naming and active-session visibility. Implemented with `Recent contexts` and `Live sessions` sidebar labels plus per-row source/date/readiness/runtime metadata.
 
 ### Likely Impacted Files
@@ -1070,6 +1072,7 @@ Likely new files:
 - Active sessions restore visually after tab changes, inspector resizing, and terminal input toggles. Implemented for tab/layout restoration with mounted per-session panes; manual multi-session dogfood remains part of Phase 8 closeout.
 - One blocked interactive session does not block rendering or state in other sessions. Mock session independence is covered in `tests/cli.test.ts` and `npm run smoke:browser`; manual UI dogfood remains part of Phase 8 closeout.
 - Per-session artifacts remain associated with the correct session. Implemented with right-inspector file preview source labels for transcript artifact chips.
+- Live session readiness states are visibly labeled. Implemented with `sessionReadinessDisplay()` coverage in `tests/session-readiness.test.ts` and wired to tabs, the active-session header, and the sidebar.
 - `npm run typecheck`
 - `npx vitest run`
 - Browser/Electron dogfood with at least three sessions.

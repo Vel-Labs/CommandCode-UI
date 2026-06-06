@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   initialSessionReadiness,
   reduceSessionReadiness,
+  sessionReadinessDisplay,
   type SessionReadinessEvent,
   type SessionReadinessState
 } from '../src/renderer/src/services/sessionReadiness'
@@ -135,5 +136,28 @@ describe('session readiness', () => {
       responseReady: false,
       inputRequired: false
     })
+  })
+
+  it('formats explicit readiness states for UI without inferring runtime internals', () => {
+    const states = [
+      reduceSessionReadiness(initialSessionReadiness('session-1'), { type: 'attach' }).state,
+      reduceSessionReadiness(initialSessionReadiness('session-1'), { type: 'replay-start' }).state,
+      reduceSessionReadiness(initialSessionReadiness('session-1'), { type: 'output', source: 'live' }).state,
+      reduceSessionReadiness(initialSessionReadiness('session-1'), { type: 'input-required' }).state,
+      reduceSessionReadiness(initialSessionReadiness('session-1'), { type: 'assistant-ready' }).state,
+      reduceSessionReadiness(initialSessionReadiness('session-1'), { type: 'exit' }).state,
+      reduceSessionReadiness(initialSessionReadiness('session-1'), { type: 'error', message: 'boom' }).state
+    ]
+
+    expect(states.map((state) => sessionReadinessDisplay(state).label)).toEqual([
+      'attaching',
+      'replaying',
+      'running',
+      'waiting for input',
+      'response ready',
+      'completed',
+      'errored'
+    ])
+    expect(sessionReadinessDisplay(states.at(-1)!).title).toBe('boom')
   })
 })

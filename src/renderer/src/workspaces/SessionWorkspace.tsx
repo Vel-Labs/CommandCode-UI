@@ -7,6 +7,7 @@ import { ComposerBar } from '../components/ComposerBar'
 import { StatusPill } from '../components/StatusPill'
 import { TabBar } from '../components/TabBar'
 import { TerminalPane } from '../components/TerminalPane'
+import { sessionReadinessDisplay } from '../services/sessionReadiness'
 import { sessionModelLabel } from '../services/sessionModelIdentity'
 
 export function SessionWorkspace({
@@ -86,6 +87,8 @@ export function SessionWorkspace({
   onModel: () => void
   onSlash: () => void
 }): JSX.Element {
+  const activeReadiness = activeTab ? sessionReadinessDisplay(activeTab.readiness) : undefined
+
   return (
     <section className={`session-workspace ${bottomTerminalOpen ? 'session-workspace--bottom-terminal' : ''}`} aria-label="Active session">
       <header className="session-header session-header--compact">
@@ -95,9 +98,8 @@ export function SessionWorkspace({
             <span>{activeTab?.projectLabel || projectLabel}</span>
             <StatusPill label={sessionModelLabel({ model: activeTab?.model, transcriptModel: activeTab?.resumedSession?.model })} tone="default" />
             <StatusPill label={activeTab?.mock ? 'mock' : 'real cli'} tone={activeTab?.mock ? 'purple' : 'warn'} />
-            {activeTab?.readiness.inputRequired && <StatusPill label="input" tone="warn" />}
-            {activeTab?.readiness.responseReady && <StatusPill label="ready" tone="default" />}
-            {activeTab?.readiness.unread && <StatusPill label="unread" tone="purple" />}
+            {activeReadiness && <StatusPill label={activeReadiness.label} tone={activeReadiness.tone} />}
+            {activeTab?.readiness.unread && activeReadiness?.label !== 'unread output' && <StatusPill label="unread" tone="purple" />}
             <StatusPill label={permissionLabel} tone={permissionTone} />
           </div>
         </div>

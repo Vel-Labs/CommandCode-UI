@@ -272,6 +272,7 @@ Current Phase 8 status on 2026-06-06:
 - Transcript artifact chips open the existing right-inspector file preview after explicit user action. They do not auto-open files, add server routes, add renderer IPC, or broaden filesystem capability.
 - Sidebar session labels distinguish recent transcript contexts from live sessions, and live session rows show compact readiness/runtime metadata from existing `SessionReadinessState`.
 - The `Recent contexts` sidebar group filters discovered sessions locally by title, id, transcript path, cwd, model, and source. It does not change transcript discovery or resume behavior.
+- `sessionReadinessDisplay()` centralizes renderer labels for existing readiness reducer states: attaching, replaying, running, waiting for input, response ready, completed, errored, and unread output. This is presentation-only and does not infer runtime state from terminal text.
 - `SessionWorkspace` keeps one mounted `TerminalPane` per live session. Inactive panes remain hidden and subscribed to their own output, while only the active pane accepts input and emits resize calls. This preserves terminal buffers across tab switches and inspector/layout changes without terminal-output scraping.
 - `FileViewer` treats `.html` and `.htm` as source-only previews with explicit safety copy. The GUI does not execute HTML in artifact previews.
 - Right-inspector file previews carry a source label. Transcript artifact chips label previews as artifacts from the selected session/transcript, while file-browser selections label previews as project files.

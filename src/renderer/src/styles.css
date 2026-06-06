@@ -869,19 +869,32 @@ textarea:focus {
   color: #ece7dc;
 }
 
+.tab-readiness--default {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.tab-readiness--purple,
 .tab-readiness--unread {
   background: rgba(96, 165, 250, 0.2);
   border-color: rgba(96, 165, 250, 0.42);
 }
 
+.tab-readiness--warn,
 .tab-readiness--input {
   background: rgba(251, 191, 36, 0.2);
   border-color: rgba(251, 191, 36, 0.45);
 }
 
+.tab-readiness--good,
 .tab-readiness--ready {
   background: rgba(163, 230, 53, 0.16);
   border-color: rgba(163, 230, 53, 0.36);
+}
+
+.tab-readiness--bad {
+  background: rgba(248, 113, 113, 0.18);
+  border-color: rgba(248, 113, 113, 0.42);
 }
 
 .tab-close {
