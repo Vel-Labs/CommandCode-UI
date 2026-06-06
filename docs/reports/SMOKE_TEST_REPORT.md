@@ -403,6 +403,20 @@ Scope: Settings Advanced presentation package. Settings Advanced now routes to e
 
 Scope: validation-only Settings write click-through package. It exercised the existing Settings Agents and Memory save buttons against isolated temporary files and did not change app code, renderer IPC, server routes, config behavior, or Command Code settings.
 
+### 2026-06-06 Phase 2 Settings session click-through receipts
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Isolated built server | Pass | `HOME=/tmp/ccgui-home-sessions-WyDa5e npx tsx src/cli/ccgui.ts serve --port 5219`; app preferences pointed to temp project `/tmp/ccgui-project-sessions-9UHJsA` with a project transcript fixture under the isolated Command Code project transcript store |
+| Settings Sessions discovery | Pass | In-app Browser loaded the temp project, opened Settings Sessions through Settings search, and showed `Session Clickthrough Fixture` with Resume and Reveal controls |
+| Settings reveal click-through | Pass | Clicked Reveal; browser adapter returned without leaving or breaking the Sessions page |
+| Settings resume click-through | Pass | Clicked Resume and observed `Real session started` in the UI while scoped to the temp project; the isolated server was stopped immediately afterward |
+| Fixture cleanup | Pass | Verified the transcript fixture existed before cleanup, then removed isolated temp HOME and temp project |
+| Real Settings MCP action click-through | Not run | Requires a safe MCP server fixture to avoid mutating an unknown external server |
+
+Scope: validation-only Settings session click-through package. It exercised existing Settings Sessions Reveal and Resume buttons against an isolated temp project transcript. It did not change app code, renderer IPC, server routes, config behavior, or Command Code settings.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |

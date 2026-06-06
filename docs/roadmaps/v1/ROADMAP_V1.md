@@ -388,6 +388,8 @@ Twenty-sixth Advanced Settings hub package replaced the Settings Advanced page's
 
 Twenty-seventh validation package exercised direct Settings write click-throughs for Agents and Memory against an isolated temporary `HOME` and temporary project served from `http://127.0.0.1:5218/`. The in-app Browser loaded the temp project, opened Settings Agents through Settings search, edited `.commandcode/agents/clickthrough-agent.md`, clicked Save, observed the Settings saved state, and verified the updated content on disk. The same run opened Settings Memory, edited `AGENTS.md`, clicked Save memory, observed `Saved memory file.`, and verified the updated content on disk. The fixture was removed after the receipt. This package did not exercise Settings Sessions resume/reveal or real MCP connect/disconnect, and it did not change runtime behavior. Validation receipt: `npm run typecheck`.
 
+Twenty-eighth validation package exercised Settings Sessions reveal/resume click-through against an isolated temporary `HOME` and temporary project served from `http://127.0.0.1:5219/`. The fixture created a project transcript under the Command Code project transcript store, loaded Settings Sessions through Settings search, observed the project transcript, clicked Reveal, and verified the Sessions page remained intact in the browser adapter. It then clicked Resume and observed `Real session started` from the UI while scoped to the temp project; the isolated server was stopped immediately afterward and the fixture was removed. This package did not exercise real MCP connect/disconnect, and it did not change app code. Validation receipt: `npm run typecheck`.
+
 ### Scope
 
 - Fold AdvancedPanel content into Settings as first-class sections. Replacement coverage is implemented for AdvancedPanel sections; AdvancedPanel removal remains gated by `docs/reports/ADVANCED_PANEL_REMOVAL_GATE.md`.
@@ -434,7 +436,7 @@ Likely new files:
 - Settings search filters sections and visible rows.
 - Settings navigation reaches every formerly advanced section.
 - Settings Advanced routes to explicit diagnostics sections instead of opening the generic Advanced modal.
-- Settings Sessions includes project-session resume and transcript reveal actions; direct real CLI resume/reveal click-through remains to be exercised before removing the Advanced modal entirely.
+- Settings Sessions includes project-session resume and transcript reveal actions; direct reveal/resume click-through is validated against an isolated temp project transcript.
 - Settings MCP includes connect/disconnect execution with visible command previews; real MCP action click-through remains to be exercised against a safe server before removing the Advanced modal entirely.
 - Settings Agents includes project-scoped discovery and edit/save with visible destination paths; server tests cover that listed project agents use the same scoped root as the save route, and direct Settings save click-through is validated against an isolated temp project.
 - Settings Memory includes project-scoped edit/save with visible destination paths; direct Settings save click-through is validated against an isolated temp project.
