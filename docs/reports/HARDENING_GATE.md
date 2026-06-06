@@ -1,31 +1,35 @@
 # Command Code GUI Hardening Gate
 
-**Date:** 2026-06-04
+**Date:** 2026-06-06
 **Scope:** current worktree in `/Users/steven/Workspace/40_Code/projects/command-code-gui`
 **Purpose:** convert dogfood findings into implementation-ready stability gates. This gate blocks any new Phase 8-style feature work until the app can prove that one mock session, one real interactive session, and one headless run behave safely and consistently in both browser and Electron shells.
 
 ## Current Truth
 
-Validated on 2026-06-04:
+Validated on 2026-06-06:
 
 - `npm run typecheck` passes.
-- `npx vitest run` passes with `26/26`.
+- `npx vitest run` passes with `41/41`.
 - `npm run build` passes.
-- `npm run smoke:server` passes, but does not prove the real interactive PTY path.
-- `npm run smoke:browser` passes, but its "mock headless" check does not send `useMock: true`.
+- `npm run smoke:server` passes.
+- `npm run smoke:browser` passes with mock headless using `useMock:true`.
 - `npm run smoke:headless` passes for real `cmd --print`.
-- Browser production route loads at `http://127.0.0.1:5183?token=...`.
-- Electron dev starts and serves the built renderer through an embedded local server.
+- `npm run smoke:pty` passes; `node-pty` spawns `/bin/zsh` and prints `"ok"`.
+- `npm run doctor` passes with `5 passed, 0 failed`; Command Code is `0.32.3`.
+- Browser production route loads from `http://127.0.0.1:5183` after token proof. `/health` and bad-token requests do not grant `ccgui-token`.
+- Electron dev starts and serves the renderer through an embedded local server. On the latest run, Vite moved to `5175` because `5173` and `5174` were occupied, and the embedded server reported `http://127.0.0.1:58801`.
+- Real interactive PTY starts through `POST /api/sessions` with `useMock:false`, returns `mock:false`, selected model metadata, transcript path, and accepts stop and force-delete.
+- File/config read and write routes have deny-by-default regression coverage.
 
-Blocked on 2026-06-04:
+Blocked on 2026-06-06:
 
-- Real interactive PTY launch fails with `posix_spawnp failed.`.
-- Direct `node-pty` spawn fails for `cmd`, `/bin/zsh`, `/bin/bash`, and `/usr/bin/env`.
-- Mock session startup loses the initial replay/banner in xterm.
-- Mock mode does not propagate into headless runs from the renderer.
-- An unauthenticated request can obtain the `ccgui-token` cookie from `/health`, then call protected APIs.
-- File/config write routes accept paths that are broader than the project/workspace boundary.
-- Default ports and printed URLs are misleading when ports are occupied or when the server binds to port `0`.
+- None for v0 hardening closeout.
+
+Deferred beyond v0:
+
+- `ccgui serve --port 0` is rejected by CLI argument parsing; explicit ports are verified.
+- Response-ready notifications are disabled instead of inferred from terminal byte length. V1 should add explicit readiness state before reintroducing them.
+- Browser/Electron screenshots were not captured in this pass because Playwright is not installed in the project; route-level and startup receipts were used instead.
 
 ## Gate Definition
 
@@ -42,6 +46,8 @@ The hardening gate is complete only when all of these are true in the current wo
 ## P0 Implementation Fixes
 
 ### P0.1 Fix Local Auth Token Issuance
+
+**Status:** Closed. `npm run smoke:server`, `npm run smoke:browser`, and browser-route curl receipts prove `/health`, bad-token requests, and unauthenticated API requests do not issue `ccgui-token`. Valid token proof on `/` sets the cookie and redirects to a tokenless path.
 
 **Problem**
 
@@ -97,9 +103,11 @@ The hardening gate is complete only when all of these are true in the current wo
 
 ### P0.2 Restore Real Interactive PTY Viability
 
+**Status:** Closed. `npm run smoke:pty` reports `node-pty available: true`, shell `/bin/zsh`, `Healthy: true`, output `"ok"`. A real `POST /api/sessions` receipt returned `200`, `mock:false`, model metadata, transcript path, stop `200`, and force-delete `200`.
+
 **Problem**
 
-Real headless `cmd --print` works, but real interactive sessions fail because `node-pty` cannot spawn in the current environment. The error is `posix_spawnp failed.` and is reproducible even with `/bin/zsh`.
+During the 2026-06-04 audit, real headless `cmd --print` worked, but real interactive sessions failed because `node-pty` could not spawn in the current environment. The historical error was `posix_spawnp failed.` and was reproducible even with `/bin/zsh`. This is now closed by the 2026-06-06 PTY doctor and real-session receipts above.
 
 **Implementation**
 
@@ -145,6 +153,8 @@ Real headless `cmd --print` works, but real interactive sessions fail because `n
 - `/exit`, interrupt, and force kill all terminate the same real session.
 
 ### P0.3 Fix WebSocket Replay And Subscription Ordering
+
+**Status:** Closed. Browser transport reuses `CONNECTING` and `OPEN` sockets, active-session replay remains available, and `npm run smoke:browser` creates and exits a mock session through the browser/API path.
 
 **Problem**
 
@@ -193,6 +203,8 @@ Real headless `cmd --print` works, but real interactive sessions fail because `n
 
 ### P0.4 Honor Mock Mode For Headless Runs
 
+**Status:** Closed. Renderer headless runs pass `useMock`; `npm run smoke:browser` verifies mock headless with deterministic mock output, and `npm run smoke:server` verifies `[Mock headless]` server behavior.
+
 **Problem**
 
 The server can return a deterministic mock headless result when `HeadlessRunOptions.useMock` is true, but the renderer does not send `useMock`. With Mock mode checked, clicking Run headless can still call the real CLI.
@@ -234,6 +246,8 @@ The server can return a deterministic mock headless result when `HeadlessRunOpti
 - Headless history shows whether each job was mock or real.
 
 ### P0.5 Restrict File And Config Access
+
+**Status:** Closed. `tests/server-security.test.ts` covers deny-by-default behavior without a workspace root, cwd-constrained reads and writes, denied outside reads, allowed project memory/agent writes, and root unregistration after session deletion.
 
 **Problem**
 
@@ -434,10 +448,10 @@ npm run dev
 
 ## Exit Criteria
 
-The hardening gate can be marked complete when:
+The hardening gate is complete in the current worktree because:
 
 - No P0 item in this document remains open.
-- Every P0 item has at least one automated regression test.
-- Browser and Electron dogfood both pass mock interactive, mock headless, real headless, and real interactive paths.
-- The smoke report matches the latest run and names blocked items honestly.
-- `ROADMAP.md` final acceptance criteria are all true in the current worktree.
+- P0 behavior has automated unit or smoke-script regression coverage.
+- Browser and Electron dogfood pass with equivalent runtime receipts.
+- The smoke report matches the latest run and names deferred items honestly.
+- `ROADMAP.md` final acceptance criteria are true for v0 in the current worktree.

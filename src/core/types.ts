@@ -114,6 +114,7 @@ export type SessionStartResult = {
   args: string[]
   cwd: string
   mock: boolean
+  model?: string
   transcriptPath: string
 }
 

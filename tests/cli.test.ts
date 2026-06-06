@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { buildInteractiveArgs, buildHeadlessArgs, getCommandExecutable, normalizeCwd } from '../src/core/cli'
+import { CoreSessionManager } from '../src/core/sessions'
 import { buildPtySubmitChunks } from '../src/shared/ptyInput'
 import { looksLikeCliSelectionPrompt, stripAnsi } from '../src/shared/terminalPrompts'
 import os from 'node:os'
@@ -205,5 +206,31 @@ describe('looksLikeCliSelectionPrompt', () => {
     const output = ['Test plan', '1. Add unit tests', '2. Run build'].join('\n')
 
     expect(looksLikeCliSelectionPrompt(output)).toBe(false)
+  })
+})
+
+describe('CoreSessionManager session metadata', () => {
+  it('returns the model captured at session start', () => {
+    const manager = new CoreSessionManager()
+    const result = manager.start({
+      cwd: os.homedir(),
+      useMock: true,
+      model: '  deepseek/deepseek-v4-pro  '
+    })
+
+    expect(result.model).toBe('deepseek/deepseek-v4-pro')
+    manager.forceKill(result.id)
+  })
+
+  it('omits empty model metadata instead of implying a current global model', () => {
+    const manager = new CoreSessionManager()
+    const result = manager.start({
+      cwd: os.homedir(),
+      useMock: true,
+      model: '   '
+    })
+
+    expect(result.model).toBeUndefined()
+    manager.forceKill(result.id)
   })
 })

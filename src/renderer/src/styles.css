@@ -904,6 +904,14 @@ textarea:focus {
   text-overflow: ellipsis;
 }
 
+.tab-model {
+  max-width: 132px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #a1a1aa;
+  font-size: 11px;
+}
+
 .tab-close {
   padding: 1px 3px;
   border-radius: 3px;

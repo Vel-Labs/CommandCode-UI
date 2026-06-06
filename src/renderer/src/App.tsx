@@ -77,6 +77,7 @@ type SessionTab = {
   id: string
   label: string
   mock: boolean
+  model?: string
   stopRequested: boolean
   stopStage: 0 | 1 | 2
   transcriptPath: string
@@ -271,6 +272,10 @@ function ptyHealthLabel(ptyHealth: PtyDoctorResult | null): string {
   if (ptyHealth.healthy) return 'PTY connected'
   if (ptyHealth.available) return 'PTY unhealthy'
   return 'PTY unavailable'
+}
+
+function sessionModelLabel(model?: string): string {
+  return model?.trim() || 'Default at start'
 }
 
 function looksPlanLike(input: string): boolean {
@@ -735,6 +740,7 @@ export function App(): JSX.Element {
         id: result.id,
         label,
         mock: result.mock,
+        model: result.model,
         stopRequested: false,
         stopStage: 0,
         transcriptPath: result.transcriptPath,
@@ -1425,6 +1431,7 @@ export function App(): JSX.Element {
                   <div className="session-title">{activeTab?.label || 'Session'}</div>
                   <div className="session-context">
                     <span>{activeTab?.projectLabel || projectLabel}</span>
+                    <StatusPill label={sessionModelLabel(activeTab?.model)} tone="default" />
                     <StatusPill label={activeTab?.mock ? 'mock' : 'real cli'} tone={activeTab?.mock ? 'purple' : 'warn'} />
                     <StatusPill label={permissionLabel(permissionMode, trust)} tone={riskyPermission ? 'warn' : permissionMode === 'plan' ? 'purple' : 'default'} />
                   </div>
@@ -1495,7 +1502,7 @@ export function App(): JSX.Element {
                   showPlanSuggestion={showPlanSuggestion}
                   onPlanMode={usePlanMode}
                   projectLabel={projectLabel}
-                  modelLabel={model || 'Default'}
+                  modelLabel={sessionModelLabel(activeTab?.model)}
                   permissionLabel={permissionLabel(permissionMode, trust)}
                   riskyPermission={riskyPermission}
                   onProject={() => setOpenPopover(openPopover === 'project' ? null : 'project')}
@@ -1518,6 +1525,7 @@ export function App(): JSX.Element {
                 sizeBytes: 0,
                 title: activeTab.label,
                 cwd,
+                model: activeTab.model,
                 source: 'global'
               } : undefined)}
               onClose={() => setRightInspector('none')}

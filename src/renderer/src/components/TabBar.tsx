@@ -4,6 +4,7 @@ type SessionTab = {
   id: string
   label: string
   mock: boolean
+  model?: string
   stopRequested: boolean
   transcriptPath: string
 }
@@ -28,6 +29,7 @@ export function TabBar({ tabs, activeId, onSelect, onKill }: TabBarProps): JSX.E
         >
           <span className={`tab-dot ${tab.mock ? 'tab-dot--mock' : 'tab-dot--live'}`} />
           <span className="tab-label">{tab.label}</span>
+          <span className="tab-model">{tab.model?.trim() || 'default'}</span>
           <span
             className="tab-close"
             onClick={(e) => {

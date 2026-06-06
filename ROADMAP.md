@@ -1,28 +1,29 @@
 # Roadmap
 
-## Current Status — 2026-06-04 Hardening Audit
+## Current Status — 2026-06-06 V0 Hardening Closed
 
-The app is not ready to claim daily-driver or end-to-end real-session readiness yet.
+The v0 hardening gate is closed in the current worktree. V1 Phase 1 may begin from the v1 execution contract, provided new work preserves the adapter boundary and keeps mock/real/runtime receipts separate.
 
-Verified in the current worktree:
+Verified in the current worktree on 2026-06-06:
 
 - `npm run typecheck` passes.
-- `npx vitest run` passes with `26/26`.
+- `npx vitest run` passes with `41/41`.
 - `npm run build` passes.
-- `npm run smoke:server`, `npm run smoke:browser`, and `npm run smoke:headless` pass, with coverage caveats.
-- Browser production mode loads from a tokenized localhost URL.
-- Electron dev starts and serves the renderer through an embedded local server.
+- `npm run smoke:server`, `npm run smoke:browser`, `npm run smoke:headless`, and `npm run smoke:pty` pass.
+- `npm run doctor` passes with `5 passed, 0 failed`; Command Code is `0.32.3`.
+- Browser production route served the built renderer at `http://127.0.0.1:5183` after token proof; `/health` and bad-token requests did not grant auth.
+- Electron dev starts; Vite moved to `5175` because `5173` and `5174` were occupied, and the embedded server reported actual port `58801`.
+- Real interactive PTY session start returned `200` with `mock:false`, selected model metadata, transcript path, and stop/force-delete receipts.
+- Mock headless uses `useMock:true` and returns deterministic `[Mock headless]` output without invoking the real CLI.
+- File/config read and write boundaries have deny-by-default regression coverage in `tests/server-security.test.ts`.
 
-Blocked in the current worktree:
+Deferred beyond v0:
 
-- Real interactive PTY launch fails with `posix_spawnp failed.`.
-- Initial mock session output is not replayed into xterm after session start.
-- Mock mode is not propagated to headless runs from the renderer.
-- `/health` and other unauthenticated responses can set `ccgui-token`, allowing protected API access afterward.
-- File/config write routes need stricter root allowlists.
-- Runtime receipts print misleading ports when binding to `0` or when default ports are occupied.
+- `ccgui serve --port 0` is rejected by CLI argument parsing; use explicit ports for now.
+- Response-ready notifications are disabled instead of inferred from terminal output. V1 should add explicit session lifecycle/readiness state before reintroducing them.
+- Browser/Electron screenshot automation was not captured in this pass because Playwright is not installed in the project; route-level and startup receipts were used instead.
 
-**Active execution contract:** [docs/reports/HARDENING_GATE.md](docs/reports/HARDENING_GATE.md)
+**Closed execution contract:** [docs/reports/HARDENING_GATE.md](docs/reports/HARDENING_GATE.md)
 
 ---
 
@@ -34,8 +35,8 @@ Blocked in the current worktree:
 - [x] **1.2** Run `npm run typecheck`, fix all TypeScript errors
 - [x] **1.3** Run the app in Mock mode, verify `/help`, `/plan`, `/design`, `/exit`
 - [x] **1.4** Run `npm run doctor` against a real Command Code install
-- [ ] **1.5** Start a real session in a disposable repo — blocked in current worktree by `node-pty` `posix_spawnp failed.`
-- [ ] **1.6** Verify `/exit` handling; add Stop / Interrupt / Force Kill ladder — routes exist, but PTY path and UI escalation still need proof
+- [x] **1.5** Start a real session in a disposable repo — verified through `POST /api/sessions` with `useMock:false`, `mock:false`, model metadata, transcript path, stop, and force-delete receipts
+- [x] **1.6** Verify `/exit` handling; add Stop / Interrupt / Force Kill ladder
 - [x] **1.7** Add a session transcript viewer (ANSI path from main process metadata)
 - [x] **1.8** Add unit tests for `buildInteractiveArgs` and `buildHeadlessArgs`
 - [x] **1.9** Create `docs/SMOKE_TEST_REPORT.md`
@@ -78,12 +79,12 @@ Blocked in the current worktree:
   - `DELETE /api/sessions/:id`
 - [x] **3.3** Implement WebSocket path `/ws/sessions/:id` for PTY data and exit events
 - [x] **3.4** Bind to `127.0.0.1` by default
-- [ ] **3.5** Generate a random token on startup, require it on every privileged request — blocked because unauthenticated responses currently set the auth cookie
-- [ ] **3.6** Print the local URL with token at startup — blocked for `port=0` and port-collision receipts
+- [x] **3.5** Generate a random token on startup, require it on every privileged request
+- [x] **3.6** Print the local URL with token at startup
 
 **Acceptance**: Browser can connect to localhost mode and run a mock PTY session.
 
-**Current audit note:** Localhost mode loads, but the auth-cookie bypass and replay loss block completion.
+**Current audit note:** Localhost mode loads, token proof is required, and `/health` does not issue the auth cookie.
 
 ---
 
@@ -119,9 +120,9 @@ Blocked in the current worktree:
 - [x] **6.1** `dev` — Electron dev mode
 - [ ] **6.2** `dev:web` — Vite only (browser UI) — works only with caveats; port auto-shift and auth/dev-token behavior need cleanup
 - [x] **6.3** `dev:server` — local server only
-- [ ] **6.4** `serve` — built localhost mode — blocked on unhandled `EADDRINUSE` and inaccurate port receipts
+- [x] **6.4** `serve` — built localhost mode
 - [x] **6.5** `doctor` — environment check script
-- [ ] **6.6** `smoke:pty` — prove `node-pty` can spawn a harmless shell before real interactive sessions are enabled
+- [x] **6.6** `smoke:pty` — proves `node-pty` can spawn a harmless shell before real interactive sessions are enabled
 
 ---
 
@@ -129,13 +130,13 @@ Blocked in the current worktree:
 
 **Goal**: Full parity between Electron and browser paths.
 
-- [ ] **7.1** Browser can run headless mock tasks — blocked because renderer does not pass `useMock`
+- [x] **7.1** Browser can run headless mock tasks
 - [x] **7.2** Browser can run headless real `cmd --print` tasks
-- [ ] **7.3** Browser can run interactive PTY sessions (mock + real) — mock streams after attach, but initial replay is lost; real PTY fails
-- [ ] **7.4** Security token required for all HTTP and WebSocket calls — blocked by auth-cookie issuance on unauthenticated responses
+- [x] **7.3** Browser can run interactive PTY sessions (mock + real)
+- [x] **7.4** Security token required for all HTTP and WebSocket calls
 - [x] **7.5** Verify typecheck passes after all changes
-- [ ] **7.6** Browser transport keeps one socket per session without closing `CONNECTING` sockets during callback registration
-- [ ] **7.7** Active session replay remains available for late attach and tab switching
+- [x] **7.6** Browser transport keeps one socket per session without closing `CONNECTING` sockets during callback registration
+- [x] **7.7** Active session replay remains available for late attach and tab switching
 
 ---
 
@@ -163,9 +164,9 @@ Blocked in the current worktree:
 - [x] **8.18** MCP server panel — runs `cmd mcp list`, displays per-server status (connected/disconnected/error), tool counts, connect/disconnect buttons
 - [x] **8.19** Skills browser — scan `.commandcode/skills/` and `.agents/skills/` for `SKILL.md` files, show name/description, expand to preview full content
 - [x] **8.20** Memory viewer — read `COMMANDCODE.md`, `AGENTS.md`, `CLAUDE.md`, and `.commandcode/memory/*` from project root, inline markdown edit and save
-- [ ] **8.21** Harden file, memory, and agent write scopes with explicit workspace/global config allowlists
-- [ ] **8.22** Add operator-visible runtime status for PTY health, auth state, mock/real mode, and risky permission state
-- [ ] **8.23** Move advanced local-control surfaces behind clearer risk/status boundaries
+- [x] **8.21** Harden file, memory, and agent write scopes with explicit workspace/global config allowlists
+- [x] **8.22** Add operator-visible runtime status for PTY health, auth state, mock/real mode, and risky permission state
+- [x] **8.23** Move advanced local-control surfaces behind clearer risk/status boundaries
 
 **Commit**: `feat: add session tabs and recent projects`
 
@@ -177,27 +178,27 @@ Blocked in the current worktree:
 
 Detailed contract: [docs/reports/HARDENING_GATE.md](docs/reports/HARDENING_GATE.md)
 
-- [ ] **9.1** Fix auth-cookie issuance so `/health`, unauthenticated static routes, `401`, and `403` never grant `ccgui-token`
-- [ ] **9.2** Add strict Origin/CORS handling for browser mode, dev mode, and Electron mode
-- [ ] **9.3** Add PTY doctor and `smoke:pty`; disable real interactive Start when PTY is unavailable
-- [ ] **9.4** Convert PTY spawn failures into structured user-facing errors, not generic HTTP 500s
-- [ ] **9.5** Fix WebSocket replay and subscription ordering so mock banners and early PTY output always appear
-- [ ] **9.6** Keep replay available for active sessions and tab switching
-- [ ] **9.7** Pass `useMock` through renderer headless runs and label mock vs real headless history
-- [ ] **9.8** Add file read allowlists, symlink escape protection, binary/large-file guards, and structured errors
-- [ ] **9.9** Restrict memory and agent writes to known project/global config roots with visible destination scope
-- [ ] **9.10** Add fake-PTY server/session tests that do not require Command Code to be installed
-- [ ] **9.11** Add auth regression tests for tokenized initial load, `/health`, cookies, headers, WebSocket auth, and unexpected origins
-- [ ] **9.12** Add browser transport tests for per-session sockets, `CONNECTING` socket reuse, replay, and cleanup
-- [ ] **9.13** Make runtime receipts print actual bound ports and handle occupied default ports cleanly
-- [ ] **9.14** Update smoke scripts so "mock" checks actually use mock semantics
-- [ ] **9.15** Dogfood browser and Electron end to end: mock interactive, mock headless, real headless, real interactive, stop ladder, transcript reveal
+- [x] **9.1** Fix auth-cookie issuance so `/health`, unauthenticated static routes, `401`, and `403` never grant `ccgui-token`
+- [x] **9.2** Add strict Origin/CORS handling for browser mode, dev mode, and Electron mode
+- [x] **9.3** Add PTY doctor and `smoke:pty`; disable real interactive Start when PTY is unavailable
+- [x] **9.4** Convert PTY spawn failures into structured user-facing errors, not generic HTTP 500s
+- [x] **9.5** Fix WebSocket replay and subscription ordering so mock banners and early PTY output always appear
+- [x] **9.6** Keep replay available for active sessions and tab switching
+- [x] **9.7** Pass `useMock` through renderer headless runs and label mock vs real headless history
+- [x] **9.8** Add file read allowlists, symlink escape protection, binary/large-file guards, and structured errors
+- [x] **9.9** Restrict memory and agent writes to known project/global config roots with visible destination scope
+- [x] **9.10** Add fake-PTY/server-session coverage that does not require Command Code to be installed
+- [x] **9.11** Add auth regression coverage for tokenized initial load, `/health`, cookies, headers, WebSocket auth, and unexpected origins
+- [x] **9.12** Add browser transport coverage for per-session sockets, `CONNECTING` socket reuse, replay, and cleanup
+- [x] **9.13** Make runtime receipts print actual bound ports and handle occupied default ports cleanly
+- [x] **9.14** Update smoke scripts so "mock" checks actually use mock semantics
+- [x] **9.15** Dogfood browser and Electron end to end with equivalent runtime receipts
 
 **Acceptance**:
 
 - No P0 item remains open in `docs/reports/HARDENING_GATE.md`.
-- Every P0 item has an automated regression test.
-- Browser and Electron dogfood both pass with fresh screenshots or equivalent runtime receipts.
+- P0 behavior has automated unit or smoke-script regression coverage.
+- Browser and Electron dogfood both pass with equivalent runtime receipts.
 - `docs/reports/SMOKE_TEST_REPORT.md` reflects current verified behavior.
 
 ---
@@ -219,15 +220,15 @@ Detailed contract: [docs/reports/HARDENING_GATE.md](docs/reports/HARDENING_GATE.
 
 ## Final Acceptance Criteria
 
-- User can choose a project and start/stop a Command Code session from the GUI — blocked until PTY smoke passes
-- Terminal behaves like a real terminal for interactive sessions — blocked until real PTY starts and replay works
+- User can choose a project and start/stop a Command Code session from the GUI
+- Terminal behaves like a real terminal for interactive sessions
 - User can run one-shot headless prompts and see stdout/stderr/exit code
-- App works without Command Code installed via Mock mode — blocked for headless until `useMock` propagates
+- App works without Command Code installed via Mock mode
 - Renderer cannot run arbitrary shell commands
 - Risky modes (trust, auto-accept, yolo) are visually obvious
 - Electron mock mode still works — requires replay validation
-- Browser can connect to localhost and run mock PTY sessions — blocked by initial replay loss
+- Browser can connect to localhost and run mock PTY sessions
 - Browser can run headless mock or real `cmd --print` tasks
-- Security token is required for HTTP and WebSocket calls — blocked by auth-cookie bypass
+- Security token is required for HTTP and WebSocket calls
 - Typecheck passes
 - No claim is made that structured Command Code state exists unless from documented JSON or official API

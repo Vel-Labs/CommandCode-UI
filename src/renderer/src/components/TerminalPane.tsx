@@ -6,7 +6,6 @@ import { WebLinksAddon } from '@xterm/addon-web-links'
 import type { SessionExitPayload } from '../../../shared/types'
 import type { TransportAPI } from '../../../core/transport'
 import { looksLikeCliSelectionPrompt } from '../../../shared/terminalPrompts'
-import { notify } from './ToastSystem'
 
 type TerminalPaneProps = {
   transport: TransportAPI
@@ -20,12 +19,11 @@ type TerminalPaneProps = {
   notifyResponses?: boolean
 }
 
-export function TerminalPane({ transport, sessionId, onExit, onExpandRequest, onInputRequest, onInputCommit, compact = false, inputEnabled = true, notifyResponses = true }: TerminalPaneProps): JSX.Element {
+export function TerminalPane({ transport, sessionId, onExit, onExpandRequest, onInputRequest, onInputCommit, compact = false, inputEnabled = true }: TerminalPaneProps): JSX.Element {
   const hostRef = useRef<HTMLDivElement | null>(null)
   const terminalRef = useRef<Terminal | null>(null)
   const fitRef = useRef<FitAddon | null>(null)
   const sessionRef = useRef<string | undefined>(sessionId)
-  const notifiedRef = useRef(true)
   const lastSizeRef = useRef({ cols: 0, rows: 0 })
   const lastUserInputAtRef = useRef(0)
   const recentOutputRef = useRef('')
@@ -153,6 +151,7 @@ export function TerminalPane({ transport, sessionId, onExit, onExpandRequest, on
     terminal.clear()
     terminal.writeln('\x1b[2mattaching session ' + sessionId + '\x1b[0m')
     terminal.writeln('')
+    recentOutputRef.current = ''
     fitRef.current?.fit()
     if (inputEnabledRef.current) {
       terminal.focus()
@@ -161,8 +160,6 @@ export function TerminalPane({ transport, sessionId, onExit, onExpandRequest, on
     setFollowingOutput(true)
     lastSizeRef.current = { cols: terminal.cols, rows: terminal.rows }
     transport.resize(sessionId, terminal.cols, terminal.rows)
-
-    notifiedRef.current = false
 
     const offData = transport.onSessionData(sessionId, (data) => {
       recentOutputRef.current = (recentOutputRef.current + data).slice(-6000)
@@ -180,11 +177,6 @@ export function TerminalPane({ transport, sessionId, onExit, onExpandRequest, on
         const nextBuffer = terminal.buffer.active
         setFollowingOutput(nextBuffer.viewportY >= nextBuffer.baseY - 1)
       })
-
-      if (notifyResponses && !notifiedRef.current && data.length > 20) {
-        notifiedRef.current = true
-        setTimeout(() => notify('AI responded', 'session-response'), 300)
-      }
     })
 
     const offExit = onExit

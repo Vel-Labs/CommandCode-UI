@@ -21,6 +21,7 @@ type SessionRecord = {
   args: string[]
   cwd: string
   mock: boolean
+  model?: string
   transcriptPath: string
   mockTimer?: NodeJS.Timeout
 }
@@ -56,6 +57,7 @@ export class CoreSessionManager extends EventEmitter<SessionEvents> {
       args,
       cwd,
       mock: Boolean(options.useMock),
+      model: options.model?.trim() || undefined,
       transcriptPath
     }
 
@@ -71,7 +73,7 @@ export class CoreSessionManager extends EventEmitter<SessionEvents> {
       this.sessions.delete(record.id)
     }
 
-    return { id, command, args, cwd, mock: record.mock, transcriptPath }
+    return { id, command, args, cwd, mock: record.mock, model: record.model, transcriptPath }
   }
 
   write(id: string, data: string): void {
