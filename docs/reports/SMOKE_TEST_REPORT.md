@@ -389,6 +389,20 @@ Scope: Settings Agents boundary package. Project agents are now discoverable thr
 
 Scope: Settings Advanced presentation package. Settings Advanced now routes to explicit diagnostics and scoped-tool sections instead of opening the generic Advanced modal. No renderer IPC expansion, server routes, config writes, file access changes, transport/session lifecycle changes, or Command Code settings mutation was added.
 
+### 2026-06-06 Phase 2 Settings write click-through receipts
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Isolated built server | Pass | `HOME=/tmp/ccgui-home-BbQjiY npx tsx src/cli/ccgui.ts serve --port 5218`; app preferences were set through `/api/app/preferences/save` to temp project `/tmp/ccgui-project-oJCnEL` |
+| Settings agent save click-through | Pass | In-app Browser loaded the temp project, opened Settings Agents through Settings search, edited `.commandcode/agents/clickthrough-agent.md`, clicked Save, observed `Saved /tmp/ccgui-project-oJCnEL/.commandcode/agents/clickthrough-agent.md`, and disk verification found `updated through Settings Agents click-through` |
+| Settings memory save click-through | Pass | In-app Browser opened Settings Memory, edited `AGENTS.md`, clicked Save memory, observed `Saved memory file.`, and disk verification found `updated through Settings Memory click-through` |
+| Fixture cleanup | Pass | Removed isolated temp HOME and temp project after verification |
+| Settings session resume/reveal click-through | Not run | Requires a safe discovered project transcript fixture; existing action wiring remains implemented but this receipt was not exercised in this validation package |
+| Real Settings MCP action click-through | Not run | Requires a safe MCP server fixture to avoid mutating an unknown external server |
+
+Scope: validation-only Settings write click-through package. It exercised the existing Settings Agents and Memory save buttons against isolated temporary files and did not change app code, renderer IPC, server routes, config behavior, or Command Code settings.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |
