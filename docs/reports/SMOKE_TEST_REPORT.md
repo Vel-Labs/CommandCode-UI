@@ -1177,3 +1177,17 @@ Scope: added a focused local MCP reference page and linked it from the local Com
 | CLI syntax checks | Pass | `cmd mcp --help`, `cmd mcp add --help`, `cmd mcp add-json --help`, `cmd mcp remove --help`, and `cmd mcp auth --help` |
 
 Scope: documentation-only Phase 6 closeout. The closeout marks implemented MCP visibility, diagnostics, previews, connect/disconnect execution, and redacted add-flow previews as validated while keeping MCP add/remove/auth-clear mutation, config editing, server edit/save, connection tests, deeper diagnostics, log viewing, and secret persistence deferred behind explicit gates. No runtime code, renderer IPC, file access, config writes, CLI arguments, session lifecycle, MCP mutation behavior, or Command Code settings mutation changed.
+
+### 2026-06-06 Phase 7 extension settings module extraction
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Build | Pass | `npm run build`; renderer assets `index-Bap9IfZ3.js` and `index-8BkyITsP.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57389`; token proof returned `302`, cookie-authenticated `/` served built assets `index-Bap9IfZ3.js` and `index-8BkyITsP.css` |
+| Built asset UI proof | Pass | `rg -n "Agent configs|Skills \\(|Memory files|Taste packages|Project agent destination|Read-only skill discovery" out/renderer/assets/index-Bap9IfZ3.js` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:62327` |
+| Browser plugin navigation | Not available | The Browser navigation tool was not exposed in this thread; route-level receipts were used instead |
+
+Scope: extracted Settings Agents, Skills, Memory, and Taste presentation into dedicated Phase 7 modules and added a shared read-only Settings card component. Existing transport calls, Agents/Memory scoped save behavior, Skills/Taste read-only behavior, destination labels, and ownership copy were preserved. This did not add renderer IPC, server routes, config writes, file access changes, runtime/session lifecycle changes, skill/taste CRUD, agent routing semantics, or Command Code settings mutation.

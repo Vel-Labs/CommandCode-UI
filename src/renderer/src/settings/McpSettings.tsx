@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { JSX, ReactNode } from 'react'
+import type { JSX } from 'react'
 import { buildMcpActionPreview, buildMcpAddCommandPreview, buildMcpGatedCommandPreview } from '../../../core/mcpCommands'
 import type { McpScope, McpTransport } from '../../../core/mcpCommands'
 import { mcpPolicyReferences, mcpScopeReferences } from '../../../core/mcpReference'
 import type { TransportAPI } from '../../../core/transport'
 import type { McpServer } from '../../../core/types'
+import { SettingsReadOnlyCard } from './SettingsReadOnlyCard'
 
 type McpAddPreviewMode = 'http' | 'stdio' | 'json'
 
@@ -274,27 +275,5 @@ export function McpSettings({ transport, commandExecutable }: { transport: Trans
         </div>
       ))}
     </SettingsReadOnlyCard>
-  )
-}
-
-function SettingsReadOnlyCard({
-  title,
-  loading,
-  onRefresh,
-  children
-}: {
-  title: string
-  loading: boolean
-  onRefresh: () => Promise<void>
-  children: ReactNode
-}): JSX.Element {
-  return (
-    <div className="settings-card settings-card--wide">
-      <div className="settings-readonly-header">
-        <strong>{title}</strong>
-        <button className="ghost-button native-ghost" onClick={() => void onRefresh()} disabled={loading}>{loading ? 'Loading...' : 'Refresh'}</button>
-      </div>
-      {children}
-    </div>
   )
 }

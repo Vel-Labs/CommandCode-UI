@@ -899,6 +899,8 @@ Sequential:
 
 Goal: make community extension surfaces understandable and scoped.
 
+Status update 2026-06-06: First Phase 7 renderer architecture package extracted Settings Agents, Skills, Memory, and Taste presentation from `src/renderer/src/settings/AdvancedReadOnlySettings.tsx` into dedicated modules: `AgentsSettings.tsx`, `SkillsSettings.tsx`, `MemorySettings.tsx`, and `TasteSettings.tsx`. It also added a shared `SettingsReadOnlyCard.tsx` used by those routes and MCP while preserving existing transport calls, project-scoped Agents/Memory save behavior, read-only Skills/Taste behavior, destination labels, and Command Code ownership copy. This package did not add renderer IPC, server routes, config writes, file access changes, runtime/session lifecycle changes, skill/taste CRUD, agent routing semantics, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npm run build`, `npm run smoke:browser`, built route token proof at `http://127.0.0.1:57389/` serving assets `index-Bap9IfZ3.js` and `index-8BkyITsP.css`, built asset text proof for `Agent configs`, `Skills`, `Memory files`, and `Taste packages`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:62327`. Browser plugin navigation was not available in this thread, so route-level and built-asset receipts were used.
+
 ### Scope
 
 - Move agents, skills, memory, and taste into Settings or contextual inspectors.

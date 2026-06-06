@@ -114,7 +114,9 @@ Current implementation status on 2026-06-06:
 - `src/renderer/src/settings/settingsRegistry.tsx` owns the searchable settings section registry and Phase 2 taxonomy.
 - `ShellLayout` renders registry-backed settings navigation and filters sections through the settings search input.
 - `SettingsWorkspace` renders read-only placeholder pages for newly registered Phase 2 sections until each section has a validated replacement path.
-- `src/renderer/src/settings/AdvancedReadOnlySettings.tsx` renders Settings-hosted read-only views for Project state, MCP, Agents, Skills, Memory, and Taste.
+- `src/renderer/src/settings/AdvancedReadOnlySettings.tsx` renders Settings-hosted Project state, Data, and Sessions views.
+- `src/renderer/src/settings/AgentsSettings.tsx`, `SkillsSettings.tsx`, `MemorySettings.tsx`, and `TasteSettings.tsx` own the Phase 7 extension-surface Settings presentation.
+- `src/renderer/src/settings/SettingsReadOnlyCard.tsx` owns the shared read-only Settings card frame for extension and integration surfaces.
 - `src/renderer/src/settings/ReferenceSettings.tsx` renders reference views for Keyboard, Models, Design, Hooks, and About, plus renderer-local Notifications and Terminal preference pages.
 - `src/renderer/src/settings/CoreSettings.tsx` renders existing Profile, General, Runtime, Appearance, Usage, Integrations, and Advanced presentation sections while preserving their existing callbacks.
 - `src/renderer/src/settings/SettingsRoutes.tsx` owns the Settings section dispatcher, shared frame, and placeholder fallback so `SettingsWorkspace` stays a shell container.

@@ -6,13 +6,10 @@ import type { DiscoveredSession } from '../../../core/types'
 import type { AppearanceTheme, RuntimeMode, SettingsSection, UpdateState } from '../appTypes'
 import type { HeadlessJob } from '../components/HeadlessHistory'
 import {
-  AgentsSettingsReadOnly,
-  MemorySettingsReadOnly,
   ProjectStateSettings,
-  SessionsSettingsReadOnly,
-  SkillsSettingsReadOnly,
-  TasteSettingsReadOnly
+  SessionsSettingsReadOnly
 } from './AdvancedReadOnlySettings'
+import { AgentsSettingsReadOnly } from './AgentsSettings'
 import {
   AdvancedSettings,
   AppearanceSettings,
@@ -22,6 +19,7 @@ import {
   RuntimeSettings,
   UsageSettings
 } from './CoreSettings'
+import { MemorySettingsReadOnly } from './MemorySettings'
 import {
   AboutSettingsReadOnly,
   HooksSettingsReadOnly,
@@ -29,6 +27,8 @@ import {
   NotificationsSettings,
   TerminalSettings
 } from './ReferenceSettings'
+import { SkillsSettingsReadOnly } from './SkillsSettings'
+import { TasteSettingsReadOnly } from './TasteSettings'
 import { ModelsSettings } from './ModelsSettings'
 import { McpSettings } from './McpSettings'
 import { settingsItem } from './settingsRegistry'
