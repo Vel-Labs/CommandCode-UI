@@ -99,6 +99,8 @@ GUI implications:
 
 ## Design
 
+Focused local page: `design.md`
+
 Source page:
 
 - https://commandcode.ai/docs/design
@@ -120,6 +122,8 @@ GUI implications:
 - Store any GUI-specific design guidance in project docs, not hidden prompt state.
 
 ## Tools
+
+Focused local page: `tools.md`
 
 Source page:
 
@@ -149,8 +153,8 @@ Suggested next local docs:
 - `hooks.md` (started)
 - `models.md` (started)
 - `mcp.md` (started)
-- `design.md`
-- `tools.md`
+- `design.md` (started)
+- `tools.md` (started)
 - `gui-implications.md`
 
 Each page should cite the official source URL and focus on what this GUI needs to know to build safe, discoverable workflows.

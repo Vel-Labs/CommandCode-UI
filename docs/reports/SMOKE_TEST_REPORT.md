@@ -1612,3 +1612,15 @@ Scope: preview-only workbench action registry. `src/renderer/src/workbench/workb
 | Boundary status | Pass | `rg -n "complete for the current V1 contract|mutation/runtime-affecting workbench actions gated" docs/architecture/V1_ARCHITECTURE.md` |
 
 Scope: Phase 9 closeout docs. Phase 9 is marked complete for the current V1 contract, while file, IDE, git mutation, terminal lifecycle/profile, editable theme-token, and release-fetching work remains gated and not claimed as implemented. This did not change runtime code, renderer IPC, server routes, transport calls, file access, config writes, session lifecycle, CSS tokens, or Command Code invocation behavior.
+
+### 2026-06-06 Phase 10 docs index package
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Docs index | Pass | `rg -n "V1_IMPLEMENTATION_GUIDE|WORKBENCH_POLISH_GATE|command-code-docs/design.md|command-code-docs/tools.md|HARDENING_GATE" docs/INDEX.md` |
+| Command Code local docs | Pass | `rg -n "Focused local page: design.md|Focused local page: tools.md|started" docs/reference/command-code-docs/README.md docs/reference/command-code-docs/design.md docs/reference/command-code-docs/tools.md` |
+| Test plan | Pass | `rg -n "Current automated commands|Gated coverage|npm run smoke:browser|WORKBENCH_POLISH_GATE" docs/reports/TEST_PLAN.md` |
+| Contributor guide | Pass | `rg -n "Package Loop|Current Gates|Runtime Boundary|Phase Handoff" docs/contributors/V1_IMPLEMENTATION_GUIDE.md` |
+
+Scope: documentation-only Phase 10 index package. This added contributor guidance, focused local Command Code design/tools pages, refreshed the docs index, and updated the test plan. It did not change runtime code, renderer IPC, server routes, transport calls, file access, config writes, session lifecycle, CSS tokens, or Command Code invocation behavior.
