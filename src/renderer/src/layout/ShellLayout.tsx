@@ -213,7 +213,7 @@ export function ShellLayout({
                       aria-expanded={!collapsedSidebarSections.recentChats}
                     >
                       <ChevronDown size={14} />
-                      <span>Recent chats</span>
+                      <span>Recent contexts</span>
                     </button>
                     {!collapsedSidebarSections.recentChats && (
                       <div className="sidebar-section-body">
@@ -225,7 +225,10 @@ export function ShellLayout({
                             title={`Open ${session.title || session.id}`}
                           >
                             <Terminal size={16} />
-                            <span>{session.title || session.id}</span>
+                            <span className="sidebar-row-copy">
+                              <span className="sidebar-row-main">{session.title || session.id}</span>
+                              <span className="sidebar-row-meta">{session.source || 'project'} · {formatSessionTimestamp(session.timestamp)}</span>
+                            </span>
                           </button>
                         ))}
                         {projectSessions.length > 4 && (
@@ -246,14 +249,17 @@ export function ShellLayout({
                       aria-expanded={!collapsedSidebarSections.activeSessions}
                     >
                       <ChevronDown size={14} />
-                      <span>Active sessions</span>
+                      <span>Live sessions</span>
                     </button>
                     {!collapsedSidebarSections.activeSessions && (
                       <div className="sidebar-section-body">
                         {tabs.slice(-6).reverse().map((tab) => (
                           <button key={tab.id} className={`project-row ${tab.id === activeTabId ? 'project-row--active' : ''}`} onClick={() => onSelectActiveTab(tab.id)} title={tab.transcriptPath}>
                             <Terminal size={16} />
-                            <span>{tab.label}</span>
+                            <span className="sidebar-row-copy">
+                              <span className="sidebar-row-main">{tab.label}</span>
+                              <span className="sidebar-row-meta">{sessionVisibilityLabel(tab)} · {tab.runtimeMode === 'mock' ? 'demo' : 'real'}</span>
+                            </span>
                             {tab.readiness.unread && <span className="sidebar-readiness-dot" title="Unread session output" />}
                           </button>
                         ))}
@@ -295,6 +301,19 @@ export function ShellLayout({
       </section>
     </main>
   )
+}
+
+function formatSessionTimestamp(timestamp: string): string {
+  const date = new Date(timestamp)
+  if (Number.isNaN(date.getTime())) return 'unknown time'
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+}
+
+function sessionVisibilityLabel(tab: SessionTab): string {
+  if (tab.readiness.responseReady) return 'ready'
+  if (tab.readiness.inputRequired) return 'waiting'
+  if (tab.readiness.unread) return 'unread'
+  return tab.id ? 'attached' : 'starting'
 }
 
 function displayPath(input: string): string {

@@ -1327,3 +1327,18 @@ Scope: transcript artifact preview package. Transcript previews now show explici
 | Browser plugin navigation | Not available | The Browser navigation tool was not exposed; route-level and built-asset receipts were used instead |
 
 Scope: read-only resume receipt UI package. Transcript workspaces now show source file, session id, project, model, timestamp, and latest result/failure using existing transcript metadata and status state. This did not change resume command construction, session lifecycle, transport behavior, renderer IPC, file access, config writes, transcript mutation, response-ready inference, or Command Code invocation behavior.
+
+### 2026-06-06 Phase 8 sidebar session visibility
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `159/159` |
+| Build | Pass | `npm run build`; renderer assets `index-B6d8s-38.js` and `index-iHF04H3r.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57397`; token proof returned `302`, cookie-authenticated `/` served built assets `index-B6d8s-38.js` and `index-iHF04H3r.css` |
+| Built asset UI proof | Pass | `rg -n "Recent contexts|Live sessions|sessionVisibilityLabel|sidebar-row-meta|attached|waiting|ready" out/renderer/assets/index-B6d8s-38.js out/renderer/assets/index-iHF04H3r.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:64486` |
+| Browser plugin navigation | Not available | The Browser navigation tool was not exposed; route-level and built-asset receipts were used instead |
+
+Scope: sidebar presentation package. Sidebar labels now distinguish recent transcript contexts from live sessions, and rows show source/date or readiness/runtime metadata from existing session data. This did not change session lifecycle, transcript discovery, resume behavior, terminal behavior, transport, renderer IPC, file access, config writes, response-ready inference, or Command Code invocation behavior.

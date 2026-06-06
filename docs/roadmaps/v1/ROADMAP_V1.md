@@ -1008,6 +1008,8 @@ Fourth status update on 2026-06-06: transcript previews now surface explicit, cl
 
 Fifth status update on 2026-06-06: transcript workspaces now show read-only resume receipts for source file, session id, project, model, timestamp, and latest result/failure using existing transcript metadata and status state. This did not change resume command construction, session lifecycle, transport behavior, renderer IPC, file access, config writes, transcript mutation, or Command Code invocation behavior. Validation receipts: `npm run typecheck`, `npx vitest run` -> `159/159`, `npm run build`, `npm run smoke:browser`, built route token proof at `http://127.0.0.1:57396/` serving `index-C0-eDGSd.js` and `index-BWNvK0UU.css`, built asset proof for `Resume receipt`, `Source file`, `Session id`, `Latest result`, and `resume-receipt`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:64212`.
 
+Sixth status update on 2026-06-06: the sidebar now distinguishes `Recent contexts` from `Live sessions` and adds compact metadata under rows: recent context source/date and live session readiness/runtime labels. This improves active-session visibility without changing session lifecycle, transcript discovery, resume behavior, terminal behavior, transport, renderer IPC, file access, config writes, or Command Code invocation behavior. Validation receipts: `npm run typecheck`, `npx vitest run` -> `159/159`, `npm run build`, `npm run smoke:browser`, built route token proof at `http://127.0.0.1:57397/` serving `index-B6d8s-38.js` and `index-iHF04H3r.css`, built asset proof for `Recent contexts`, `Live sessions`, `sessionVisibilityLabel`, and `sidebar-row-meta`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:64486`.
+
 ### Scope
 
 - Parse transcript JSONL into readable conversation/timeline entries. Implemented for the transcript preview UI.
@@ -1020,7 +1022,7 @@ Fifth status update on 2026-06-06: transcript workspaces now show read-only resu
 - Add session search, grouping, labels/notes, and safe bulk operations.
 - Fix hidden/background terminal restoration so resize is not needed to repaint.
 - Add explicit states for attaching, replaying, waiting for input, running, completed, errored, unread, and response-ready.
-- Clarify sidebar naming and active-session visibility.
+- Clarify sidebar naming and active-session visibility. Implemented with `Recent contexts` and `Live sessions` sidebar labels plus per-row source/date/readiness/runtime metadata.
 
 ### Likely Impacted Files
 
