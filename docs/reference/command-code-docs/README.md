@@ -40,6 +40,32 @@ GUI implications:
 - Keep hook execution owned by Command Code; the GUI should edit config and run diagnostics only.
 - Readiness notification preferences now include `response-ready` and `input-required` categories, but runtime dispatch remains gated until explicit Command Code readiness events are integrated.
 
+## Models
+
+Focused local page: `models.md`
+
+Source page:
+
+- https://commandcode.ai/docs/reference/cli/models
+
+Key points for the GUI:
+
+- `--model <model>` selects a model for a session.
+- `--list-models` lists available model ids from Command Code.
+- `/model` switches or inspects models inside the interactive runtime.
+- `/configure-models` chooses which model runs built-in tasks.
+- Command Code accepts full model ids or short names after the last slash.
+
+GUI implications:
+
+- Keep model listing delegated to Command Code.
+- Keep favorites, search, and section grouping as GUI presentation only.
+- Store and display per-session model identity from session-start or transcript metadata.
+- Keep task routing separate from single-session selection.
+- Do not write persistent task routing config until the config format and scope behavior are documented and tested.
+- Do not invent pricing, context-window, or capability metadata.
+- Keep preferred vision-model routing future/plugin-owned unless a documented adapter contract exists.
+
 ## MCP
 
 Source pages:
@@ -118,6 +144,7 @@ GUI implications:
 Suggested next local docs:
 
 - `hooks.md` (started)
+- `models.md` (started)
 - `mcp.md`
 - `design.md`
 - `tools.md`

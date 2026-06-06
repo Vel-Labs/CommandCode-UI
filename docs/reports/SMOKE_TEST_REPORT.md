@@ -919,3 +919,15 @@ Scope: replaced the generic Models reference card with a read-only Settings > Mo
 | Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
 
 Scope: extended the existing scoped project transcript `.meta.json` read to include trimmed model metadata, and added tests using an injected temporary Command Code base directory. This did not add file roots, IPC routes, config writes, CLI argument changes, Command Code model semantics, or session lifecycle behavior. Real CLI path was not retested for this metadata discovery slice.
+
+### 2026-06-06 Phase 4 local models reference
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Docs index | Pass | `rg --files docs/reference/command-code-docs` shows `models.md` |
+| Boundary search | Pass | `rg -n "configure-models|--list-models|--model|vision adapter" docs/reference/command-code-docs/models.md docs/reference/command-code-docs/README.md` |
+| Build | Not run | Docs-only package; renderer/server/main/package files were unchanged |
+| Browser/API smoke | Not run | Docs-only package; browser transport, auth, mock, and session UI were unchanged |
+
+Scope: added a local Models reference page with direct `cmd --help` and `cmd --list-models` evidence, plus GUI boundaries for single-session model selection, task routing, and future vision-adapter routing. This did not change runtime code, renderer IPC, file access, config writes, CLI arguments, or session lifecycle.
