@@ -1020,6 +1020,8 @@ Tenth status update on 2026-06-06: `npm run smoke:browser` now includes repeatab
 
 Eleventh status update on 2026-06-06: right-inspector file previews now show source labels so project-file previews and transcript artifact previews stay visibly associated with their source. Artifact chips set labels such as `Artifact from <session>`; file-browser selections set `Project file`. Validation receipts: `npm run typecheck`, `npx vitest run` -> `162/162`, `npm run build`, `npm run smoke:browser`, built route token proof at `http://127.0.0.1:57400/` serving `index-Bmylt_JS.js` and `index-AJSFYY41.css`, built asset proof for `file-viewer-source`, `Artifact from`, `Project file`, `sourceLabel`, and `onSelectArtifact`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:49233`. This did not add renderer IPC, server routes, file access, write paths, session lifecycle changes, or Command Code invocation behavior.
 
+Twelfth status update on 2026-06-06: the `Recent contexts` sidebar group now includes local search over discovered session title, id, transcript path, cwd, model, and source. Filtering stays presentation-only and does not change transcript discovery, resume behavior, session lifecycle, transport, file access, config writes, or Command Code invocation behavior. Validation receipts: `npm run typecheck`, `npx vitest run` -> `162/162`, `npm run build`, `npm run smoke:browser`, built route token proof at `http://127.0.0.1:57401/` serving `index-lMGg5-XN.js` and `index-wn1oizx1.css`, built asset proof for `Search contexts`, `sidebar-context-search`, `No contexts match`, `filteredRecentContexts`, and `recentContextQuery`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:49404`.
+
 ### Scope
 
 - Parse transcript JSONL into readable conversation/timeline entries. Implemented for the transcript preview UI.
@@ -1029,7 +1031,7 @@ Eleventh status update on 2026-06-06: right-inspector file previews now show sou
 - Surface generated or referenced files as session artifacts. Implemented for transcript preview suggestions that open the existing right-inspector file preview after an explicit click.
 - Add right-inspector previews for rendered Markdown, rendered HTML, raw text, ANSI logs, and reveal-file actions. Existing right-inspector file preview is wired from transcript artifact chips for Markdown, raw text, and ANSI through the current guarded file-read route; safe rendered HTML remains planned.
 - Add safe HTML rendering rules, sandboxing, or fallback-to-source behavior. Implemented with explicit fallback-to-source behavior and safety copy for `.html` and `.htm` previews.
-- Add session search, grouping, labels/notes, and safe bulk operations.
+- Add session search, grouping, labels/notes, and safe bulk operations. Recent context search and sidebar grouping are implemented; editable labels/notes and bulk operations remain planned behind persistence and safe-bulk gates.
 - Fix hidden/background terminal restoration so resize is not needed to repaint. Implemented by keeping one mounted terminal pane per live session and activating panes without clearing their buffers.
 - Add explicit states for attaching, replaying, waiting for input, running, completed, errored, unread, and response-ready.
 - Clarify sidebar naming and active-session visibility. Implemented with `Recent contexts` and `Live sessions` sidebar labels plus per-row source/date/readiness/runtime metadata.

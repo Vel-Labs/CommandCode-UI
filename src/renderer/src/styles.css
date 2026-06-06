@@ -2228,6 +2228,29 @@ input[type="range"]::-webkit-slider-thumb {
   gap: 2px;
 }
 
+.sidebar-context-search {
+  width: 100%;
+  height: 30px;
+  margin: 2px 0 6px;
+  padding: 0 8px;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  color: #e4e4e7;
+  background: rgba(255,255,255,0.04);
+  font-size: 12px;
+  outline: none;
+}
+
+.sidebar-context-search:focus {
+  border-color: rgba(96, 165, 250, 0.34);
+}
+
+.sidebar-empty-state {
+  padding: 8px;
+  color: #71717a;
+  font-size: 12px;
+}
+
 .project-row {
   display: flex;
   align-items: center;

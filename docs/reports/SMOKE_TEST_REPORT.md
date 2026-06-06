@@ -1407,3 +1407,18 @@ Scope: validation script package. `scripts/smoke-browser.ts` now starts three mo
 | Browser plugin navigation | Not available | The Browser navigation tool was not exposed; route-level and built-asset receipts were used instead |
 
 Scope: artifact traceability UI package. Right-inspector file previews now show whether the selected file came from project browsing or from a specific transcript/session artifact. This did not add renderer IPC, server routes, file access, write paths, session lifecycle changes, or Command Code invocation behavior.
+
+### 2026-06-06 Phase 8 recent context search
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `162/162` |
+| Build | Pass | `npm run build`; renderer assets `index-lMGg5-XN.js` and `index-wn1oizx1.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` -> `7.3b Multi-session independence: PASS` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57401`; token proof returned `302`, cookie-authenticated `/` served built assets `index-lMGg5-XN.js` and `index-wn1oizx1.css` |
+| Built asset UI proof | Pass | `rg -n "Search contexts|sidebar-context-search|No contexts match|filteredRecentContexts|recentContextQuery" out/renderer/assets/index-lMGg5-XN.js out/renderer/assets/index-wn1oizx1.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:49404` |
+| Browser plugin navigation | Not available | The Browser navigation tool was not exposed; route-level and built-asset receipts were used instead |
+
+Scope: sidebar session-search package. `Recent contexts` now filters discovered sessions locally by title, id, transcript path, cwd, model, and source. This did not change transcript discovery, resume behavior, session lifecycle, transport, renderer IPC, file access, config writes, or Command Code invocation behavior.

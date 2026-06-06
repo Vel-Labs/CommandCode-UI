@@ -105,7 +105,21 @@ export function ShellLayout({
   updateLabel: (state: UpdateState, version?: string) => string
 }): JSX.Element {
   const [settingsQuery, setSettingsQuery] = useState('')
+  const [recentContextQuery, setRecentContextQuery] = useState('')
   const settingsGroups = useMemo(() => groupedSettings(settingsQuery), [settingsQuery])
+  const filteredRecentContexts = useMemo(() => {
+    const query = recentContextQuery.trim().toLowerCase()
+    if (!query) return projectSessions
+    return projectSessions.filter((session) => [
+      session.title,
+      session.id,
+      session.transcriptPath,
+      session.cwd,
+      session.model,
+      session.source
+    ].some((value) => value?.toLowerCase().includes(query)))
+  }, [projectSessions, recentContextQuery])
+  const visibleRecentContexts = showAllRecentChats ? filteredRecentContexts : filteredRecentContexts.slice(0, 4)
   const shellStyle = {
     '--sidebar-width': `${sidebarWidth}px`,
     '--right-inspector-width': `${rightInspectorWidth}px`
@@ -217,7 +231,14 @@ export function ShellLayout({
                     </button>
                     {!collapsedSidebarSections.recentChats && (
                       <div className="sidebar-section-body">
-                        {visibleRecentChats.map((session) => (
+                        <input
+                          className="sidebar-context-search"
+                          value={recentContextQuery}
+                          onChange={(event) => setRecentContextQuery(event.target.value)}
+                          placeholder="Search contexts..."
+                          aria-label="Search recent contexts"
+                        />
+                        {visibleRecentContexts.map((session) => (
                           <button
                             key={session.id}
                             className="project-row"
@@ -231,9 +252,12 @@ export function ShellLayout({
                             </span>
                           </button>
                         ))}
-                        {projectSessions.length > 4 && (
+                        {!visibleRecentContexts.length && (
+                          <div className="sidebar-empty-state">No contexts match.</div>
+                        )}
+                        {filteredRecentContexts.length > 4 && (
                           <button className="show-more-row" onClick={onToggleRecentChats}>
-                            {showAllRecentChats ? 'Show less' : `Show ${projectSessions.length - 4} more`}
+                            {showAllRecentChats ? 'Show less' : `Show ${filteredRecentContexts.length - 4} more`}
                           </button>
                         )}
                       </div>
