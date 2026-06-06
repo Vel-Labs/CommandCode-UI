@@ -144,9 +144,10 @@ Phase 3 has started with a pure parser/gate package:
 - Invalid JSON and invalid hook shapes fail before any future write path can use them.
 - `/api/hooks/configs` and `transport.discoverHookConfigs(cwd)` provide read-only discovery for exactly `~/.commandcode/settings.json` and `<project>/.commandcode/settings.json`; the project path is derived from the existing workspace root resolver and file reads are capped at 1 MB.
 - `/api/hooks/preview-toggle` and `transport.previewHookToggle(...)` derive the same scoped settings paths and return formatted JSON previews for enable/disable changes without writing files.
-- `docs/reports/HOOKS_NOTIFICATIONS_GATE.md` records the boundaries that still block hook file reads/writes, hook execution, test-payload execution, OS notifications, quiet mode, response-ready state, input-required state, and session readiness.
-- Hook execution remains Command Code-owned. The GUI parser is only preparation for scoped Settings display, validation, and future diagnostics.
-- Settings > Hooks is currently preview-only. It shows Command Code-owned `settings.json` destinations, project/user scopes, project-before-user precedence, parser gate status, discovered source status, parsed hook commands, preview enable/disable output, diagnostics, execution ownership, and example recipes without writing hook config files or executing hooks.
+- `/api/hooks/apply-toggle` and `transport.applyHookToggle(...)` apply only previewed enable/disable changes to the same scoped settings paths after writing a sibling `.ccgui.bak` backup.
+- `docs/reports/HOOKS_NOTIFICATIONS_GATE.md` records the boundaries that still block broader hook editing, hook execution, test-payload execution, OS notifications, quiet mode, response-ready state, input-required state, and session readiness.
+- Hook execution remains Command Code-owned. The GUI parser and toggle writer only prepare scoped Settings display, validation, diagnostics, and explicit config edits.
+- Settings > Hooks currently supports scoped enable/disable toggles only. It shows Command Code-owned `settings.json` destinations, project/user scopes, project-before-user precedence, parser gate status, discovered source status, parsed hook commands, preview enable/disable output, diagnostics, execution ownership, and example recipes without executing hooks.
 
 Suggested sections:
 

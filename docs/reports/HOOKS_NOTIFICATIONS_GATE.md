@@ -17,10 +17,11 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 - Settings > Hooks displays discovered project/user source status, parsed command rows, warnings, and errors without edit controls.
 - `setHookCommandEnabled` can toggle a matching direct or grouped command hook's `enabled` field in raw `settings.json` content while preserving unrelated settings keys for future preview/write flows.
 - `/api/hooks/preview-toggle` and Settings > Hooks `Preview enable/disable` controls return formatted JSON for a scoped hook toggle without writing the source file.
+- `/api/hooks/apply-toggle` and Settings > Hooks `Apply preview` write only previewed enable/disable toggles to derived user/project `settings.json` paths after writing a sibling `.ccgui.bak` backup.
 
 ## Not Implemented
 
-- No hook config files are written by the app yet.
+- Broader hook creation, deletion, command editing, matcher editing, timeout editing, and import/export are not implemented.
 - No arbitrary hook config path is accepted from the renderer.
 - No renderer IPC or broad file access permission was added.
 - No hook execution or test-payload runner was added.
@@ -33,6 +34,7 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 - Writes must preserve unrelated `settings.json` keys.
 - Invalid hook JSON must fail before write.
 - Changes need preview, confirmation, and undo/revert or backup behavior.
+- Implemented for enable/disable toggles only; broader hook edit controls must satisfy this same gate before landing.
 - Tests must cover malformed JSON, unsupported event names, direct command entries, grouped matcher entries, empty configs, user-only configs, project-only configs, and merged configs.
 
 ## Required Before Notification Readiness
@@ -46,10 +48,11 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 ## Validation Receipts
 
 - `npm run typecheck`
-- `npx vitest run` -> `71/71`
+- `npx vitest run` -> `73/73`
 - `npm run build`
 - `npm run smoke:browser`
 - Built browser route token proof at `http://127.0.0.1:5224/`
 - Authenticated `/api/hooks/configs` proof against isolated temp project
 - Authenticated `/api/hooks/preview-toggle` proof against isolated temp project with unchanged source file
-- Electron dev startup with embedded server `http://127.0.0.1:53191`
+- Authenticated `/api/hooks/apply-toggle` proof against isolated temp project with sibling backup
+- Electron dev startup with embedded server `http://127.0.0.1:53817`

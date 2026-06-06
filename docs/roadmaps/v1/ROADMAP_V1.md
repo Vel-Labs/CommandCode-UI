@@ -500,6 +500,8 @@ Fourth pure edit-helper package added `setHookCommandEnabled` to `src/core/hooks
 
 Fifth preview-only package added scoped `/api/hooks/preview-toggle`, `transport.previewHookToggle(...)`, and Settings > Hooks `Preview enable/disable` controls. The route derives the selected project or user `settings.json` path, validates scope/event/command/enabled input, uses the bounded read path and `setHookCommandEnabled`, and returns formatted preview JSON without writing the source file. Settings displays the preview content in a read-only panel. This package did not add hook writes, arbitrary file reads, renderer IPC, hook execution, test-payload execution, session readiness, OS notifications, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `71/71`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5225/` with assets `index-3INgc3cq.js` and `index-D4dE-QgW.css`, authenticated `/api/hooks/preview-toggle` proof against temp project `/tmp/ccgui-hooks-preview-hvNHyC` showing `preview=true/project/false/deepseek` plus `unchanged=true`, and Electron dev startup with renderer `http://localhost:5175/` plus embedded app server `http://127.0.0.1:53584`.
 
+Sixth write package added scoped `/api/hooks/apply-toggle`, `transport.applyHookToggle(...)`, and Settings > Hooks `Apply preview` flow. The route recomputes the same scoped preview server-side, writes a sibling `.ccgui.bak` backup, then writes the formatted JSON to only the derived selected-project or user `settings.json` path. Settings confirms before applying, shows the backup path, and refreshes discovered hooks after success. This package added hook config writes only for previewed enable/disable toggles; it did not add arbitrary file reads/writes, renderer IPC, hook execution, test-payload execution, session readiness, OS notifications, or broader Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `73/73`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5226/` with assets `index-DVf_6sqB.js` and `index-D4dE-QgW.css`, authenticated `/api/hooks/apply-toggle` proof against temp project `/tmp/ccgui-hooks-apply-etrDYF` showing `apply=true/project/false/deepseek` and `backup=true/true`, and Electron dev startup with renderer `http://localhost:5175/` plus embedded app server `http://127.0.0.1:53817`.
+
 ### Scope
 
 - Add Settings > Hooks.
@@ -508,7 +510,7 @@ Fifth preview-only package added scoped `/api/hooks/preview-toggle`, `transport.
 - Show hook event, matcher, command, timeout, blocking behavior, execution order, enabled state, and source scope. Implemented for read-only parsed discovery rows.
 - Validate hook JSON before writing.
 - Preserve project-over-user precedence.
-- Add enable/disable controls per hook. Preview-only controls are implemented and validated; file writes remain gated.
+- Add enable/disable controls per hook. Implemented for scoped previewed toggles with backup writes; broader hook editing remains gated.
 - Add hook logs/output viewer where logs are available.
 - Add a test payload runner so users can validate hook behavior before real sessions.
 - Add examples for dangerous shell blocking, sensitive read warnings, write auditing, and Stop-hook finish notifications.

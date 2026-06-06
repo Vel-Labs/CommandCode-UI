@@ -294,6 +294,70 @@ describe('server filesystem boundaries', () => {
     expect(preview.ok).toBe(false)
     expect(preview.error).toContain('Access denied')
   })
+
+  it('applies hook enabled changes only to the scoped settings file and writes a backup', async () => {
+    const app = await startServer()
+    const project = tempProject()
+    const settingsPath = path.join(project, '.commandcode', 'settings.json')
+    const original = JSON.stringify({
+      model: 'deepseek',
+      hooks: {
+        Stop: [{ type: 'command', command: 'echo project-stop' }]
+      }
+    }, null, 2) + '\n'
+
+    mkdirSync(path.dirname(settingsPath), { recursive: true })
+    writeFileSync(settingsPath, original, 'utf8')
+
+    const applied = await apiPost<{
+      ok: boolean
+      content?: string
+      backupPath?: string
+      error?: string
+    }>(app, '/api/hooks/apply-toggle', {
+      cwd: project,
+      sourceScope: 'project',
+      event: 'Stop',
+      command: 'echo project-stop',
+      enabled: false
+    })
+
+    expect(applied.ok).toBe(true)
+    expect(applied.backupPath).toBe(path.join(realpathSync(project), '.commandcode', 'settings.json.ccgui.bak'))
+    expect(readFileSync(settingsPath, 'utf8')).toBe(applied.content)
+    expect(readFileSync(applied.backupPath || '', 'utf8')).toBe(original)
+    expect(JSON.parse(readFileSync(settingsPath, 'utf8'))).toMatchObject({
+      model: 'deepseek',
+      hooks: { Stop: [{ command: 'echo project-stop', enabled: false }] }
+    })
+  })
+
+  it('does not write hook config when apply validation fails', async () => {
+    const app = await startServer()
+    const project = tempProject()
+    const settingsPath = path.join(project, '.commandcode', 'settings.json')
+    const original = JSON.stringify({
+      hooks: {
+        Stop: [{ type: 'command', command: 'echo project-stop' }]
+      }
+    }, null, 2) + '\n'
+
+    mkdirSync(path.dirname(settingsPath), { recursive: true })
+    writeFileSync(settingsPath, original, 'utf8')
+
+    const applied = await apiPost<{ ok: boolean; error?: string }>(app, '/api/hooks/apply-toggle', {
+      cwd: project,
+      sourceScope: 'project',
+      event: 'Stop',
+      command: 'missing command',
+      enabled: false
+    })
+
+    expect(applied.ok).toBe(false)
+    expect(applied.error).toContain('Hook command not found')
+    expect(readFileSync(settingsPath, 'utf8')).toBe(original)
+    expect(existsSync(`${settingsPath}.ccgui.bak`)).toBe(false)
+  })
 })
 
 describe('project GUI preference boundaries', () => {

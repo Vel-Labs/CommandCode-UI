@@ -30,7 +30,7 @@ GUI implications:
 - Add a Settings > Hooks section.
 - Show project vs user scope and whether the file is committed.
 - Read and validate `.commandcode/settings.json` before writing.
-- Current GUI status: Settings > Hooks reads only the documented project/user `settings.json` paths through scoped discovery, shows parsed diagnostics, and can preview enable/disable JSON without writing; writes and execution remain gated.
+- Current GUI status: Settings > Hooks reads only the documented project/user `settings.json` paths through scoped discovery, shows parsed diagnostics, and can preview/apply enable/disable toggles with `.ccgui.bak` backups; broader writes and execution remain gated.
 - Surface hook order and whether a hook can block execution.
 - Add local examples for block shell, sensitive read warning, write audit, and Stop revision.
 - Provide a test payload runner before asking users to run a real Command Code session.

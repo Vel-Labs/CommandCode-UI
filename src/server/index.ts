@@ -34,6 +34,7 @@ import {
   mergeHookConfigs,
   parseHookSettingsJson,
   setHookCommandEnabled,
+  type HookConfigTogglePreviewResult,
   type HookConfigSourceResult,
   type HookScope
 } from '../core/hooksConfig'
@@ -416,6 +417,48 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
     const workspace = resolveWorkspaceRoot(cwd)
     if (!workspace.root) return { error: workspace.error || 'Access denied — project root is required' }
     return { sourcePath: path.join(workspace.root, '.commandcode', 'settings.json') }
+  }
+
+  function buildHookTogglePreview(body: {
+    cwd?: string
+    sourceScope?: string
+    event?: string
+    command?: string
+    enabled?: boolean
+  }): HookConfigTogglePreviewResult {
+    const { cwd, sourceScope, event, command, enabled } = body
+    if (sourceScope !== 'project' && sourceScope !== 'user') {
+      return { ok: false, error: 'sourceScope must be project or user' }
+    }
+    if (!event || !command || typeof enabled !== 'boolean') {
+      return { ok: false, error: 'Missing event, command, or enabled value' }
+    }
+
+    const source = hookConfigPathForScope(sourceScope, cwd)
+    if (!source.sourcePath) return { ok: false, error: source.error || 'Access denied — project root is required' }
+    if (!existsSync(source.sourcePath)) return { ok: false, sourceScope, sourcePath: source.sourcePath, error: 'Hook config file not found' }
+
+    try {
+      const stat = statSync(source.sourcePath)
+      if (stat.isDirectory()) return { ok: false, sourceScope, sourcePath: source.sourcePath, error: 'Hook config path is a directory' }
+      if (stat.size > MAX_FILE_READ_BYTES) return { ok: false, sourceScope, sourcePath: source.sourcePath, error: 'Hook config exceeds 1MB read limit' }
+
+      return {
+        ...setHookCommandEnabled(readFileSync(source.sourcePath, 'utf8'), event, command, enabled),
+        sourceScope,
+        sourcePath: source.sourcePath,
+        event,
+        command,
+        enabled
+      }
+    } catch (err) {
+      return {
+        ok: false,
+        sourceScope,
+        sourcePath: source.sourcePath,
+        error: err instanceof Error ? err.message : 'Failed to preview hook config change'
+      }
+    }
   }
 
   function sanitizeStringArray(input: unknown, maxItems: number): string[] | undefined {
@@ -901,43 +944,39 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
   })
 
   addRoute('POST', '/api/hooks/preview-toggle', async ({ body }) => {
-    const { cwd, sourceScope, event, command, enabled } = body as {
+    return buildHookTogglePreview(body as {
       cwd?: string
       sourceScope?: string
       event?: string
       command?: string
       enabled?: boolean
-    }
-    if (sourceScope !== 'project' && sourceScope !== 'user') {
-      return { ok: false, error: 'sourceScope must be project or user' }
-    }
-    if (!event || !command || typeof enabled !== 'boolean') {
-      return { ok: false, error: 'Missing event, command, or enabled value' }
-    }
+    })
+  })
 
-    const source = hookConfigPathForScope(sourceScope, cwd)
-    if (!source.sourcePath) return { ok: false, error: source.error || 'Access denied — project root is required' }
-    if (!existsSync(source.sourcePath)) return { ok: false, sourceScope, sourcePath: source.sourcePath, error: 'Hook config file not found' }
+  addRoute('POST', '/api/hooks/apply-toggle', async ({ body }) => {
+    const preview = buildHookTogglePreview(body as {
+      cwd?: string
+      sourceScope?: string
+      event?: string
+      command?: string
+      enabled?: boolean
+    })
+    if (!preview.ok || !preview.sourcePath || !preview.content) return preview
 
     try {
-      const stat = statSync(source.sourcePath)
-      if (stat.isDirectory()) return { ok: false, sourceScope, sourcePath: source.sourcePath, error: 'Hook config path is a directory' }
-      if (stat.size > MAX_FILE_READ_BYTES) return { ok: false, sourceScope, sourcePath: source.sourcePath, error: 'Hook config exceeds 1MB read limit' }
-
-      return {
-        ...setHookCommandEnabled(readFileSync(source.sourcePath, 'utf8'), event, command, enabled),
-        sourceScope,
-        sourcePath: source.sourcePath,
-        event,
-        command,
-        enabled
-      }
+      const backupPath = `${preview.sourcePath}.ccgui.bak`
+      writeFileSync(backupPath, readFileSync(preview.sourcePath, 'utf8'), 'utf8')
+      writeFileSync(preview.sourcePath, preview.content, 'utf8')
+      return { ...preview, backupPath }
     } catch (err) {
       return {
         ok: false,
-        sourceScope,
-        sourcePath: source.sourcePath,
-        error: err instanceof Error ? err.message : 'Failed to preview hook config change'
+        sourceScope: preview.sourceScope,
+        sourcePath: preview.sourcePath,
+        event: preview.event,
+        command: preview.command,
+        enabled: preview.enabled,
+        error: err instanceof Error ? err.message : 'Failed to apply hook config change'
       }
     }
   })

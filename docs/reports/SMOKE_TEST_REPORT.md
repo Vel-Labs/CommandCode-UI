@@ -522,6 +522,20 @@ Scope: pure helper package for future hook enable/disable previews. `setHookComm
 
 Scope: preview-only Settings > Hooks package. Added scoped `/api/hooks/preview-toggle`, `transport.previewHookToggle(...)`, and Settings `Preview enable/disable` controls with a read-only formatted JSON panel. The route derives only selected project/user settings paths and returns preview content without writing the source file. No hook writes, arbitrary file reads, renderer IPC, hook execution, test payload execution, session readiness, OS notifications, or Command Code settings mutation were added.
 
+### 2026-06-06 Phase 3 Hooks toggle apply
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `73/73` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser`; mock headless and mock interactive session paths passed |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5226`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets `index-DVf_6sqB.js` and `index-D4dE-QgW.css` |
+| Hook toggle apply endpoint | Pass | Authenticated `/api/hooks/apply-toggle` against temp project `/tmp/ccgui-hooks-apply-etrDYF` returned `apply=true/project/false/deepseek` and `backup=true/true`; fixture was removed after verification |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:53817` |
+
+Scope: scoped config-write package for Settings > Hooks enable/disable toggles. Added `/api/hooks/apply-toggle`, `transport.applyHookToggle(...)`, confirmation-gated Settings `Apply preview`, backup-path reporting, and hook rediscovery after successful apply. The route recomputes the preview server-side, writes a sibling `.ccgui.bak` backup, and then writes formatted JSON only to the derived selected-project or user `settings.json` path. No arbitrary file reads/writes, renderer IPC, hook execution, test payload execution, session readiness, OS notifications, or broader Command Code settings mutation were added.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |

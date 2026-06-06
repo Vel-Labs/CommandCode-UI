@@ -3,7 +3,7 @@ import type { JSX, ReactNode } from 'react'
 import type { UpdateState } from '../appTypes'
 import { commandPaletteItems, releaseNotes } from '../commandPalette'
 import type { TransportAPI } from '../../../core/transport'
-import type { HookConfigDiscoveryResult, HookConfigTogglePreviewResult, ParsedHookCommand } from '../../../core/hooksConfig'
+import type { HookConfigDiscoveryResult, HookConfigToggleApplyResult, HookConfigTogglePreviewResult, ParsedHookCommand } from '../../../core/hooksConfig'
 import {
   NOTIFICATION_PREFERENCES_CHANGED_EVENT,
   defaultAudioPrefs,
@@ -219,6 +219,8 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
   const [error, setError] = useState('')
   const [preview, setPreview] = useState<HookConfigTogglePreviewResult | null>(null)
   const [previewingKey, setPreviewingKey] = useState('')
+  const [applyResult, setApplyResult] = useState<HookConfigToggleApplyResult | null>(null)
+  const [applying, setApplying] = useState(false)
   const examples = [
     { label: 'Block risky shell', event: 'PreToolUse', matcher: 'Bash', command: 'node .commandcode/hooks/block-risky-shell.js' },
     { label: 'Sensitive read warning', event: 'PreToolUse', matcher: 'Read', command: 'node .commandcode/hooks/warn-sensitive-read.js' },
@@ -245,9 +247,19 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
     }
   }, [cwd, transport])
 
+  const refreshHooks = useCallback(() => {
+    setLoading(true)
+    setError('')
+    return transport.discoverHookConfigs(cwd)
+      .then(setDiscovery)
+      .catch((err) => setError(err instanceof Error ? err.message : String(err)))
+      .finally(() => setLoading(false))
+  }, [cwd, transport])
+
   const previewToggle = useCallback((hook: ParsedHookCommand) => {
     const key = `${hook.sourceScope}:${hook.sourcePath}:${hook.order}:${hook.command}`
     setPreviewingKey(key)
+    setApplyResult(null)
     transport.previewHookToggle({
       cwd,
       sourceScope: hook.sourceScope,
@@ -259,6 +271,26 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
       .catch((err) => setPreview({ ok: false, error: err instanceof Error ? err.message : String(err) }))
       .finally(() => setPreviewingKey(''))
   }, [cwd, transport])
+
+  const applyPreview = useCallback(() => {
+    if (!preview?.ok || !preview.sourceScope || !preview.event || !preview.command || typeof preview.enabled !== 'boolean') return
+    const confirmed = window.confirm(`Apply hook config change to ${preview.sourcePath}? A .ccgui.bak backup will be written first.`)
+    if (!confirmed) return
+    setApplying(true)
+    transport.applyHookToggle({
+      cwd,
+      sourceScope: preview.sourceScope,
+      event: preview.event,
+      command: preview.command,
+      enabled: preview.enabled
+    })
+      .then((result) => {
+        setApplyResult(result)
+        if (result.ok) void refreshHooks()
+      })
+      .catch((err) => setApplyResult({ ok: false, error: err instanceof Error ? err.message : String(err) }))
+      .finally(() => setApplying(false))
+  }, [cwd, preview, refreshHooks, transport])
 
   return (
     <SettingsReferenceCard title="Hooks">
@@ -317,8 +349,20 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
             <span>{preview.ok ? `${preview.event} / ${preview.enabled ? 'enable' : 'disable'}` : 'no file was written'}</span>
           </div>
           {preview.content && <pre className="advanced-raw">{preview.content}</pre>}
+          {preview.ok && (
+            <button className="primary-button" onClick={applyPreview} disabled={applying}>
+              {applying ? 'Applying' : 'Apply preview'}
+            </button>
+          )}
           {preview.error && <p className="settings-muted">{preview.error}</p>}
         </div>
+      )}
+      {applyResult && (
+        <p className="settings-muted">
+          {applyResult.ok
+            ? `Applied hook config change. Backup: ${applyResult.backupPath || 'not reported'}`
+            : applyResult.error || 'Failed to apply hook config change.'}
+        </p>
       )}
       {discovery && discovery.hooks.length === 0 && !loading && (
         <p className="settings-muted">No hook commands found in the documented project or user settings scopes.</p>
