@@ -620,6 +620,19 @@ Scope: scoped preview-only route package for future broader hook editor work. Ad
 
 Scope: preview-only Settings UI package for broader hook edits. Settings > Hooks now lets the operator open a discovered hook in an edit preview panel, adjust command/matcher/timeout draft fields, preview update JSON, or preview delete JSON through `transport.previewHookEdit(...)`. No apply button, file write, hook execution, renderer IPC, OS notification, audio behavior, or Command Code settings mutation was added. The real Command Code interactive path was not exercised because this package does not start or control Command Code.
 
+### 2026-06-06 Phase 3 broader hook edit apply
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `92/92` |
+| Build | Pass | `npm run build`; assets `index-biXKJ36X.js` and `index-Df7RZjIk.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser`; mock session created/exited, auth checks passed |
+| Built route API proof | Pass | `npx tsx src/cli/ccgui.ts serve --port 5231`; authenticated `/api/hooks/apply-edit` against `/tmp/ccgui-hooks-apply-edit-m8v5W3` returned `ok=true`, `action=update`, project source, edited command/matcher/timeout, and `backup=true/true` |
+| Electron dev startup | Pass | `npm run dev`; renderer `http://localhost:5175/`, embedded app server `http://127.0.0.1:55693` |
+
+Scope: scoped broader hook edit write package. Added `/api/hooks/apply-edit`, `transport.applyHookEdit(...)`, and Settings `Apply edit preview` confirmation for command, matcher, timeout, and delete edits. The server recomputes the preview from the current scoped settings file, writes a sibling `.ccgui.bak` backup, then writes only the derived user/project `settings.json` path. No arbitrary file path, renderer IPC, hook execution, OS notification, audio behavior, or Command Code runtime mutation was added. The real Command Code interactive path was not exercised because this package edits config only.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |

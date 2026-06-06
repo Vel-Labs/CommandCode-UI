@@ -20,7 +20,7 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 - `/api/hooks/apply-toggle` and Settings > Hooks `Apply preview` write only previewed enable/disable toggles to derived user/project `settings.json` paths after writing a sibling `.ccgui.bak` backup.
 - `updateHookCommand` and `removeHookCommand` provide pure broader-edit scaffolding for future command, matcher, timeout, and delete previews without file reads, writes, routes, or UI controls.
 - `/api/hooks/preview-edit` and `transport.previewHookEdit(...)` return scoped command/matcher/timeout/delete previews for the same derived project/user settings paths without writing files.
-- Settings > Hooks exposes broader edit/delete preview controls that call the scoped preview route and render returned JSON without apply controls.
+- `/api/hooks/apply-edit`, `transport.applyHookEdit(...)`, and Settings > Hooks `Apply edit preview` write only previewed broader edit/delete changes to derived user/project `settings.json` paths after writing a sibling `.ccgui.bak` backup.
 - `src/core/hooksPayload.ts` and Settings > Hooks `Sample payload` controls build explicitly marked dry-run JSON samples without executing hook commands or starting sessions.
 - `src/renderer/src/services/sessionReadiness.ts` adds a pure session readiness reducer for background, unread, response-ready, and input-required state.
 - The readiness reducer keeps attach, replay, and foreground transitions non-notifying, separates live background output from response-ready state, and emits notification intent only for explicit background `assistant-ready` or `input-required` events.
@@ -28,8 +28,8 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 
 ## Not Implemented
 
-- Broader hook creation, import/export, and write routes are not implemented.
-- Broader hook deletion, command editing, matcher editing, and timeout editing are preview-only in Settings, not write-capable behavior.
+- Broader hook creation and import/export are not implemented.
+- Broader hook deletion, command editing, matcher editing, and timeout editing are implemented only through preview-confirmed scoped writes with `.ccgui.bak` backups.
 - No arbitrary hook config path is accepted from the renderer.
 - No renderer IPC or broad file access permission was added.
 - No hook command execution or real-session test-payload runner was added.
@@ -42,7 +42,7 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 - Writes must preserve unrelated `settings.json` keys.
 - Invalid hook JSON must fail before write.
 - Changes need preview, confirmation, and undo/revert or backup behavior.
-- Implemented for enable/disable toggles only; broader hook edit controls must satisfy this same gate before landing.
+- Implemented for enable/disable toggles and preview-confirmed command/matcher/timeout/delete edits.
 - Tests must cover malformed JSON, unsupported event names, direct command entries, grouped matcher entries, empty configs, user-only configs, project-only configs, and merged configs.
 
 ## Required Before Notification Readiness
@@ -65,5 +65,6 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 - Authenticated `/api/hooks/preview-toggle` proof against isolated temp project with unchanged source file
 - Authenticated `/api/hooks/apply-toggle` proof against isolated temp project with sibling backup
 - Authenticated `/api/hooks/preview-edit` proof against isolated temp project with unchanged source file
+- Authenticated `/api/hooks/apply-edit` proof against isolated temp project with sibling backup
 - Built browser route token proof at `http://127.0.0.1:5227/`
 - Electron dev startup with embedded server `http://127.0.0.1:54048`

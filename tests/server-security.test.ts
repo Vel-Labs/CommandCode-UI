@@ -451,6 +451,108 @@ describe('server filesystem boundaries', () => {
     expect(readFileSync(settingsPath, 'utf8')).toBe(original)
     expect(existsSync(`${settingsPath}.ccgui.bak`)).toBe(false)
   })
+
+  it('applies broader hook edits only to the scoped settings file and writes a backup', async () => {
+    const app = await startServer()
+    const project = tempProject()
+    const settingsPath = path.join(project, '.commandcode', 'settings.json')
+    const original = JSON.stringify({
+      model: 'deepseek',
+      hooks: {
+        PreToolUse: [
+          { type: 'command', matcher: 'Bash', command: 'node scripts/check-shell.js', timeout: 5 }
+        ]
+      }
+    }, null, 2) + '\n'
+
+    mkdirSync(path.dirname(settingsPath), { recursive: true })
+    writeFileSync(settingsPath, original, 'utf8')
+
+    const applied = await apiPost<{
+      ok: boolean
+      content?: string
+      backupPath?: string
+      error?: string
+    }>(app, '/api/hooks/apply-edit', {
+      cwd: project,
+      sourceScope: 'project',
+      event: 'PreToolUse',
+      command: 'node scripts/check-shell.js',
+      action: 'update',
+      update: {
+        command: 'node scripts/block-shell.js',
+        matcher: 'Bash|Shell',
+        timeoutSeconds: 10
+      }
+    })
+
+    expect(applied.ok).toBe(true)
+    expect(applied.backupPath).toBe(path.join(realpathSync(project), '.commandcode', 'settings.json.ccgui.bak'))
+    expect(readFileSync(settingsPath, 'utf8')).toBe(applied.content)
+    expect(readFileSync(applied.backupPath || '', 'utf8')).toBe(original)
+    expect(JSON.parse(readFileSync(settingsPath, 'utf8'))).toMatchObject({
+      model: 'deepseek',
+      hooks: { PreToolUse: [{ command: 'node scripts/block-shell.js', matcher: 'Bash|Shell', timeoutSeconds: 10 }] }
+    })
+  })
+
+  it('applies broader hook deletion only to the scoped settings file and writes a backup', async () => {
+    const app = await startServer()
+    const project = tempProject()
+    const settingsPath = path.join(project, '.commandcode', 'settings.json')
+    const original = JSON.stringify({
+      hooks: {
+        Stop: [
+          { type: 'command', command: 'echo project-stop' },
+          { type: 'command', command: 'command-code-bonk --sound done' }
+        ]
+      }
+    }, null, 2) + '\n'
+
+    mkdirSync(path.dirname(settingsPath), { recursive: true })
+    writeFileSync(settingsPath, original, 'utf8')
+
+    const applied = await apiPost<{ ok: boolean; content?: string; backupPath?: string }>(app, '/api/hooks/apply-edit', {
+      cwd: project,
+      sourceScope: 'project',
+      event: 'Stop',
+      command: 'echo project-stop',
+      action: 'remove'
+    })
+
+    expect(applied.ok).toBe(true)
+    expect(readFileSync(applied.backupPath || '', 'utf8')).toBe(original)
+    expect(JSON.parse(readFileSync(settingsPath, 'utf8')).hooks.Stop.map((hook: { command: string }) => hook.command)).toEqual([
+      'command-code-bonk --sound done'
+    ])
+  })
+
+  it('does not write broader hook edits when apply validation fails', async () => {
+    const app = await startServer()
+    const project = tempProject()
+    const settingsPath = path.join(project, '.commandcode', 'settings.json')
+    const original = JSON.stringify({
+      hooks: {
+        Stop: [{ type: 'command', command: 'echo project-stop' }]
+      }
+    }, null, 2) + '\n'
+
+    mkdirSync(path.dirname(settingsPath), { recursive: true })
+    writeFileSync(settingsPath, original, 'utf8')
+
+    const applied = await apiPost<{ ok: boolean; error?: string }>(app, '/api/hooks/apply-edit', {
+      cwd: project,
+      sourceScope: 'project',
+      event: 'Stop',
+      command: 'missing command',
+      action: 'remove'
+    })
+
+    expect(applied.ok).toBe(false)
+    expect(applied.error).toContain('Hook command not found')
+    expect(readFileSync(settingsPath, 'utf8')).toBe(original)
+    expect(existsSync(`${settingsPath}.ccgui.bak`)).toBe(false)
+  })
 })
 
 describe('project GUI preference boundaries', () => {

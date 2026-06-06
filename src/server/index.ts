@@ -37,6 +37,7 @@ import {
   setHookCommandEnabled,
   updateHookCommand,
   type HookCommandUpdate,
+  type HookConfigEditApplyResult,
   type HookConfigEditPreviewResult,
   type HookConfigTogglePreviewResult,
   type HookConfigSourceResult,
@@ -1057,6 +1058,36 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
         enabled: preview.enabled,
         error: err instanceof Error ? err.message : 'Failed to apply hook config change'
       }
+    }
+  })
+
+  addRoute('POST', '/api/hooks/apply-edit', async ({ body }) => {
+    const preview = buildHookEditPreview(body as {
+      cwd?: string
+      sourceScope?: string
+      event?: string
+      command?: string
+      action?: string
+      update?: HookCommandUpdate
+    })
+    if (!preview.ok || !preview.sourcePath || !preview.content) return preview
+
+    try {
+      const backupPath = `${preview.sourcePath}.ccgui.bak`
+      writeFileSync(backupPath, readFileSync(preview.sourcePath, 'utf8'), 'utf8')
+      writeFileSync(preview.sourcePath, preview.content, 'utf8')
+      return { ...preview, backupPath } satisfies HookConfigEditApplyResult
+    } catch (err) {
+      return {
+        ok: false,
+        sourceScope: preview.sourceScope,
+        sourcePath: preview.sourcePath,
+        event: preview.event,
+        command: preview.command,
+        action: preview.action,
+        update: preview.update,
+        error: err instanceof Error ? err.message : 'Failed to apply hook config edit'
+      } satisfies HookConfigEditApplyResult
     }
   })
 

@@ -516,6 +516,8 @@ Twelfth scoped preview route package added `/api/hooks/preview-edit` and `transp
 
 Thirteenth preview UI package added broader edit/delete preview controls to Settings > Hooks. Operators can select a discovered hook, adjust command/matcher/timeout draft fields, preview update JSON, or preview delete JSON through `transport.previewHookEdit(...)`; no apply button or broader write behavior was added. This package did not add file writes, hook execution, renderer IPC, OS notifications, audio behavior, or Command Code settings mutation. The real Command Code interactive path was not exercised because this package does not start or control Command Code. Validation receipts: `npm run typecheck`, `npx vitest run` -> `89/89`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5230/` with assets `index-nnITahme.js` and `index-Df7RZjIk.css`, and Electron dev startup with renderer `http://localhost:5175/` plus embedded app server `http://127.0.0.1:55426`.
 
+Fourteenth broader edit write package added `/api/hooks/apply-edit`, `transport.applyHookEdit(...)`, and Settings `Apply edit preview` confirmation for command, matcher, timeout, and delete edits. The server recomputes the scoped preview from the current settings file before writing, writes a sibling `.ccgui.bak` backup, and then writes only the derived user/project `settings.json` path. This package did not add arbitrary file paths, renderer IPC, hook execution, OS notifications, audio behavior, or Command Code runtime mutation. The real Command Code interactive path was not exercised because this package edits config only. Validation receipts: `npm run typecheck`, `npx vitest run` -> `92/92`, `npm run build`, `npm run smoke:browser`, authenticated `/api/hooks/apply-edit` proof at `http://127.0.0.1:5231/` against `/tmp/ccgui-hooks-apply-edit-m8v5W3` showing `apply=true/update/project`, edited command/matcher/timeout, and `backup=true/true`, and Electron dev startup with renderer `http://localhost:5175/` plus embedded app server `http://127.0.0.1:55693`.
+
 ### Scope
 
 - Add Settings > Hooks.
@@ -524,7 +526,7 @@ Thirteenth preview UI package added broader edit/delete preview controls to Sett
 - Show hook event, matcher, command, timeout, blocking behavior, execution order, enabled state, and source scope. Implemented for read-only parsed discovery rows.
 - Validate hook JSON before writing.
 - Preserve project-over-user precedence.
-- Add enable/disable controls per hook. Implemented for scoped previewed toggles with backup writes; broader hook editing is implemented as scoped preview-only UI/routes and remains gated for write behavior.
+- Add enable/disable controls per hook. Implemented for scoped previewed toggles with backup writes; broader hook editing is implemented for command, matcher, timeout, and delete edits through preview-confirmed scoped writes with backups.
 - Add hook logs/output viewer where logs are available.
 - Add a test payload runner so users can validate hook behavior before real sessions. Dry-run sample payload preview is implemented; command execution remains gated.
 - Add examples for dangerous shell blocking, sensitive read warnings, write auditing, and Stop-hook finish notifications.

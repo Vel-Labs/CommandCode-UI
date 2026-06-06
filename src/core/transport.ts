@@ -31,6 +31,7 @@ import type { PtyDoctorResult } from './ptyDoctor'
 import type {
   HookCommandUpdate,
   HookConfigDiscoveryResult,
+  HookConfigEditApplyResult,
   HookConfigEditPreviewResult,
   HookConfigToggleApplyResult,
   HookConfigTogglePreviewResult,
@@ -97,6 +98,14 @@ export type TransportAPI = {
     action: 'update' | 'remove'
     update?: HookCommandUpdate
   }) => Promise<HookConfigEditPreviewResult>
+  applyHookEdit: (options: {
+    cwd?: string
+    sourceScope: HookScope
+    event: HookEvent
+    command: string
+    action: 'update' | 'remove'
+    update?: HookCommandUpdate
+  }) => Promise<HookConfigEditApplyResult>
   applyHookToggle: (options: {
     cwd?: string
     sourceScope: HookScope

@@ -74,6 +74,10 @@ export type HookConfigEditPreviewResult = HookConfigEditResult & {
   update?: HookCommandUpdate
 }
 
+export type HookConfigEditApplyResult = HookConfigEditPreviewResult & {
+  backupPath?: string
+}
+
 export type HookConfigToggleApplyResult = HookConfigTogglePreviewResult & {
   backupPath?: string
 }

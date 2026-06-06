@@ -6,6 +6,7 @@ import type { TransportAPI } from '../../../core/transport'
 import type {
   HookCommandUpdate,
   HookConfigDiscoveryResult,
+  HookConfigEditApplyResult,
   HookConfigEditPreviewResult,
   HookConfigToggleApplyResult,
   HookConfigTogglePreviewResult,
@@ -234,7 +235,9 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
   const [editingHook, setEditingHook] = useState<ParsedHookCommand | null>(null)
   const [editDraft, setEditDraft] = useState({ command: '', matcher: '', timeoutSeconds: '' })
   const [editPreview, setEditPreview] = useState<HookConfigEditPreviewResult | null>(null)
+  const [editApplyResult, setEditApplyResult] = useState<HookConfigEditApplyResult | null>(null)
   const [editPreviewing, setEditPreviewing] = useState(false)
+  const [editApplying, setEditApplying] = useState(false)
   const examples = [
     { label: 'Block risky shell', event: 'PreToolUse', matcher: 'Bash', command: 'node .commandcode/hooks/block-risky-shell.js' },
     { label: 'Sensitive read warning', event: 'PreToolUse', matcher: 'Read', command: 'node .commandcode/hooks/warn-sensitive-read.js' },
@@ -303,6 +306,7 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
       timeoutSeconds: hook.timeoutSeconds === undefined ? '' : String(hook.timeoutSeconds)
     })
     setEditPreview(null)
+    setEditApplyResult(null)
   }, [])
 
   const previewHookEdit = useCallback((action: 'update' | 'remove') => {
@@ -321,6 +325,7 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
     }
 
     setEditPreviewing(true)
+    setEditApplyResult(null)
     transport.previewHookEdit({
       cwd,
       sourceScope: editingHook.sourceScope,
@@ -333,6 +338,31 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
       .catch((err) => setEditPreview({ ok: false, error: err instanceof Error ? err.message : String(err) }))
       .finally(() => setEditPreviewing(false))
   }, [cwd, editDraft, editingHook, transport])
+
+  const applyHookEditPreview = useCallback(() => {
+    if (!editPreview?.ok || !editPreview.sourceScope || !editPreview.event || !editPreview.command || !editPreview.action) return
+    const confirmed = window.confirm(`Apply hook ${editPreview.action} to ${editPreview.sourcePath}? A .ccgui.bak backup will be written first.`)
+    if (!confirmed) return
+    setEditApplying(true)
+    transport.applyHookEdit({
+      cwd,
+      sourceScope: editPreview.sourceScope,
+      event: editPreview.event,
+      command: editPreview.command,
+      action: editPreview.action,
+      update: editPreview.update
+    })
+      .then((result) => {
+        setEditApplyResult(result)
+        if (result.ok) {
+          setEditPreview(null)
+          setEditingHook(null)
+          void refreshHooks()
+        }
+      })
+      .catch((err) => setEditApplyResult({ ok: false, error: err instanceof Error ? err.message : String(err) }))
+      .finally(() => setEditApplying(false))
+  }, [cwd, editPreview, refreshHooks, transport])
 
   const applyPreview = useCallback(() => {
     if (!preview?.ok || !preview.sourceScope || !preview.event || !preview.command || typeof preview.enabled !== 'boolean') return
@@ -456,7 +486,7 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
             <button className="ghost-button native-ghost" onClick={() => previewHookEdit('remove')} disabled={editPreviewing}>
               Preview delete
             </button>
-            <button className="ghost-button native-ghost" onClick={() => { setEditingHook(null); setEditPreview(null) }}>
+            <button className="ghost-button native-ghost" onClick={() => { setEditingHook(null); setEditPreview(null); setEditApplyResult(null) }}>
               Close
             </button>
           </div>
@@ -470,8 +500,20 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
             <span>{editPreview.ok ? `${editPreview.action} / no file was written` : 'no file was written'}</span>
           </div>
           {editPreview.content && <pre className="advanced-raw">{editPreview.content}</pre>}
+          {editPreview.ok && (
+            <button className="primary-button" onClick={applyHookEditPreview} disabled={editApplying}>
+              {editApplying ? 'Applying' : 'Apply edit preview'}
+            </button>
+          )}
           {editPreview.error && <p className="settings-muted">{editPreview.error}</p>}
         </div>
+      )}
+      {editApplyResult && (
+        <p className="settings-muted">
+          {editApplyResult.ok
+            ? `Applied hook edit. Backup: ${editApplyResult.backupPath || 'not reported'}`
+            : editApplyResult.error || 'Failed to apply hook edit.'}
+        </p>
       )}
       {payloadPreview && (
         <div className="settings-command-grid">
@@ -529,7 +571,7 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
           </div>
         ))}
       </div>
-      <p className="settings-muted">Scoped hook discovery, enable/disable writes, and broader edit previews are available. Broader writes, command execution, OS notifications, quiet mode, and response-ready delivery remain gated by `docs/reports/HOOKS_NOTIFICATIONS_GATE.md`.</p>
+      <p className="settings-muted">Scoped hook discovery, enable/disable writes, and preview-confirmed broader edit writes are available. Hook execution, OS notifications, quiet mode, and response-ready delivery remain gated by `docs/reports/HOOKS_NOTIFICATIONS_GATE.md`.</p>
     </SettingsReferenceCard>
   )
 }
