@@ -1116,9 +1116,11 @@ Goal: close the gap between functional adapter and natural desktop workbench.
 
 Status update 2026-06-06: First polish package made the shell footer update indicator easier to see by adding a compact `update-status-dot` marker for checking, updating, available, and failed states. The marker remains visible in collapsed and expanded sidebars and reuses the existing `updateState` value and update click handler. This did not change update transport, release fetching, install behavior, renderer IPC, server routes, config writes, file access, session lifecycle, or Command Code invocation behavior. Validation receipts: `npm run typecheck`, `npm run build`, `npm run smoke:browser`, built route token proof at `http://127.0.0.1:57404/` serving `index-ByJxlA74.js` and `index-NYEKx49J.css`, built asset proof for `update-status-dot`, `updateNeedsAttention`, `update-row--available`, and `update-row--failed`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:50170`.
 
+Status update 2026-06-06: Second polish package improved native popover attachment and responsive positioning. Popovers now get a subtle attachment notch on desktop, contained scrolling, safer text wrapping, and a late narrow-screen override that keeps project, permission, slash, runtime, and model popovers inside the viewport. This is CSS-only polish and does not change popover state, Escape/outside-click logic, renderer IPC, server routes, transport, config writes, file access, session lifecycle, or Command Code invocation behavior. Validation receipts: `npm run typecheck`, `npm run build`, `npm run smoke:browser`, built route token proof at `http://127.0.0.1:57405/` serving `index-Bz57oaG8.js` and `index-BigcAntF.css`, built asset proof for `native-popover::before`, `overflow-wrap`, `overscroll-behavior`, and the `max-width: 720px` override, Playwright desktop/narrow browser layout receipts for five popovers with Escape dismissal, screenshots `/tmp/ccgui-phase9-popovers-desktop.png` and `/tmp/ccgui-phase9-popovers-narrow.png`, and built Electron screenshot `/tmp/ccgui-phase9-popovers-electron.png`.
+
 ### Scope
 
-- Improve popover anchoring, responsive positioning, Escape/click-outside behavior, and attachment cues.
+- Improve popover anchoring, responsive positioning, Escape/click-outside behavior, and attachment cues. Attachment cues and responsive viewport containment are implemented for current native popovers; existing Escape/outside-click dismissal remains in `useDismissiblePopover` and was revalidated with Playwright.
 - Make the right inspector behave like a native companion pane for files, docs, transcripts, hooks, MCP, and session artifacts.
 - Add restrained page transitions, panel slide-ins, loading skeletons, and resize-to-collapse.
 - Make update indicator easier to see. Implemented with a compact state marker for attention states in the existing footer control.
@@ -1143,8 +1145,8 @@ Status update 2026-06-06: First polish package made the shell footer update indi
 
 ### Tests And Proof
 
-- Popovers remain anchored at desktop and narrow widths.
-- Escape and outside-click dismissal work independently per popover.
+- Popovers remain anchored at desktop and narrow widths. Browser Playwright receipts covered project, permission, slash, runtime, and model popovers at 1440x1000 and 390x844.
+- Escape and outside-click dismissal work independently per popover. Escape dismissal was revalidated for project, permission, slash, runtime, and model popovers; outside-click logic remains in `useDismissiblePopover` and still needs a dedicated automated receipt.
 - Sidebar/panel resize-to-collapse works and persists preference.
 - Motion does not cause layout overlap or unreadable text.
 - Git status displays actual project state or a clear unavailable state.

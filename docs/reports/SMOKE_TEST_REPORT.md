@@ -1461,3 +1461,18 @@ Scope: Phase 8 visual dogfood receipt. This validates browser and Electron shell
 | Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:50170` |
 
 Scope: update-indicator display package. The shell footer now shows a compact state marker for update checking, updating, available, and failed states. This did not change update transport, release fetching, install behavior, renderer IPC, server routes, config writes, file access, session lifecycle, or Command Code invocation behavior.
+
+### 2026-06-06 Phase 9 popover positioning polish
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Build | Pass | `npm run build`; renderer assets `index-Bz57oaG8.js` and `index-BigcAntF.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` -> `7.3b Multi-session independence: PASS` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57405`; token proof returned `302`, cookie-authenticated `/` served built assets `index-Bz57oaG8.js` and `index-BigcAntF.css` |
+| Built asset UI proof | Pass | `rg -n "native-popover::before|overflow-wrap|overscroll-behavior|max-width: 720px|calc\\(100vh - 124px\\)" out/renderer/assets/index-BigcAntF.css` |
+| Browser desktop/narrow layout | Pass | Playwright verified slash, permission, project, runtime, and model popovers stayed within 1440x1000 and 390x844 viewports and dismissed on Escape |
+| Browser screenshots | Pass | `/tmp/ccgui-phase9-popovers-desktop.png`, `/tmp/ccgui-phase9-popovers-narrow.png` |
+| Built Electron screenshot | Pass | Playwright Electron launcher rendered `.runtime-popover` with attachment rule; screenshot `/tmp/ccgui-phase9-popovers-electron.png` |
+
+Scope: CSS-only popover polish package. Native popovers now have desktop attachment cues, contained scrolling, safer text wrapping, and a narrow-screen override after skin-specific placement rules. This did not change popover state, Escape/outside-click logic, renderer IPC, server routes, transport, config writes, file access, session lifecycle, or Command Code invocation behavior.

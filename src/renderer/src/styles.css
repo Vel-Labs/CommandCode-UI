@@ -3387,11 +3387,24 @@ input[type="range"]::-webkit-slider-thumb {
   width: min(380px, calc(100vw - 120px));
   max-height: min(720px, calc(100vh - 120px));
   overflow: auto;
+  overflow-wrap: anywhere;
+  overscroll-behavior: contain;
   padding: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   background: #252628;
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+}
+
+.native-popover::before {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  background: inherit;
+  transform: rotate(45deg);
 }
 
 .project-popover,
@@ -3415,11 +3428,27 @@ input[type="range"]::-webkit-slider-thumb {
   width: min(430px, calc(100vw - 120px));
 }
 
+.runtime-popover::before {
+  top: 26px;
+  right: -7px;
+}
+
 .model-popover {
   left: auto;
   right: 62px;
   bottom: 182px;
   width: min(380px, calc(100vw - 120px));
+}
+
+.project-popover::before,
+.permission-popover::before,
+.slash-popover::before,
+.model-popover::before {
+  left: 30px;
+  bottom: -7px;
+  border: 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .popover-title {
@@ -5111,6 +5140,33 @@ input[type="range"]::-webkit-slider-thumb {
 
 .model-popover {
   right: 128px;
+}
+
+@media (max-width: 720px) {
+  .native-popover,
+  .project-popover,
+  .permission-popover,
+  .slash-popover,
+  .model-popover {
+    left: 14px;
+    right: 14px;
+    bottom: 104px;
+    width: auto;
+    max-height: min(680px, calc(100vh - 124px));
+    transform: none;
+  }
+
+  .runtime-popover {
+    top: 14px;
+    right: 14px;
+    bottom: auto;
+    width: auto;
+    max-height: calc(100vh - 28px);
+  }
+
+  .native-popover::before {
+    display: none;
+  }
 }
 
 @media (max-width: 980px) {
