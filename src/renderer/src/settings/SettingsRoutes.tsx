@@ -199,7 +199,7 @@ export function SettingsRoute(props: SettingsRouteProps): JSX.Element {
     case 'mcp':
       return <SettingsFrame title="MCP"><McpSettingsReadOnly transport={transport} commandExecutable={commandExecutable} /></SettingsFrame>
     case 'agents':
-      return <SettingsFrame title="Agents"><AgentsSettingsReadOnly transport={transport} /></SettingsFrame>
+      return <SettingsFrame title="Agents"><AgentsSettingsReadOnly transport={transport} cwd={cwd} /></SettingsFrame>
     case 'skills':
       return <SettingsFrame title="Skills"><SkillsSettingsReadOnly transport={transport} /></SettingsFrame>
     case 'memory':

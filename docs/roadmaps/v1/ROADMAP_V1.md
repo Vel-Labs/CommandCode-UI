@@ -378,6 +378,8 @@ Twenty-first session-action package added project-session Resume and transcript 
 
 Twenty-second MCP action package added Settings MCP connect/disconnect execution using existing `transport.mcpAction(commandExecutable, action, serverName)` and the already visible `cmd mcp connect|disconnect <server>` command previews. This removes MCP connect/disconnect from the remaining Advanced-only blockers without adding renderer IPC, server routes, hidden config writes, or Command Code settings mutation. Automated smoke covered build and browser transport; real MCP connect/disconnect click-through was not run to avoid mutating an unknown server. Validation receipts: `npm run typecheck`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5213/`, and Electron dev startup with embedded app server `http://127.0.0.1:50499`.
 
+Twenty-third agent-write package added Settings Agents edit/save using existing `transport.saveAgent(agentPath, content, cwd)`. Settings shows the destination path before save and server validation keeps writes under the selected project `.commandcode/agents/` root. This removes agent writes from the remaining Advanced-only blockers without adding renderer IPC, new server routes, or Command Code settings mutation. Automated tests covered the existing agent path boundary; direct Settings agent save click-through was not run in this package. Validation receipts: `npm run typecheck`, `npx vitest run` -> `56/56`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5214/`, and Electron dev startup with embedded app server `http://127.0.0.1:50660`.
+
 ### Scope
 
 - Fold AdvancedPanel content into Settings as first-class sections. Read-only replacement coverage is started; AdvancedPanel removal remains gated by `docs/reports/ADVANCED_PANEL_REMOVAL_GATE.md`.
@@ -425,6 +427,7 @@ Likely new files:
 - Settings navigation reaches every formerly advanced section.
 - Settings Sessions includes project-session resume and transcript reveal actions; direct real CLI resume/reveal click-through remains to be exercised before removing the Advanced modal entirely.
 - Settings MCP includes connect/disconnect execution with visible command previews; real MCP action click-through remains to be exercised against a safe server before removing the Advanced modal entirely.
+- Settings Agents includes project-scoped edit/save with visible destination paths; direct Settings save click-through remains to be exercised against a safe project agent before removing the Advanced modal entirely.
 - Renderer-local toast/audio notification preferences persist and load. OS notifications, hook-triggered alerts, quiet mode, and readiness remain planned.
 - Renderer-local terminal presentation preferences persist and load without breaking xterm. Bell behavior, profiles, history controls, and live PTY geometry updates remain planned.
 - Editable settings show destination path before write. Implemented for existing editable GUI preference controls; future write-capable sections remain gated.
