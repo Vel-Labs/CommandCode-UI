@@ -1649,5 +1649,6 @@ Scope: documentation-only local GUI implications page. This completed the focuse
 | Doctor | Pass | `npm run doctor`; Command Code `v0.32.3`, auth `ok`, 27 models available, PTY health `ok`, `5 passed, 0 failed` |
 | Roadmap closeout | Pass | Phase 10 status and acceptance updated in `docs/roadmaps/v1/ROADMAP_V1.md` |
 | Root roadmap | Pass | `ROADMAP.md` now points at the closed V1 contract and remaining post-V1 gates |
+| Phase status audit | Pass | Phase 3, Phase 4, and Phase 8 top-level statuses now match their current-contract completion receipts and preserve gated leftovers |
 
 Scope: Phase 10 closeout. Validation, docs, root roadmap status, and contributor enablement are complete for the current V1 contract. This closeout did not change runtime code, renderer IPC, server routes, transport calls, file access, config writes, session lifecycle, CSS tokens, or Command Code invocation behavior. Electron UI receipts remain recorded in the UI packages that changed rendered behavior and were not rerun for this docs-only closeout package.
