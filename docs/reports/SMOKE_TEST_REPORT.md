@@ -448,6 +448,20 @@ Scope: Settings MCP validation package. It fixed disconnected-status parsing and
 
 Scope: Settings replacement closeout package. Removed the legacy `AdvancedPanel` modal, its launch state, the Runtime popover Advanced button, the dead right-inspector `advanced` mode, and modal-only CSS. Settings Advanced remains the diagnostics hub. No renderer IPC expansion, server routes, config writes, file access changes, transport/session lifecycle changes, or Command Code settings mutation was added.
 
+### 2026-06-06 Phase 2 Settings Center closeout
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `58/58` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser`; mock headless and mock interactive session paths passed |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5222`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets `index-lfU4Ropg.js` and `index-BE4-R85S.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:52655` |
+| Screenshot automation | Deferred | Playwright is not installed in this project/runtime; route and startup receipts were used instead of claiming desktop/narrow screenshots |
+
+Scope: documentation/status closeout for Phase 2 Settings Center. It records that Settings is now the primary configuration path, the generic Advanced modal is removed, editable Settings actions show ownership/destination before writes, and remaining risky/destructive or upstream-owned actions stay planned, gated, blocked, or deferred. No renderer, server, IPC, config, transport, session lifecycle, file access, or Command Code settings behavior changed in this closeout package.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |

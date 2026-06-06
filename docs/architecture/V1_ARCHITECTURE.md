@@ -79,7 +79,7 @@ Current extraction status on 2026-06-06:
 - `src/renderer/src/components/ComposerBar.tsx` owns the shared prompt composer presentation used by home and session views.
 - `src/renderer/src/workspaces/HomeWorkspace.tsx` owns new-session home presentation and home status rows.
 - `src/renderer/src/workspaces/SessionWorkspace.tsx` owns active session workbench presentation, tab/terminal layout, bottom terminal presentation, and the workbench tool rail.
-- `src/renderer/src/workspaces/SettingsWorkspace.tsx` owns existing settings workspace presentation only; Phase 2 settings expansion has not started.
+- `src/renderer/src/workspaces/SettingsWorkspace.tsx` owns the Settings shell while route content lives in the Phase 2 settings modules.
 - `src/renderer/src/workspaces/TranscriptWorkspace.tsx` owns transcript presentation and inline transcript preview.
 - `src/renderer/src/inspectors/RightInspectorPanel.tsx` owns right-inspector presentation and environment display.
 - `src/renderer/src/components/AppPopovers.tsx` owns existing project, runtime, permission, model, and slash-command popover presentation.
@@ -105,6 +105,7 @@ Settings should become the natural home for configuration, not just a profile/st
 
 Current implementation status on 2026-06-06:
 
+- Phase 2 Settings Center is complete and validated for the current V1 contract. Remaining risky/destructive or upstream-owned actions are explicitly marked planned, gated, or blocked rather than hidden behind a generic modal.
 - `src/renderer/src/settings/settingsRegistry.tsx` owns the searchable settings section registry and Phase 2 taxonomy.
 - `ShellLayout` renders registry-backed settings navigation and filters sections through the settings search input.
 - `SettingsWorkspace` renders read-only placeholder pages for newly registered Phase 2 sections until each section has a validated replacement path.
@@ -117,8 +118,8 @@ Current implementation status on 2026-06-06:
 - Existing editable Settings controls now show GUI preference destination labels for command binary, onboarding, permissions, trust, model, and appearance.
 - Usage now includes the existing Command Code usage summary refresh alongside local headless history, using the pre-existing `transport.usage` capability.
 - Skills now include read-only content preview expansion in Settings while insert/use actions remain planned.
-- Sessions now include read-only discovery in Settings while resume and reveal actions remain in Advanced behind session lifecycle and file-access gates.
-- MCP now shows read-only connect/disconnect command previews in Settings while execution remains in Advanced.
+- Sessions now include discovery, project-session resume, and transcript reveal actions in Settings using existing App/transport paths.
+- MCP now shows connect/disconnect command previews and execution in Settings using the existing `transport.mcpAction` path.
 - Notifications now edits the existing renderer-local toast/audio preference keys (`ccgui.toast-preferences`, `ccgui.audio-preferences`) through `src/renderer/src/settings/notificationPreferences.ts`; OS notifications, hook alerts, quiet mode, and session readiness remain planned.
 - Terminal now edits renderer-local xterm presentation preferences (`ccgui.terminal-preferences`) through `src/renderer/src/settings/terminalPreferences.ts`; PTY lifecycle, shell selection, live resize behavior, profiles, and bell behavior remain planned.
 - About now renders bundled release-note history from `src/renderer/src/commandPalette.ts` without running update checks or changing release-note dismissal state.

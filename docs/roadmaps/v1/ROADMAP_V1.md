@@ -334,7 +334,9 @@ Sequential:
 
 Goal: turn Settings into the app's natural configuration center.
 
-Status on 2026-06-06: started. First read-only settings architecture package added `src/renderer/src/settings/settingsRegistry.tsx`, expanded the settings section taxonomy, replaced the settings search placeholder with real registry filtering, and added read-only placeholder pages for new Phase 2 sections. This package did not add config writes, persistence changes, server routes, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `41/41`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5193/`, and Electron dev startup with embedded app server `http://127.0.0.1:62462`.
+Status on 2026-06-06: complete and validated for the current V1 contract. Settings is now the primary configuration path, the generic Advanced modal has been removed, editable Settings actions show ownership/destination before writes, and remaining risky/destructive or upstream-owned actions are explicitly planned, gated, blocked, or deferred.
+
+First read-only settings architecture package added `src/renderer/src/settings/settingsRegistry.tsx`, expanded the settings section taxonomy, replaced the settings search placeholder with real registry filtering, and added read-only placeholder pages for new Phase 2 sections. This package did not add config writes, persistence changes, server routes, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `41/41`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5193/`, and Electron dev startup with embedded app server `http://127.0.0.1:62462`.
 
 Second read-only package added Settings-hosted views for Project state, MCP, Agents, Skills, Memory, and Taste via `src/renderer/src/settings/AdvancedReadOnlySettings.tsx`. The Advanced modal remains available, and no connect/disconnect/edit/save actions were migrated. This package did not add config writes, persistence changes, server routes, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `41/41`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5194/`, and Electron dev startup with embedded app server `http://127.0.0.1:62843`.
 
@@ -394,13 +396,15 @@ Twenty-ninth MCP validation package fixed MCP status parsing so `disconnected` i
 
 Thirtieth AdvancedPanel removal package deleted `src/renderer/src/components/AdvancedPanel.tsx`, removed its modal launch state, removed the Runtime popover's generic Advanced launcher, removed the dead right-inspector `advanced` mode, and dropped modal-only CSS while preserving the Settings Advanced diagnostics hub. This package did not add renderer IPC, server routes, config writes, file access changes, transport/session lifecycle changes, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `58/58`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5221/`, in-app Browser click-through to Settings Advanced showing `Diagnostics and scoped tools` with no `Open Advanced tools`, and Electron dev startup with embedded app server `http://127.0.0.1:52429`.
 
+Thirty-first Phase 2 closeout package updated the roadmap and architecture status after revalidating the Settings Center contract. It did not change renderer, server, IPC, config, transport, session lifecycle, file access, or Command Code settings behavior. Validation receipts: `npm run typecheck`, `npx vitest run` -> `58/58`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5222/` with assets `index-lfU4Ropg.js` and `index-BE4-R85S.css`, and Electron dev startup with renderer `http://localhost:5175/` plus embedded app server `http://127.0.0.1:52655`.
+
 ### Scope
 
 - Fold AdvancedPanel content into Settings as first-class sections. Implemented; the legacy AdvancedPanel modal has been removed after Settings replacement receipts landed.
 - Add or complete sections: General, Runtime, Models, Hooks, MCP, Agents, Skills, Design, Memory, Taste, Notifications, Terminal, Keyboard, Data, About, and Advanced Diagnostics.
 - Implement real settings search or remove the placeholder until search exists.
-- Populate Integrations with actual integration management or remove the dead section. Started with the read-only Settings hub; write-capable integration management remains gated.
-- Redesign Profile into an actionable dashboard or collapse it into General. Started with read-only dashboard shortcuts to the active Settings sections.
+- Populate Integrations with actual integration management or remove the dead section. Implemented as a useful Settings hub with routes to MCP, Hooks, Agents, Skills, Design, Memory, and Taste; write-capable integration management remains gated.
+- Redesign Profile into an actionable dashboard or collapse it into General. Implemented as a dashboard with shortcuts to active Settings sections and runtime receipts.
 - Add terminal settings for font size, scrollback, bell, cursor, line height, history, and profile where supported. Renderer-local font size, line height, scrollback, and cursor blink controls are implemented; bell behavior, profiles, history controls, and live PTY geometry updates remain planned.
 - Add notification settings for toast/audio categories, quiet mode, per-session readiness, hook-triggered alerts, and volume. Existing GUI toast/audio category and volume controls are implemented through renderer-local preferences; OS notifications, quiet mode, hook-triggered alerts, and readiness remain planned.
 - Add keyboard shortcut reference and visible accelerator hints. Keyboard now shows grouped shortcuts and command examples, and existing New Session, Send, and Menu Input controls show accelerator hints; shortcut remapping remains planned.
@@ -448,7 +452,7 @@ Likely new files:
 - Renderer-local terminal presentation preferences persist and load without breaking xterm. Bell behavior, profiles, history controls, and live PTY geometry updates remain planned.
 - Editable settings show destination path before write. Implemented for existing editable GUI preference controls; future write-capable sections remain gated.
 - Data control writes/deletes remain blocked by `docs/reports/DATA_CONTROLS_GATE.md`.
-- Browser/Electron screenshots for Settings at desktop and narrow widths.
+- Browser/Electron route receipts for Settings are validated through built-route token proof, in-app Browser click-through receipts, and Electron dev startup receipts. Screenshot automation remains not installed in this project, so desktop/narrow screenshot capture remains deferred rather than claimed.
 - `npm run typecheck`
 - `npx vitest run`
 
