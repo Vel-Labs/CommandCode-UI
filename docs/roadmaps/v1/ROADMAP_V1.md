@@ -524,6 +524,8 @@ Sixteenth dry-run test runner package added `src/core/hooksDryRun.ts`, `/api/hoo
 
 Seventeenth docs recipe package added `docs/reference/command-code-docs/hooks.md` with current Settings > Hooks capabilities, non-implemented execution boundaries, dry-run runner semantics, and a project-scoped Stop-hook notification/audio recipe compatible with `command-code-bonk --sound done`. This package did not change runtime code, server routes, renderer IPC, settings persistence, hook execution, OS notifications, audio behavior, or Command Code settings mutation. Validation receipts: `npm run typecheck` and local docs link/content checks for `hooks.md`, `command-code-bonk`, `execution: not-run`, and `ccgui_dry_run`.
 
+Eighteenth pure notification planner package added explicit `response-ready` and `input-required` toast/audio preference categories plus `src/renderer/src/services/readinessNotifications.ts`. The planner maps explicit readiness notification intents to toast/audio delivery plans while respecting preferences; audio remains disabled by default, and no dispatch, OS notification, terminal-output heuristic, session lifecycle change, renderer IPC, server route, or Command Code runtime mutation was added. Validation receipts: `npm run typecheck`, `npx vitest run` -> `103/103`, `npm run build`, `npm run smoke:browser`, built browser route proof at `http://127.0.0.1:57331/` with assets `index-B_jIDcWW.js` and `index-Df7RZjIk.css`, and Electron dev startup with renderer `http://localhost:5175/` plus embedded app server `http://127.0.0.1:57350`. In-app Browser screenshot automation was not available in this turn, so route-level and Electron startup receipts were used instead.
+
 ### Scope
 
 - Add Settings > Hooks.
@@ -539,7 +541,7 @@ Seventeenth docs recipe package added `docs/reference/command-code-docs/hooks.md
 - Document and support a community-style Stop-hook notification/audio recipe compatible with `vipulgupta2048/command-code-bonk`. Implemented as local reference docs and Settings examples; real hook execution remains Command Code-owned.
 - Replace terminal data-length notification heuristics with explicit session lifecycle state. Pure reducer and live-versus-replay session callback metadata implemented; response-ready runtime integration remains gated.
 - Track per-session unread, response-ready, and input-required state. Reducer-backed tab state and unread display implemented; explicit response-ready/input-required runtime events remain gated.
-- Notify only when background sessions produce ready output or require operator input. Pure reducer returns notification intent; UI/OS notification dispatch remains gated.
+- Notify only when background sessions produce ready output or require operator input. Pure reducer returns notification intent and pure planner maps explicit intents to preference-aware delivery plans; UI/OS notification dispatch remains gated.
 
 ### Likely Impacted Files
 
@@ -571,7 +573,7 @@ Likely new files:
 - Opening/attaching/returning to a session does not produce response-ready toast. Implemented at pure reducer level and in tab foreground/replay wiring; runtime UI notification integration remains gated.
 - Background session output produces one appropriate unread/ready notification. Reducer distinguishes live background output from readiness intent, and tabs/sidebar show unread state; notification dispatch remains gated.
 - Input-required state produces a distinct notification. Implemented at pure reducer intent level; notification dispatch remains gated.
-- Notification preferences suppress or enable categories correctly.
+- Notification preferences suppress or enable categories correctly. Implemented for readiness intents at pure planner level; runtime dispatch remains gated.
 - `npm run typecheck`
 - `npx vitest run`
 - Browser/Electron dogfood with three sessions.

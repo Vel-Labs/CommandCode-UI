@@ -16,6 +16,10 @@ describe('notification preferences', () => {
 
     expect(loadToastPrefs(storage)).toEqual(defaultToastPrefs)
     expect(loadAudioPrefs(storage)).toEqual(defaultAudioPrefs)
+    expect(defaultToastPrefs.categories['response-ready']).toBe(true)
+    expect(defaultToastPrefs.categories['input-required']).toBe(true)
+    expect(defaultAudioPrefs.categories['response-ready']).toEqual({ enabled: false, volume: 1 })
+    expect(defaultAudioPrefs.categories['input-required']).toEqual({ enabled: false, volume: 1 })
   })
 
   it('merges stored toast categories without dropping new defaults', () => {

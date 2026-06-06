@@ -673,6 +673,20 @@ Scope: dry-run test runner package for Settings > Hooks. Added `src/core/hooksDr
 
 Scope: docs-only Stop-hook recipe package. Added `docs/reference/command-code-docs/hooks.md` with current Settings > Hooks capabilities, dry-run test runner semantics, non-implemented execution boundaries, and a project-scoped `command-code-bonk --sound done` Stop-hook recipe. No runtime code, server routes, renderer IPC, settings persistence, hook execution, OS notification, audio behavior, or Command Code settings mutation was added.
 
+### 2026-06-06 Phase 3 readiness notification planner
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `103/103` |
+| Build | Pass | `npm run build`; assets `index-B_jIDcWW.js` and `index-Df7RZjIk.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser`; mock session created/exited, auth checks passed |
+| Built browser route | Pass | `npm run dev:server -- --port 57331`; token proof returned `302`, cookie-authenticated `/` served built assets `index-B_jIDcWW.js` and `index-Df7RZjIk.css` |
+| Electron dev startup | Pass | `npm run dev`; renderer `http://localhost:5175/`, embedded app server `http://127.0.0.1:57350` |
+| In-app Browser screenshot automation | Not run | Browser plugin navigation tools were not exposed in this turn and Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
+
+Scope: pure readiness notification planner package. Added explicit `response-ready` and `input-required` toast/audio preference categories and `src/renderer/src/services/readinessNotifications.ts` to map explicit readiness intents to preference-aware delivery plans. Audio remains disabled by default. No readiness dispatch, OS notification, audio playback, terminal-output heuristic, session lifecycle change, server route, renderer IPC, hook execution, or Command Code runtime mutation was added.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |

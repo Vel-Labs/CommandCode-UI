@@ -38,6 +38,7 @@ GUI implications:
 - Add local examples for block shell, sensitive read warning, write audit, and Stop revision.
 - Provide a test payload runner before asking users to run a real Command Code session. The current runner is dry-run only; real hook execution remains gated.
 - Keep hook execution owned by Command Code; the GUI should edit config and run diagnostics only.
+- Readiness notification preferences now include `response-ready` and `input-required` categories, but runtime dispatch remains gated until explicit Command Code readiness events are integrated.
 
 ## MCP
 

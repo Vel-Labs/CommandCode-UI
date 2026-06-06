@@ -28,6 +28,7 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 - `docs/reference/command-code-docs/hooks.md` documents current hook boundaries and a project-scoped Stop-hook notification/audio recipe compatible with `command-code-bonk --sound done`.
 - `src/renderer/src/services/sessionReadiness.ts` adds a pure session readiness reducer for background, unread, response-ready, and input-required state.
 - The readiness reducer keeps attach, replay, and foreground transitions non-notifying, separates live background output from response-ready state, and emits notification intent only for explicit background `assistant-ready` or `input-required` events.
+- `src/renderer/src/services/readinessNotifications.ts` maps explicit readiness notification intents to toast/audio delivery plans while respecting renderer-local notification preferences. It does not dispatch toast, play audio, call OS notifications, or infer readiness from terminal output.
 - Session data callbacks include `live` versus `replay` metadata, and active tabs/sidebar rows display reducer-backed unread/readiness state without firing toast, audio, or OS notifications.
 
 ## Not Implemented
@@ -38,7 +39,7 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 - No arbitrary hook log path is accepted from the renderer; hook log reads are bounded to derived project/user hook directories and supported log-like extensions.
 - No renderer IPC or broad file access permission was added.
 - No hook command execution or real-session test-payload runner was added; the implemented runner is dry-run only and reports `execution: not-run`.
-- No OS notifications, hook-triggered alerts, quiet mode, runtime-integrated response-ready notifications, or runtime-integrated input-required notifications were added.
+- No OS notifications, hook-triggered alerts, quiet mode, runtime-integrated response-ready notifications, runtime-integrated input-required notifications, toast dispatch, or audio playback for readiness intents were added.
 
 ## Required Before Hook Writes
 
@@ -56,13 +57,13 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 - Opening, attaching, or returning to a session must not fire response-ready notifications.
 - Background session output, response-ready state, and input-required state must be distinguishable.
 - Implemented as a pure reducer plus tab/sidebar unread display only; explicit Command Code readiness events remain required before OS or toast notifications can use response-ready or input-required state.
-- Notification preferences must suppress or enable each category predictably.
+- Notification preferences suppress or enable readiness categories predictably at the pure planner level.
 - Audio must remain off unless enabled by user-owned GUI preferences.
 
 ## Validation Receipts
 
 - `npm run typecheck`
-- `npx vitest run` -> `100/100`
+- `npx vitest run` -> `103/103`
 - `npm run build`
 - `npm run smoke:browser`
 - Built browser route token proof at `http://127.0.0.1:5224/`
@@ -74,8 +75,10 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 - Authenticated `/api/hooks/logs` and `/api/hooks/logs/read` proof against isolated temp project with `audit.log` listed/read, outside path rejected, and unsupported `.md` rejected
 - Authenticated `/api/hooks/dry-run` proof with matching and mismatched sample tools; both returned `execution: not-run`
 - Local docs link/content checks for `docs/reference/command-code-docs/hooks.md`
+- Pure readiness notification planner tests for preference suppression and audio-off defaults
 - Built browser route token proof at `http://127.0.0.1:5227/`
 - Built browser route token proof at `http://127.0.0.1:56188/` with assets `index-B7vaMBRP.js` and `index-Df7RZjIk.css`
 - Built browser route token proof at `http://127.0.0.1:56853/` with assets `index-u1BdDkr0.js` and `index-Df7RZjIk.css`
-- Electron dev startup with renderer `http://localhost:5175/` and embedded server `http://127.0.0.1:56886`
+- Built browser route token proof at `http://127.0.0.1:57331/` with assets `index-B_jIDcWW.js` and `index-Df7RZjIk.css`
+- Electron dev startup with renderer `http://localhost:5175/` and embedded server `http://127.0.0.1:57350`
 - In-app Browser screenshot automation was not available in this turn; route-level and Electron startup receipts were used instead.

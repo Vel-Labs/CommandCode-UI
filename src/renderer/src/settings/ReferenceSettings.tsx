@@ -135,8 +135,8 @@ export function NotificationsSettings(): JSX.Element {
           )
         })}
       </div>
-      <ReferenceRow label="Session readiness" value="Unread state is visible in tabs; response-ready delivery remains gated" />
-      <p className="settings-muted">These settings only control existing renderer toast/audio cues. OS notifications, hook-triggered alerts, quiet mode, and response-ready/input-required notification delivery remain planned.</p>
+      <ReferenceRow label="Session readiness" value="Unread state is visible in tabs; response-ready/input-required categories are staged" />
+      <p className="settings-muted">These settings control renderer toast/audio preferences. OS notifications, hook-triggered alerts, quiet mode, and response-ready/input-required notification dispatch remain planned.</p>
     </SettingsReferenceCard>
   )
 }

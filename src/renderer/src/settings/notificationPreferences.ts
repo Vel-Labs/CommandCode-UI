@@ -20,6 +20,8 @@ export const defaultToastPrefs: ToastPrefs = {
     'session-started': true,
     'session-exited': true,
     'session-response': true,
+    'response-ready': true,
+    'input-required': true,
     'headless-complete': true,
     'headless-error': true,
     'transcript-saved': true
@@ -32,6 +34,8 @@ export const defaultAudioPrefs: AudioPrefs = {
     'session-started': { enabled: false, volume: 1 },
     'session-exited': { enabled: false, volume: 1 },
     'session-response': { enabled: false, volume: 1 },
+    'response-ready': { enabled: false, volume: 1 },
+    'input-required': { enabled: false, volume: 1 },
     'headless-complete': { enabled: false, volume: 1 },
     'headless-error': { enabled: false, volume: 1 }
   }
