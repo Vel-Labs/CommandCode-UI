@@ -1,4 +1,5 @@
 import type { DiscoveredSession } from '../../core/types'
+import type { SessionReadinessState } from './services/sessionReadiness'
 
 export type WorkspaceView = 'home' | 'session' | 'transcript' | 'settings'
 export type RightInspector = 'none' | 'files' | 'file' | 'transcript' | 'docs' | 'environment' | 'ide'
@@ -58,6 +59,7 @@ export type SessionTab = {
   transcriptPath: string
   projectLabel: string
   runtimeMode: RuntimeMode
+  readiness: SessionReadinessState
   resumedSession?: DiscoveredSession
 }
 

@@ -20,6 +20,11 @@ import { AppPopovers } from './components/AppPopovers'
 import { ReleaseNotesModal } from './components/ReleaseNotesModal'
 import { commandGroups, commandPaletteItems, releaseNotes } from './commandPalette'
 import { useDismissiblePopover } from './hooks/useDismissiblePopover'
+import {
+  initialSessionReadiness,
+  reduceSessionReadiness,
+  type SessionReadinessEvent
+} from './services/sessionReadiness'
 import type {
   AppearanceTheme,
   CommandPaletteItem,
@@ -217,6 +222,7 @@ export function App(): JSX.Element {
 
   const useMock = runtimeMode === 'mock'
   const activeTab = tabs.find((t) => t.id === activeTabId)
+  const tabIds = useMemo(() => tabs.map((tab) => tab.id).join('\0'), [tabs])
   const workspaceView: WorkspaceView = settingsOpen ? 'settings' : activeTabId ? 'session' : selectedTranscript ? 'transcript' : 'home'
   const projectLabel = displayPath(cwd)
   const realSessionDisabled = Boolean(ptyHealth && (!ptyHealth.available || !ptyHealth.healthy))
@@ -347,7 +353,33 @@ export function App(): JSX.Element {
 
   useEffect(() => {
     setTerminalInputEnabled(false)
+    setTabs((prev) => prev.map((tab) => {
+      const event: SessionReadinessEvent = activeTabId && tab.id === activeTabId
+        ? { type: 'foreground' }
+        : { type: 'background' }
+      return { ...tab, readiness: reduceSessionReadiness(tab.readiness, event).state }
+    }))
   }, [activeTabId])
+
+  const applySessionReadinessEvent = useCallback((sessionId: string, event: SessionReadinessEvent): void => {
+    setTabs((prev) => prev.map((tab) => {
+      if (tab.id !== sessionId) return tab
+      return { ...tab, readiness: reduceSessionReadiness(tab.readiness, event).state }
+    }))
+  }, [])
+
+  useEffect(() => {
+    if (!tabIds) return
+    const unsubscribers = tabs.map((tab) => transport.onSessionData(tab.id, (_data, metadata) => {
+      applySessionReadinessEvent(tab.id, {
+        type: 'output',
+        source: metadata.source === 'replay' ? 'replay' : 'live'
+      })
+    }))
+    return () => {
+      unsubscribers.forEach((unsubscribe) => unsubscribe())
+    }
+  }, [applySessionReadinessEvent, tabIds, transport])
 
   useEffect(() => {
     if (!cwd.trim()) {
@@ -518,6 +550,7 @@ export function App(): JSX.Element {
   }
 
   const writeComposerSubmit = async (sessionId: string, prompt: string, mock: boolean): Promise<void> => {
+    applySessionReadinessEvent(sessionId, { type: 'user-submit' })
     if (mock) {
       await transport.write(sessionId, `${prompt.trim()}\r`)
       return
@@ -583,6 +616,7 @@ export function App(): JSX.Element {
       })
 
       const label = resume ? `resume ${tabCounter++}` : `session ${tabCounter++}`
+      const readiness = reduceSessionReadiness(initialSessionReadiness(result.id), { type: 'attach' }).state
       const newTab: SessionTab = {
         id: result.id,
         label,
@@ -593,10 +627,14 @@ export function App(): JSX.Element {
         transcriptPath: result.transcriptPath,
         projectLabel,
         runtimeMode: effectiveRuntimeMode,
+        readiness,
         resumedSession: resumeSession
       }
 
-      setTabs((prev) => [...prev, newTab])
+      setTabs((prev) => [
+        ...prev.map((tab) => ({ ...tab, readiness: reduceSessionReadiness(tab.readiness, { type: 'background' }).state })),
+        newTab
+      ])
       setActiveTabId(result.id)
       setSelectedTranscript(options?.keepTranscriptInspector ? resumeSession : undefined)
       if (options?.keepTranscriptInspector && resumeSession) {
@@ -1159,7 +1197,10 @@ export function App(): JSX.Element {
               onStopSession={stopSession}
               onToggleTerminalInput={() => setTerminalInputEnabled((value) => !value)}
               onTerminalInputRequest={() => setTerminalInputEnabled(true)}
-              onTerminalInputCommit={() => setTerminalInputEnabled(false)}
+              onTerminalInputCommit={() => {
+                if (activeTabId) applySessionReadinessEvent(activeTabId, { type: 'user-submit' })
+                setTerminalInputEnabled(false)
+              }}
               setComposerPrompt={setComposerPrompt}
               onSubmitComposer={submitComposer}
               onFocusComposer={() => setTerminalInputEnabled(false)}

@@ -1,4 +1,5 @@
 import type { JSX } from 'react'
+import type { SessionReadinessState } from '../services/sessionReadiness'
 
 type SessionTab = {
   id: string
@@ -7,6 +8,7 @@ type SessionTab = {
   model?: string
   stopRequested: boolean
   transcriptPath: string
+  readiness: SessionReadinessState
 }
 
 type TabBarProps = {
@@ -30,6 +32,9 @@ export function TabBar({ tabs, activeId, onSelect, onKill }: TabBarProps): JSX.E
           <span className={`tab-dot ${tab.mock ? 'tab-dot--mock' : 'tab-dot--live'}`} />
           <span className="tab-label">{tab.label}</span>
           <span className="tab-model">{tab.model?.trim() || 'default'}</span>
+          {tab.readiness.unread && <span className="tab-readiness tab-readiness--unread">new</span>}
+          {tab.readiness.inputRequired && <span className="tab-readiness tab-readiness--input">input</span>}
+          {tab.readiness.responseReady && <span className="tab-readiness tab-readiness--ready">ready</span>}
           <span
             className="tab-close"
             onClick={(e) => {

@@ -94,6 +94,9 @@ export function SessionWorkspace({
             <span>{activeTab?.projectLabel || projectLabel}</span>
             <StatusPill label={sessionModelLabel(activeTab?.model)} tone="default" />
             <StatusPill label={activeTab?.mock ? 'mock' : 'real cli'} tone={activeTab?.mock ? 'purple' : 'warn'} />
+            {activeTab?.readiness.inputRequired && <StatusPill label="input" tone="warn" />}
+            {activeTab?.readiness.responseReady && <StatusPill label="ready" tone="default" />}
+            {activeTab?.readiness.unread && <StatusPill label="unread" tone="purple" />}
             <StatusPill label={permissionLabel} tone={permissionTone} />
           </div>
         </div>
@@ -131,7 +134,6 @@ export function SessionWorkspace({
             transport={transport}
             sessionId={shellSessionId}
             compact
-            notifyResponses={false}
             onExit={onShellExit}
           />
         </section>

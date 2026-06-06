@@ -506,6 +506,8 @@ Seventh dry-run package added `src/core/hooksPayload.ts` and Settings > Hooks `S
 
 Eighth pure readiness package added `src/renderer/src/services/sessionReadiness.ts` with reducer tests for per-session background, unread, response-ready, and input-required state. Attach, replay, foreground navigation, and replay output remain non-notifying; live background output only marks unread; explicit background `assistant-ready` and `input-required` events return distinct notification intent for future notification wiring. This package did not add OS notifications, toast dispatch, audio behavior, session lifecycle integration, terminal-output heuristics, server routes, renderer IPC, file access, Command Code settings mutation, hook execution, or real CLI execution. Validation receipts: `npm run typecheck`, `npx vitest run` -> `83/83`, and `npm run build`.
 
+Ninth session wiring package added live-versus-replay metadata to session data callbacks, reducer-backed readiness state to active tabs, and unread/readiness badges in tabs and active-session sidebar rows. Replay buffers are ignored for unread state; foregrounding a tab clears unread state; composer and terminal input commits clear pending readiness flags. This package did not add OS notifications, toast dispatch, audio behavior, response-ready inference, input-required runtime inference, terminal byte-length heuristics, renderer IPC, file access, hook execution, or Command Code settings mutation. The real Command Code interactive path was not exercised; PTY health was smoke-tested only. Validation receipts: `npm run typecheck`, `npx vitest run` -> `83/83`, `npm run build`, `npm run smoke:browser`, `npm run smoke:pty`, built browser route token proof at `http://127.0.0.1:5228/` with assets `index-NQ0qlEmE.js` and `index-CXez1f6k.css`, mock session API proof with `mock=true`, and Electron dev startup with renderer `http://localhost:5175/` plus embedded app server `http://127.0.0.1:54683`.
+
 ### Scope
 
 - Add Settings > Hooks.
@@ -519,8 +521,8 @@ Eighth pure readiness package added `src/renderer/src/services/sessionReadiness.
 - Add a test payload runner so users can validate hook behavior before real sessions. Dry-run sample payload preview is implemented; command execution remains gated.
 - Add examples for dangerous shell blocking, sensitive read warnings, write auditing, and Stop-hook finish notifications.
 - Document and support a community-style Stop-hook notification/audio recipe compatible with `vipulgupta2048/command-code-bonk`.
-- Replace terminal data-length notification heuristics with explicit session lifecycle state. Pure reducer implemented; runtime session integration remains gated.
-- Track per-session unread, response-ready, and input-required state. Pure reducer implemented.
+- Replace terminal data-length notification heuristics with explicit session lifecycle state. Pure reducer and live-versus-replay session callback metadata implemented; response-ready runtime integration remains gated.
+- Track per-session unread, response-ready, and input-required state. Reducer-backed tab state and unread display implemented; explicit response-ready/input-required runtime events remain gated.
 - Notify only when background sessions produce ready output or require operator input. Pure reducer returns notification intent; UI/OS notification dispatch remains gated.
 
 ### Likely Impacted Files
@@ -550,8 +552,8 @@ Likely new files:
 - Hook config parser handles empty, user-only, project-only, and merged configs.
 - Invalid hook JSON is rejected before write.
 - Test payload runner executes or dry-runs without starting a real session.
-- Opening/attaching/returning to a session does not produce response-ready toast. Implemented at pure reducer level; runtime UI notification integration remains gated.
-- Background session output produces one appropriate unread/ready notification. Reducer distinguishes live background output from readiness intent; notification dispatch remains gated.
+- Opening/attaching/returning to a session does not produce response-ready toast. Implemented at pure reducer level and in tab foreground/replay wiring; runtime UI notification integration remains gated.
+- Background session output produces one appropriate unread/ready notification. Reducer distinguishes live background output from readiness intent, and tabs/sidebar show unread state; notification dispatch remains gated.
 - Input-required state produces a distinct notification. Implemented at pure reducer intent level; notification dispatch remains gated.
 - Notification preferences suppress or enable categories correctly.
 - `npm run typecheck`

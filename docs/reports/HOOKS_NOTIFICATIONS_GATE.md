@@ -21,6 +21,7 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 - `src/core/hooksPayload.ts` and Settings > Hooks `Sample payload` controls build explicitly marked dry-run JSON samples without executing hook commands or starting sessions.
 - `src/renderer/src/services/sessionReadiness.ts` adds a pure session readiness reducer for background, unread, response-ready, and input-required state.
 - The readiness reducer keeps attach, replay, and foreground transitions non-notifying, separates live background output from response-ready state, and emits notification intent only for explicit background `assistant-ready` or `input-required` events.
+- Session data callbacks include `live` versus `replay` metadata, and active tabs/sidebar rows display reducer-backed unread/readiness state without firing toast, audio, or OS notifications.
 
 ## Not Implemented
 
@@ -28,7 +29,7 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 - No arbitrary hook config path is accepted from the renderer.
 - No renderer IPC or broad file access permission was added.
 - No hook command execution or real-session test-payload runner was added.
-- No OS notifications, hook-triggered alerts, quiet mode, runtime-integrated response-ready notifications, runtime-integrated input-required notifications, or session lifecycle integration was added.
+- No OS notifications, hook-triggered alerts, quiet mode, runtime-integrated response-ready notifications, or runtime-integrated input-required notifications were added.
 
 ## Required Before Hook Writes
 
@@ -45,7 +46,7 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 - Session readiness must be based on explicit session lifecycle or protocol state, not terminal byte-length changes.
 - Opening, attaching, or returning to a session must not fire response-ready notifications.
 - Background session output, response-ready state, and input-required state must be distinguishable.
-- Implemented as a pure reducer only; wiring to real session lifecycle events remains required before OS or toast notifications can use it.
+- Implemented as a pure reducer plus tab/sidebar unread display only; explicit Command Code readiness events remain required before OS or toast notifications can use response-ready or input-required state.
 - Notification preferences must suppress or enable each category predictably.
 - Audio must remain off unless enabled by user-owned GUI preferences.
 

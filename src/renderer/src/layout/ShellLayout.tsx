@@ -254,6 +254,7 @@ export function ShellLayout({
                           <button key={tab.id} className={`project-row ${tab.id === activeTabId ? 'project-row--active' : ''}`} onClick={() => onSelectActiveTab(tab.id)} title={tab.transcriptPath}>
                             <Terminal size={16} />
                             <span>{tab.label}</span>
+                            {tab.readiness.unread && <span className="sidebar-readiness-dot" title="Unread session output" />}
                           </button>
                         ))}
                       </div>

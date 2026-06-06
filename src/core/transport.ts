@@ -30,7 +30,8 @@ import type {
 import type { PtyDoctorResult } from './ptyDoctor'
 import type { HookConfigDiscoveryResult, HookConfigToggleApplyResult, HookConfigTogglePreviewResult, HookEvent, HookScope } from './hooksConfig'
 
-export type SessionDataCallback = (data: string) => void
+export type SessionDataSource = 'live' | 'replay'
+export type SessionDataCallback = (data: string, metadata: { source: SessionDataSource }) => void
 export type SessionExitCallback = (payload: SessionExitPayload) => void
 export type Unsubscribe = () => void
 

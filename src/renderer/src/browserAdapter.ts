@@ -135,9 +135,9 @@ export function createBrowserTransport(): TransportAPI {
         if (!cbs) return
 
         if (msg.type === 'replay' && typeof msg.data === 'string') {
-          cbs.data.forEach((cb) => cb(msg.data))
+          cbs.data.forEach((cb) => cb(msg.data, { source: 'replay' }))
         } else if (msg.type === 'data' && typeof msg.data === 'string') {
-          cbs.data.forEach((cb) => cb(msg.data))
+          cbs.data.forEach((cb) => cb(msg.data, { source: 'live' }))
         } else if (msg.type === 'exit') {
           cbs.exit.forEach((cb) => cb(msg))
         }

@@ -561,6 +561,20 @@ Scope: dry-run payload preview package for Settings > Hooks. Added `src/core/hoo
 
 Scope: pure session readiness model package for Phase 3. Added `src/renderer/src/services/sessionReadiness.ts` and reducer tests for background, unread, response-ready, and input-required state. Attach, replay, foreground navigation, and replay output remain non-notifying; live background output only marks unread; explicit background `assistant-ready` and `input-required` events return distinct notification intent for future wiring. No OS notifications, toast dispatch, audio behavior, session lifecycle integration, terminal-output heuristics, server routes, renderer IPC, file access, Command Code settings mutation, hook execution, or real CLI execution was added.
 
+### 2026-06-06 Phase 3 session readiness UI wiring
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `83/83` |
+| Build | Pass | `npm run build`; assets `index-NQ0qlEmE.js` and `index-CXez1f6k.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser`; mock session created/exited, auth checks passed |
+| PTY smoke | Pass | `npm run smoke:pty`; `/bin/zsh` printed `ok` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5228`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets `index-NQ0qlEmE.js` and `index-CXez1f6k.css`, mock session API returned `mock=true` |
+| Electron dev startup | Pass | `npm run dev`; renderer `http://localhost:5175/`, embedded app server `http://127.0.0.1:54683` |
+
+Scope: renderer/session wiring package for Phase 3 readiness state. Session data callbacks now carry `live` versus `replay` metadata, `App.tsx` keeps per-tab reducer-backed readiness state, and tabs/sidebar rows display unread/readiness badges while ignoring replay buffers for unread state. No OS notifications, toast dispatch, audio behavior, response-ready inference, input-required runtime inference, terminal byte-length heuristic, renderer IPC, file access, hook execution, or Command Code settings mutation was added. The real Command Code interactive path was not exercised; PTY health was smoke-tested only.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |

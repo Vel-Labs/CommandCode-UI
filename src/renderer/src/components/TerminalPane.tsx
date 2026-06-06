@@ -17,7 +17,6 @@ type TerminalPaneProps = {
   onInputCommit?: () => void
   compact?: boolean
   inputEnabled?: boolean
-  notifyResponses?: boolean
 }
 
 export function TerminalPane({ transport, sessionId, onExit, onExpandRequest, onInputRequest, onInputCommit, compact = false, inputEnabled = true }: TerminalPaneProps): JSX.Element {
