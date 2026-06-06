@@ -113,6 +113,7 @@ Current implementation status on 2026-06-06:
 - `src/renderer/src/settings/CoreSettings.tsx` renders existing Profile, General, Runtime, Appearance, Usage, Integrations, and Advanced presentation sections while preserving their existing callbacks.
 - `src/renderer/src/settings/SettingsRoutes.tsx` owns the Settings section dispatcher, shared frame, and placeholder fallback so `SettingsWorkspace` stays a shell container.
 - No new config write, persistence, server route, or Command Code settings mutation was added by these read-only Settings Center packages.
+- `docs/reports/SETTINGS_PERSISTENCE_GATE.md` defines the Phase 2 ownership boundary for GUI-owned preferences versus Command Code-owned `settings.json` before additional editable sections add writes.
 
 Suggested sections:
 

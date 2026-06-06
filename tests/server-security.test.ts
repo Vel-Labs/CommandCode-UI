@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { createAppServer } from '../src/server/index'
@@ -155,5 +155,89 @@ describe('server filesystem boundaries', () => {
     })
     expect(staleRead.content).toBeUndefined()
     expect(staleRead.error).toContain('Access denied')
+  })
+})
+
+describe('project GUI preference boundaries', () => {
+  it('fails closed when loading or saving project preferences without a valid project path', async () => {
+    const app = await startServer()
+    const missingProject = path.join(tmpdir(), 'ccgui-missing-project-for-preferences')
+
+    const missingLoad = await apiPost<{ ok: boolean; error?: string }>(app, '/api/project/preferences', {})
+    expect(missingLoad.ok).toBe(false)
+    expect(missingLoad.error).toContain('Missing project path')
+
+    const missingSave = await apiPost<{ ok: boolean; error?: string }>(app, '/api/project/preferences/save', {
+      preferences: { model: 'should-not-write' }
+    })
+    expect(missingSave.ok).toBe(false)
+    expect(missingSave.error).toContain('Missing project path')
+
+    const nonexistentSave = await apiPost<{ ok: boolean; error?: string }>(app, '/api/project/preferences/save', {
+      cwd: missingProject,
+      preferences: { model: 'should-not-write' }
+    })
+    expect(nonexistentSave.ok).toBe(false)
+    expect(nonexistentSave.error).toContain('Project path not found')
+    expect(existsSync(missingProject)).toBe(false)
+  })
+
+  it('sanitizes project GUI preferences before writing inside the selected project', async () => {
+    const app = await startServer()
+    const project = tempProject()
+
+    const saved = await apiPost<{
+      ok: boolean
+      path: string
+      preferences: {
+        version: number
+        projectPath: string
+        model?: string
+        runtimeMode?: string
+        permissionMode?: string
+        trust?: boolean
+        skipOnboarding?: boolean
+        headlessMaxTurns?: number
+        headlessYolo?: boolean
+        appearanceTheme?: string
+        updatedAt?: string
+        extra?: string
+      }
+    }>(app, '/api/project/preferences/save', {
+      cwd: project,
+      preferences: {
+        version: 99,
+        projectPath: '/not/the/project',
+        model: 'claude',
+        runtimeMode: 'real-session',
+        permissionMode: 'auto-accept',
+        trust: true,
+        skipOnboarding: true,
+        headlessMaxTurns: 250,
+        headlessYolo: true,
+        appearanceTheme: 'blueprint',
+        extra: 'drop-me'
+      }
+    })
+
+    expect(saved.ok).toBe(true)
+    expect(saved.path).toBe(path.join(project, '.commandcode', 'gui-preferences.json'))
+    expect(saved.preferences).toMatchObject({
+      version: 1,
+      projectPath: project,
+      model: 'claude',
+      runtimeMode: 'real-session',
+      permissionMode: 'auto-accept',
+      trust: true,
+      skipOnboarding: true,
+      headlessMaxTurns: 100,
+      headlessYolo: true,
+      appearanceTheme: 'blueprint'
+    })
+    expect(saved.preferences.extra).toBeUndefined()
+    expect(saved.preferences.updatedAt).toBeTruthy()
+
+    const persisted = JSON.parse(readFileSync(saved.path, 'utf8')) as typeof saved.preferences
+    expect(persisted).toEqual(saved.preferences)
   })
 })

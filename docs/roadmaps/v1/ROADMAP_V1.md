@@ -344,6 +344,8 @@ Fourth presentation package extracted existing Profile, General, Runtime, Appear
 
 Fifth presentation package extracted Settings section routing, shared section frames, and placeholder fallback into `src/renderer/src/settings/SettingsRoutes.tsx`, leaving `SettingsWorkspace` as the shell container. The same package removed stale headless settings props from `SettingsWorkspace`; headless preference behavior remains owned by the existing command popover and app preference path. This package did not add config writes, persistence changes, server routes, renderer IPC expansion, runtime/session changes, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `41/41`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5197/`, and Electron dev startup with embedded app server `http://127.0.0.1:63628`.
 
+Sixth gate package added `docs/reports/SETTINGS_PERSISTENCE_GATE.md` to define GUI-owned preference files, Command Code-owned `settings.json` scope, and write gates required before editable Settings sections expand. It also added project GUI preference route coverage to `tests/server-security.test.ts` for invalid project paths and sanitized temp-project writes. This package did not add config writes, persistence fields, server routes, renderer IPC expansion, runtime/session changes, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `48/48`, and `npm run build`.
+
 ### Scope
 
 - Fold AdvancedPanel content into Settings as first-class sections.

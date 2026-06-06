@@ -39,6 +39,7 @@
 | File | Description |
 |---|---|
 | [PHASE1_DEAD_UI_AUDIT.md](reports/PHASE1_DEAD_UI_AUDIT.md) | Phase 1 audit and validated cleanup record for unreferenced renderer components, unreachable popovers, and stale CSS selectors |
+| [SETTINGS_PERSISTENCE_GATE.md](reports/SETTINGS_PERSISTENCE_GATE.md) | Phase 2 Settings ownership contract for GUI-owned preferences, Command Code-owned config, and future editable write gates |
 | [SMOKE_TEST_REPORT.md](reports/SMOKE_TEST_REPORT.md) | Environment details and pass/fail results for mock mode, real CLI, typecheck, tests, and graceful shutdown |
 | [TEST_PLAN.md](reports/TEST_PLAN.md) | Unit test coverage, manual smoke matrix (macOS/Windows/Linux), and real Command Code smoke sequence |
 | [V1_VALIDATION_TEMPLATE.md](reports/V1_VALIDATION_TEMPLATE.md) | Reusable package validation receipt template for V1 implementation packages |

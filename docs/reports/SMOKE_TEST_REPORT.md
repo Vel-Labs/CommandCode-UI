@@ -96,6 +96,16 @@ Scope: documentation-only scaffold. `docs/reports/V1_VALIDATION_TEMPLATE.md` def
 
 Scope: test-only validation package. `tests/settings-registry.test.ts` covers the Settings Center registry section list, duplicate prevention, group order, search filtering by label/description/search text, defensive fallback metadata, and implemented route coverage. No renderer output, server routes, persistence behavior, IPC, runtime/session lifecycle, or Command Code settings behavior changed.
 
+### 2026-06-06 Phase 2 settings persistence gate
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `48/48` |
+| Build | Pass | `npm run build` |
+
+Scope: gate and validation package. `docs/reports/SETTINGS_PERSISTENCE_GATE.md` defines GUI-owned app/project preference files, Command Code-owned `settings.json` scope, and the write gates required before editable Settings sections expand. `tests/server-security.test.ts` now covers invalid project preference paths and sanitized temp-project GUI preference writes. No config writes, persistence fields, server routes, renderer IPC expansion, runtime/session changes, or Command Code settings mutation were added.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |
