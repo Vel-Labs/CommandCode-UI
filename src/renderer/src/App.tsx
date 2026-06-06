@@ -1212,6 +1212,8 @@ export function App(): JSX.Element {
               onOpenFiles={() => setRightInspector('files')}
               onOpenTranscript={() => setRightInspector('transcript')}
               onOpenDocs={() => setRightInspector('docs')}
+              onOpenEnvironment={() => setRightInspector('environment')}
+              onOpenIde={() => setRightInspector('ide')}
               onRevealTranscript={() => transport.revealTranscript(selectedTranscript.transcriptPath)}
               onResizeStart={startInspectorResize}
             />
@@ -1290,6 +1292,8 @@ export function App(): JSX.Element {
               onOpenFiles={() => setRightInspector('files')}
               onOpenTranscript={() => setRightInspector('transcript')}
               onOpenDocs={() => setRightInspector('docs')}
+              onOpenEnvironment={() => setRightInspector('environment')}
+              onOpenIde={() => setRightInspector('ide')}
               onRevealTranscript={() => activeTab?.transcriptPath && transport.revealTranscript(activeTab.transcriptPath)}
               onResizeStart={startInspectorResize}
             />

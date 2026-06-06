@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
 import type { JSX } from 'react'
-import { FolderOpen, GitBranch, RefreshCw, X } from 'lucide-react'
+import { BookOpen, FileText, FolderOpen, GitBranch, Monitor, RefreshCw, X } from 'lucide-react'
 import type { DiscoveredSession, GitEnvironmentStatus } from '../../../core/types'
 import type { TransportAPI } from '../../../core/transport'
 import { FileBrowser } from '../components/FileBrowser'
@@ -22,6 +22,10 @@ export function RightInspectorPanel({
   onSelectFile,
   onSelectArtifact,
   onOpenFiles,
+  onOpenTranscript,
+  onOpenDocs,
+  onOpenEnvironment,
+  onOpenIde,
   onRevealTranscript,
   onResizeStart
 }: {
@@ -38,6 +42,8 @@ export function RightInspectorPanel({
   onOpenFiles: () => void
   onOpenTranscript: () => void
   onOpenDocs: () => void
+  onOpenEnvironment: () => void
+  onOpenIde: () => void
   onRevealTranscript: () => void
   onResizeStart: (event: ReactPointerEvent<HTMLDivElement>) => void
 }): JSX.Element | null {
@@ -61,7 +67,16 @@ export function RightInspectorPanel({
     <aside className="right-inspector" aria-label={title}>
       <div className="right-inspector-resize-handle" onPointerDown={onResizeStart} title="Resize inspector" />
       <header className="right-inspector-header">
-        <div>{title}</div>
+        <div className="right-inspector-title-group">
+          <div>{title}</div>
+          <div className="right-inspector-switcher" aria-label="Inspector views">
+            <InspectorModeButton active={mode === 'files' || mode === 'file'} label="Files" onClick={onOpenFiles} icon={<FolderOpen size={13} />} />
+            <InspectorModeButton active={mode === 'transcript'} label="Transcript" onClick={onOpenTranscript} icon={<FileText size={13} />} />
+            <InspectorModeButton active={mode === 'docs'} label="Docs" onClick={onOpenDocs} icon={<BookOpen size={13} />} />
+            <InspectorModeButton active={mode === 'environment'} label="Env" onClick={onOpenEnvironment} icon={<GitBranch size={13} />} />
+            <InspectorModeButton active={mode === 'ide'} label="IDE" onClick={onOpenIde} icon={<Monitor size={13} />} />
+          </div>
+        </div>
         <div className="right-inspector-actions">
           <button className="icon-button" onClick={onClose} title="Close inspector"><X size={16} /></button>
         </div>
@@ -97,6 +112,30 @@ export function RightInspectorPanel({
         )}
       </div>
     </aside>
+  )
+}
+
+function InspectorModeButton({
+  active,
+  label,
+  icon,
+  onClick
+}: {
+  active: boolean
+  label: string
+  icon: JSX.Element
+  onClick: () => void
+}): JSX.Element {
+  return (
+    <button
+      className={`right-inspector-switcher-button ${active ? 'right-inspector-switcher-button--active' : ''}`}
+      onClick={onClick}
+      title={`Open ${label}`}
+      aria-pressed={active}
+    >
+      {icon}
+      <span>{label}</span>
+    </button>
   )
 }
 

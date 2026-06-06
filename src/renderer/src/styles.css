@@ -3339,6 +3339,45 @@ input[type="range"]::-webkit-slider-thumb {
   font-weight: 650;
 }
 
+.right-inspector-title-group {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+}
+
+.right-inspector-switcher {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.right-inspector-switcher-button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  gap: 4px;
+  padding: 0 7px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 999px;
+  color: #a1a1aa;
+  background: rgba(255,255,255,0.035);
+  font-size: 11px;
+  line-height: 1;
+}
+
+.right-inspector-switcher-button:hover {
+  color: #f4f4f5;
+  border-color: rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.07);
+}
+
+.right-inspector-switcher-button--active {
+  color: #e0f2fe;
+  border-color: rgba(96,165,250,0.36);
+  background: rgba(96,165,250,0.12);
+}
+
 .right-inspector-actions {
   display: flex;
   align-items: center;

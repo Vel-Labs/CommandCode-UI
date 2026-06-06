@@ -1518,3 +1518,17 @@ Scope: PTY health display package. Home and active-session headers now show a co
 | Outside-click dismissal | Pass | Playwright opened `.slash-popover`, `.permission-popover`, `.project-popover`, `.runtime-popover`, and `.model-popover`; clicking outside dismissed each popover through the existing pointer-down path |
 
 Scope: receipt-only popover validation. This did not change code, renderer IPC, server routes, transport, config writes, file access, session lifecycle, or Command Code invocation behavior.
+
+### 2026-06-06 Phase 9 right inspector switcher
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Build | Pass | `npm run build`; renderer assets `index-Bn0wWPUV.js` and `index-DFMbXlG2.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` -> `7.3b Multi-session independence: PASS` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57409`; token proof returned `302`, cookie-authenticated `/` served built assets `index-Bn0wWPUV.js` and `index-DFMbXlG2.css` |
+| Built asset UI proof | Pass | `rg -n "right-inspector-switcher|InspectorModeButton|Open Env|Open IDE|right-inspector-switcher-button" out/renderer/assets/index-Bn0wWPUV.js out/renderer/assets/index-DFMbXlG2.css` |
+| In-app Browser UI | Pass | Demo-mode session opened Environment inspector; switcher clicks resolved `Files->Files`, `Transcript->Transcript`, `Docs->Docs`, `Env->Environment`, and `IDE->IDE`; screenshot `/tmp/ccgui-phase9-inspector-switcher-browser.png` |
+| Built Electron UI | Pass | Playwright Electron launcher clicked the same switcher targets with `Files->Files`, `Transcript->Transcript`, `Docs->Docs`, `Env->Environment`, and `IDE->IDE`; screenshot `/tmp/ccgui-phase9-inspector-switcher-electron.png` |
+
+Scope: right-inspector companion-pane polish. `RightInspectorPanel` now exposes a compact switcher for existing inspector modes only. This did not add hooks/MCP inspector modes, file actions, renderer IPC, server routes, transport calls, config writes, file access capability, session lifecycle changes, or Command Code invocation behavior.
