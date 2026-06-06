@@ -1,5 +1,6 @@
 import type { JSX } from 'react'
 import { Search, Sparkles, SplitSquareHorizontal } from 'lucide-react'
+import { modelRoutingCommand, modelRoutingTaskPreviews } from '../../../core/modelRouting'
 
 export function ModelsSettings({
   model,
@@ -11,6 +12,8 @@ export function ModelsSettings({
   openRuntimeSettings: () => void
 }): JSX.Element {
   const activeModel = model.trim() || 'Default at next session start'
+  const routingCommand = modelRoutingCommand()
+  const routingPreviews = modelRoutingTaskPreviews()
 
   return (
     <div className="models-settings-grid">
@@ -28,7 +31,7 @@ export function ModelsSettings({
           <ModelBoundaryRow
             icon={<SplitSquareHorizontal size={17} />}
             title="Task routing"
-            detail="/configure-models"
+            detail={routingCommand}
             status="Command Code owns compaction, title, and background task routing semantics. This GUI only opens the documented helper."
           />
           <ModelBoundaryRow
@@ -50,11 +53,21 @@ export function ModelsSettings({
         </div>
         <div className="settings-command-preview">
           <span>Command</span>
-          <code>/configure-models</code>
+          <code>{routingCommand}</code>
         </div>
         <div className="settings-command-preview">
           <span>Apply behavior</span>
           <code>Command Code interactive helper</code>
+        </div>
+        <div className="models-routing-preview-list">
+          {routingPreviews.map((task) => (
+            <div className="models-routing-preview-row" key={task.id}>
+              <strong>{task.label}</strong>
+              <span>{task.currentAssignment}</span>
+              <code>{task.applyEffect}</code>
+              <small>{task.status}</small>
+            </div>
+          ))}
         </div>
         <p className="settings-muted">
           Persistent routing edits are intentionally not implemented in this package. They are gated on documented config behavior and a scoped write path.

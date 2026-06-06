@@ -931,3 +931,17 @@ Scope: extended the existing scoped project transcript `.meta.json` read to incl
 | Browser/API smoke | Not run | Docs-only package; browser transport, auth, mock, and session UI were unchanged |
 
 Scope: added a local Models reference page with direct `cmd --help` and `cmd --list-models` evidence, plus GUI boundaries for single-session model selection, task routing, and future vision-adapter routing. This did not change runtime code, renderer IPC, file access, config writes, CLI arguments, or session lifecycle.
+
+### 2026-06-06 Phase 4 task routing preview
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `114/114` |
+| Build | Pass | `npm run build`; renderer assets `index-Dtbqg9wM.js` and `index-C49QUrJu.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57374`; token proof returned `302`, cookie-authenticated `/` served built assets `index-Dtbqg9wM.js` and `index-C49QUrJu.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:58486` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
+
+Scope: added a pure model-routing preview contract for compaction, title generation, and background work, then rendered the rows in Settings > Models as Command Code-owned and preview-only. This did not add config writes, routing-table parsing, IPC routes, file access, CLI argument changes, Command Code model semantics, or session lifecycle behavior. Real CLI path was not retested for this preview-only settings slice.
