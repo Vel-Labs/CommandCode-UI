@@ -4905,6 +4905,18 @@ input[type="range"]::-webkit-slider-thumb {
   line-height: 1.45;
 }
 
+.settings-workbench-gate-group {
+  margin-top: 12px;
+}
+
+.settings-workbench-gate-group > strong {
+  display: block;
+  color: #f4f4f5;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .settings-editor-block {
   display: grid;
   gap: 10px;

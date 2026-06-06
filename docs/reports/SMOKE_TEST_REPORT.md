@@ -1584,3 +1584,18 @@ Scope: shared Settings loading presentation. `SettingsReadOnlyCard` now renders 
 | Roadmap boundary | Pass | `rg -n "WORKBENCH_POLISH_GATE|remaining Phase 9 boundary|workbench actions gated" docs/roadmaps/v1/ROADMAP_V1.md docs/architecture/V1_ARCHITECTURE.md` |
 
 Scope: documentation-only workbench gate. `docs/reports/WORKBENCH_POLISH_GATE.md` now defines the remaining hard boundaries before Phase 9 adds file actions, IDE actions, git mutations, terminal lifecycle/profile work, editable theme token controls, or release-fetching behavior. This did not change runtime code, renderer IPC, server routes, transport calls, file access, config writes, session lifecycle, CSS tokens, or Command Code invocation behavior.
+
+### 2026-06-06 Phase 9 workbench action registry
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run tests/workbench-actions.test.ts` -> `3/3` |
+| Build | Pass | `npm run build`; renderer assets `index-CDcTfQLF.js` and `index-D6JSp2Ur.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` -> `7.3b Multi-session independence: PASS` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57413`; token proof returned `302`, cookie-authenticated `/` served built assets `index-CDcTfQLF.js` and `index-D6JSp2Ur.css` |
+| Built asset UI proof | Pass | `rg -n "Workbench polish gate|file-create-rename-delete|theme-token-controls|settings-workbench-gate-group|WORKBENCH_POLISH_GATE" out/renderer/assets/index-CDcTfQLF.js out/renderer/assets/index-D6JSp2Ur.css` |
+| In-app Browser Settings UI | Pass | Settings > Data Workbench polish gate rendered with `found: true`, `blockedCount: 5`, and `previewCount: 1`; screenshot `/tmp/ccgui-phase9-workbench-gate-browser.png` |
+| Built Electron Settings UI | Pass | Playwright Electron launcher showed the same Settings > Data gate card with `found: true`, `blockedCount: 5`, and `previewCount: 1`; screenshot `/tmp/ccgui-phase9-workbench-gate-electron.png` |
+
+Scope: preview-only workbench action registry. `src/renderer/src/workbench/workbenchActions.ts` lists remaining workbench actions and proof requirements, and Settings > Data renders them as a read-only gate card. This did not add command strings, callbacks, transport calls, apply buttons, renderer IPC, server routes, file access, config writes, session lifecycle changes, CSS token rewrites, or Command Code invocation behavior.

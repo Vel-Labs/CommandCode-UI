@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
 import type { TransportAPI } from '../../../core/transport'
 import type { DiscoveredSession, ProjectCommandCodeReference } from '../../../core/types'
+import { workbenchActionsByCategory } from '../workbench/workbenchActions'
 import { SettingsReadOnlyCard } from './SettingsReadOnlyCard'
 
 export function ProjectStateSettings({ transport, cwd }: { transport: TransportAPI; cwd: string }): JSX.Element {
@@ -57,8 +58,37 @@ export function ProjectStateSettings({ transport, cwd }: { transport: TransportA
         <DataGateRow action="Data export" status="Planned" detail="Requires explicit output path selection and manifest of included GUI-owned data." />
         <DataGateRow action="Data import" status="Planned" detail="Requires schema validation, destination preview, and rollback/cancel affordance before writes." />
       </SettingsReadOnlyCard>
+      <WorkbenchPolishGateCard loading={loading} onRefresh={load} />
     </>
   )
+}
+
+function WorkbenchPolishGateCard({ loading, onRefresh }: { loading: boolean; onRefresh: () => Promise<void> }): JSX.Element {
+  const groups = workbenchActionsByCategory()
+  return (
+    <SettingsReadOnlyCard title="Workbench polish gate" loading={loading} onRefresh={onRefresh}>
+      <p className="settings-muted">Preview-only map for Phase 9 workbench actions. File, IDE, git, terminal lifecycle, theme token, and release-fetching changes remain gated by `docs/reports/WORKBENCH_POLISH_GATE.md`.</p>
+      {Object.entries(groups).map(([category, actions]) => (
+        <div key={category} className="settings-workbench-gate-group">
+          <strong>{category}</strong>
+          {actions.map((action) => (
+            <DataGateRow
+              key={action.id}
+              action={action.title}
+              status={formatWorkbenchStatus(action.status)}
+              detail={`${action.summary} Proof required: ${action.requiredProof.join(', ')}.`}
+            />
+          ))}
+        </div>
+      ))}
+    </SettingsReadOnlyCard>
+  )
+}
+
+function formatWorkbenchStatus(status: string): string {
+  if (status === 'implemented-read-only') return 'Implemented read-only'
+  if (status === 'gated-preview-only') return 'Gated preview-only'
+  return 'Blocked'
 }
 
 function DataGateRow({ action, status, detail }: { action: string; status: string; detail: string }): JSX.Element {
