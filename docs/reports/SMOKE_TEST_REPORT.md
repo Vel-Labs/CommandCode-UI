@@ -472,6 +472,18 @@ Scope: documentation/status closeout for Phase 2 Settings Center. It records tha
 
 Scope: parser/gate package for Phase 3. `src/core/hooksConfig.ts` parses documented Command Code hook settings from raw `settings.json` text, preserves source scope/path, extracts command hooks, matchers, timeout, enabled state, event order, and blocking capability, rejects invalid JSON/shapes before future writes, and orders project hooks before user hooks for display. `docs/reports/HOOKS_NOTIFICATIONS_GATE.md` records the remaining write, hook execution, and notification-readiness gates. No file reads/writes, server routes, renderer IPC, hook execution, test payload execution, session readiness, OS notifications, or Command Code settings mutation were added.
 
+### 2026-06-06 Phase 3 Hooks Settings read-only presentation
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser`; mock headless and mock interactive session paths passed |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5223`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets `index-DwRVIZ21.js` and `index-BE4-R85S.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:52902` |
+
+Scope: read-only Settings > Hooks presentation package. Hooks now shows the Command Code-owned `settings.json` destination, project/user scopes, project-before-user precedence, parser gate status, execution ownership, and example recipes for risky shell blocking, sensitive read warnings, write audit, and Stop notification audio via `command-code-bonk`. No hook file reads/writes, server routes, renderer IPC, hook execution, test payload execution, session readiness, OS notifications, or Command Code settings mutation were added.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |

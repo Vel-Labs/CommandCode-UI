@@ -212,12 +212,36 @@ export function DesignSettingsReadOnly(): JSX.Element {
 }
 
 export function HooksSettingsReadOnly(): JSX.Element {
+  const examples = [
+    { label: 'Block risky shell', event: 'PreToolUse', matcher: 'Bash', command: 'node .commandcode/hooks/block-risky-shell.js' },
+    { label: 'Sensitive read warning', event: 'PreToolUse', matcher: 'Read', command: 'node .commandcode/hooks/warn-sensitive-read.js' },
+    { label: 'Write audit', event: 'PostToolUse', matcher: 'Write|Edit', command: 'node .commandcode/hooks/audit-write.js' },
+    { label: 'Stop notification', event: 'Stop', matcher: 'Session stop', command: 'command-code-bonk --sound done' }
+  ]
+
   return (
     <SettingsReferenceCard title="Hooks">
+      <div className="settings-destination-note">
+        <span>Command Code-owned config</span>
+        <code>settings.json: hooks</code>
+        <small>read/write gated</small>
+      </div>
       <ReferenceRow label="Project scope" value=".commandcode/settings.json" />
       <ReferenceRow label="User scope" value="~/.commandcode/settings.json" />
+      <ReferenceRow label="Precedence" value="Project settings before user settings" />
       <ReferenceRow label="Documented events" value="PreToolUse, PostToolUse, Stop" />
-      <p className="settings-muted">Hook discovery, validation, examples, and writes are deferred. Hook execution remains Command Code-owned.</p>
+      <ReferenceRow label="Parser gate" value="Invalid JSON and unsupported shapes fail before future writes" />
+      <ReferenceRow label="Execution owner" value="Command Code runs hooks; the GUI only prepares display, validation, and diagnostics" />
+      <div className="settings-command-grid">
+        {examples.map((example) => (
+          <div key={example.label} className="settings-command-row">
+            <strong>{example.label}</strong>
+            <code>{example.command}</code>
+            <span>{example.event} / {example.matcher}</span>
+          </div>
+        ))}
+      </div>
+      <p className="settings-muted">Hook file reads, writes, test payload execution, OS notifications, quiet mode, and response-ready state remain gated by `docs/reports/HOOKS_NOTIFICATIONS_GATE.md`.</p>
     </SettingsReferenceCard>
   )
 }

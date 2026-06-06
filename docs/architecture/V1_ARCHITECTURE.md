@@ -144,6 +144,7 @@ Phase 3 has started with a pure parser/gate package:
 - Invalid JSON and invalid hook shapes fail before any future write path can use them.
 - `docs/reports/HOOKS_NOTIFICATIONS_GATE.md` records the boundaries that still block hook file reads/writes, hook execution, test-payload execution, OS notifications, quiet mode, response-ready state, input-required state, and session readiness.
 - Hook execution remains Command Code-owned. The GUI parser is only preparation for scoped Settings display, validation, and future diagnostics.
+- Settings > Hooks is currently read-only. It shows Command Code-owned `settings.json` destinations, project/user scopes, project-before-user precedence, parser gate status, execution ownership, and example recipes without reading or writing hook config files.
 
 Suggested sections:
 
