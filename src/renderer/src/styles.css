@@ -2745,6 +2745,7 @@ input[type="range"]::-webkit-slider-thumb {
   grid-template-columns: minmax(0, 1fr);
   min-height: 0;
   height: 100%;
+  transition: grid-template-columns 140ms ease;
 }
 
 .workbench-shell--with-inspector {
@@ -3299,6 +3300,28 @@ input[type="range"]::-webkit-slider-thumb {
   min-height: 0;
   border-left: 1px solid rgba(255,255,255,0.08);
   background: rgba(16,16,16,0.82);
+  animation: inspector-slide-in 140ms ease-out;
+}
+
+@keyframes inspector-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workbench-shell {
+    transition: none;
+  }
+
+  .right-inspector {
+    animation: none;
+  }
 }
 
 .right-inspector-resize-handle {

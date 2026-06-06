@@ -1546,3 +1546,17 @@ Scope: right-inspector companion-pane polish. `RightInspectorPanel` now exposes 
 | Built Electron drag | Pass | Playwright Electron launcher repeated the same drag path; handle label was `Resize or collapse inspector`; after drag `inspectorCount: 0`; screenshot `/tmp/ccgui-phase9-inspector-collapse-electron.png` |
 
 Scope: right-inspector resize-to-collapse polish. The existing drag-to-collapse behavior is now discoverable through a labeled handle and visible grip. This did not add persistence keys, resize routes, renderer IPC, server routes, transport calls, config writes, file access capability, session lifecycle changes, or Command Code invocation behavior.
+
+### 2026-06-06 Phase 9 inspector transition polish
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Build | Pass | `npm run build`; renderer assets `index-AB0ie-by.js` and `index-B568GD8W.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` -> `7.3b Multi-session independence: PASS` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57411`; token proof returned `302`, cookie-authenticated `/` served built assets `index-AB0ie-by.js` and `index-B568GD8W.css` |
+| Built asset UI proof | Pass | `rg -n "inspector-slide-in|prefers-reduced-motion|grid-template-columns 140ms ease|index-AB0ie-by|index-B568GD8W" out/renderer/assets/index-B568GD8W.css out/renderer/index.html` |
+| In-app Browser UI | Pass | Demo-mode session opened Environment inspector; computed styles showed `inspectorCount: 1`, `inspectorAnimationName: inspector-slide-in`, `inspectorAnimationDuration: 0.14s`, and `shellTransition: grid-template-columns 0.14s`; screenshot `/tmp/ccgui-phase9-inspector-transition-browser.png` |
+| Built Electron UI | Pass | Playwright Electron launcher showed the same computed-style receipt and screenshot `/tmp/ccgui-phase9-inspector-transition-electron.png` |
+
+Scope: CSS-only inspector motion polish. Right-inspector open state now has restrained grid easing and slide/fade entry motion with a reduced-motion override. This did not alter inspector state, persistence, renderer IPC, server routes, transport calls, config writes, file access capability, session lifecycle, or Command Code invocation behavior.
