@@ -459,58 +459,60 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
       <ReferenceRow label="Documented events" value="PreToolUse, PostToolUse, Stop" />
       <ReferenceRow label="Parser gate" value="Invalid JSON and unsupported shapes fail before future writes" />
       <ReferenceRow label="Execution owner" value="Command Code runs hooks; the GUI only prepares display, validation, and diagnostics" />
-      <div className="settings-command-grid">
+      <div className="settings-stacked-list">
         {(discovery?.sources ?? []).map((source) => (
-          <div key={`${source.sourceScope}:${source.sourcePath}`} className="settings-command-row">
-            <strong>{source.sourceScope === 'project' ? 'Project config' : 'User config'}</strong>
-            <code>{source.sourcePath}</code>
-            <span>
-              {source.exists
-                ? `${source.hooks.length} hook${source.hooks.length === 1 ? '' : 's'}${source.ok ? '' : ' / invalid'}`
-                : source.errors[0] || 'Not found'}
-            </span>
-          </div>
+          <SettingsStackedRow
+            key={`${source.sourceScope}:${source.sourcePath}`}
+            title={source.sourceScope === 'project' ? 'Project config' : 'User config'}
+            value={source.sourcePath}
+            meta={source.exists
+              ? `${source.hooks.length} hook${source.hooks.length === 1 ? '' : 's'}${source.ok ? '' : ' / invalid'}`
+              : source.errors[0] || 'Not found'}
+          />
         ))}
       </div>
       {loading && <p className="settings-muted">Loading hook settings from documented scopes.</p>}
       {error && <p className="settings-muted">{error}</p>}
       {discovery && discovery.hooks.length > 0 && (
-        <div className="settings-command-grid">
+        <div className="settings-stacked-list">
           {discovery.hooks.map((hook) => (
-            <div key={`${hook.sourcePath}:${hook.order}:${hook.command}`} className="settings-command-row">
-              <strong>{hook.event}{hook.canBlock ? ' / blocking-capable' : ''}</strong>
-              <code>{hook.command}</code>
-              <span>
-                {hook.sourceScope} / {hook.matcher || 'all tools'} / {hook.enabled ? 'enabled' : 'disabled'}
-                <button
-                  className="ghost-button native-ghost settings-inline-action"
-                  onClick={() => previewToggle(hook)}
-                >
-                  {previewingKey === `${hook.sourceScope}:${hook.sourcePath}:${hook.order}:${hook.command}`
-                    ? 'Previewing'
-                    : `Preview ${hook.enabled ? 'disable' : 'enable'}`}
-                </button>
-                <button
-                  className="ghost-button native-ghost settings-inline-action"
-                  onClick={() => previewPayload(hook)}
-                >
-                  Sample payload
-                </button>
-                <button
-                  className="ghost-button native-ghost settings-inline-action"
-                  onClick={() => dryRunHook(hook)}
-                  disabled={dryRunningKey === `${hook.sourceScope}:${hook.sourcePath}:${hook.order}:${hook.command}`}
-                >
-                  {dryRunningKey === `${hook.sourceScope}:${hook.sourcePath}:${hook.order}:${hook.command}` ? 'Testing' : 'Dry-run test'}
-                </button>
-                <button
-                  className="ghost-button native-ghost settings-inline-action"
-                  onClick={() => openEditPreview(hook)}
-                >
-                  Edit preview
-                </button>
-              </span>
-            </div>
+            <SettingsStackedRow
+              key={`${hook.sourcePath}:${hook.order}:${hook.command}`}
+              title={hook.event}
+              meta={`${hook.sourceScope} / ${hook.matcher || 'all tools'} / ${hook.enabled ? 'enabled' : 'disabled'}${hook.canBlock ? ' / blocking-capable' : ''}`}
+              value={hook.command}
+              actions={(
+                <>
+                  <button
+                    className="ghost-button native-ghost settings-inline-action"
+                    onClick={() => previewToggle(hook)}
+                  >
+                    {previewingKey === `${hook.sourceScope}:${hook.sourcePath}:${hook.order}:${hook.command}`
+                      ? 'Previewing'
+                      : `Preview ${hook.enabled ? 'disable' : 'enable'}`}
+                  </button>
+                  <button
+                    className="ghost-button native-ghost settings-inline-action"
+                    onClick={() => previewPayload(hook)}
+                  >
+                    Sample payload
+                  </button>
+                  <button
+                    className="ghost-button native-ghost settings-inline-action"
+                    onClick={() => dryRunHook(hook)}
+                    disabled={dryRunningKey === `${hook.sourceScope}:${hook.sourcePath}:${hook.order}:${hook.command}`}
+                  >
+                    {dryRunningKey === `${hook.sourceScope}:${hook.sourcePath}:${hook.order}:${hook.command}` ? 'Testing' : 'Dry-run test'}
+                  </button>
+                  <button
+                    className="ghost-button native-ghost settings-inline-action"
+                    onClick={() => openEditPreview(hook)}
+                  >
+                    Edit preview
+                  </button>
+                </>
+              )}
+            />
           ))}
         </div>
       )}
@@ -637,49 +639,45 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
         <p className="settings-muted">No hook commands found in the documented project or user settings scopes.</p>
       )}
       {discovery && [...discovery.warnings, ...discovery.errors].length > 0 && (
-        <div className="settings-command-grid">
+        <div className="settings-stacked-list">
           {[...discovery.warnings, ...discovery.errors].map((message) => (
-            <div key={message} className="settings-command-row">
-              <strong>Diagnostic</strong>
-              <code>{message}</code>
-              <span>read-only</span>
-            </div>
+            <SettingsStackedRow key={message} title="Diagnostic" value={message} meta="read-only" />
           ))}
         </div>
       )}
-      <div className="settings-command-grid">
-        <div className="settings-command-row">
-          <strong>Hook logs</strong>
-          <code>.commandcode/hooks, ~/.commandcode/hooks</code>
-          <span>
-            read-only
+      <div className="settings-stacked-list">
+        <SettingsStackedRow
+          title="Hook logs"
+          value=".commandcode/hooks, ~/.commandcode/hooks"
+          meta="read-only"
+          actions={(
             <button className="ghost-button native-ghost settings-inline-action" onClick={() => void refreshHookLogs()} disabled={hookLogsLoading}>
               {hookLogsLoading ? 'Refreshing' : 'Refresh logs'}
             </button>
-          </span>
-        </div>
+          )}
+        />
         {(hookLogs?.sources ?? []).map((source) => (
-          <div key={`${source.sourceScope}:${source.dir}`} className="settings-command-row">
-            <strong>{source.sourceScope === 'project' ? 'Project logs' : 'User logs'}</strong>
-            <code>{source.dir}</code>
-            <span>
-              {source.exists
-                ? `${source.logs.length} log file${source.logs.length === 1 ? '' : 's'}`
-                : source.errors[0] || 'Not found'}
-            </span>
-          </div>
+          <SettingsStackedRow
+            key={`${source.sourceScope}:${source.dir}`}
+            title={source.sourceScope === 'project' ? 'Project logs' : 'User logs'}
+            value={source.dir}
+            meta={source.exists
+              ? `${source.logs.length} log file${source.logs.length === 1 ? '' : 's'}`
+              : source.errors[0] || 'Not found'}
+          />
         ))}
         {(hookLogs?.logs ?? []).map((log) => (
-          <div key={`${log.sourceScope}:${log.path}`} className="settings-command-row">
-            <strong>{log.sourceScope} log</strong>
-            <code>{log.path}</code>
-            <span>
-              {formatBytes(log.sizeBytes)} / {formatDateTime(log.updatedAt)}
+          <SettingsStackedRow
+            key={`${log.sourceScope}:${log.path}`}
+            title={`${log.sourceScope} log`}
+            value={log.path}
+            meta={`${formatBytes(log.sizeBytes)} / ${formatDateTime(log.updatedAt)}`}
+            actions={(
               <button className="ghost-button native-ghost settings-inline-action" onClick={() => readHookLog(log)} disabled={readingLogPath === log.path}>
                 {readingLogPath === log.path ? 'Opening' : 'Open log'}
               </button>
-            </span>
-          </div>
+            )}
+          />
         ))}
       </div>
       {hookLogsLoading && <p className="settings-muted">Loading hook logs from scoped hook directories.</p>}
@@ -688,13 +686,9 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
         <p className="settings-muted">No hook log files found in the scoped project or user hook directories.</p>
       )}
       {hookLogs && hookLogs.errors.length > 0 && (
-        <div className="settings-command-grid">
+        <div className="settings-stacked-list">
           {hookLogs.errors.map((message) => (
-            <div key={message} className="settings-command-row">
-              <strong>Log diagnostic</strong>
-              <code>{message}</code>
-              <span>read-only</span>
-            </div>
+            <SettingsStackedRow key={message} title="Log diagnostic" value={message} meta="read-only" />
           ))}
         </div>
       )}
@@ -713,13 +707,14 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
           {hookLogRead.error && <p className="settings-muted">{hookLogRead.error}</p>}
         </div>
       )}
-      <div className="settings-command-grid">
+      <div className="settings-stacked-list">
         {examples.map((example) => (
-          <div key={example.label} className="settings-command-row">
-            <strong>{example.label}</strong>
-            <code>{example.command}</code>
-            <span>{example.event} / {example.matcher}</span>
-          </div>
+          <SettingsStackedRow
+            key={example.label}
+            title={example.label}
+            value={example.command}
+            meta={`${example.event} / ${example.matcher}`}
+          />
         ))}
       </div>
       <p className="settings-muted">Scoped hook discovery, enable/disable writes, preview-confirmed broader edit writes, dry-run tests, and scoped read-only hook log viewing are available. Real hook execution, OS notifications, quiet mode, and response-ready delivery remain gated by `docs/reports/HOOKS_NOTIFICATIONS_GATE.md`.</p>
@@ -774,6 +769,29 @@ function ReferenceRow({ label, value }: { label: string; value: string }): JSX.E
     <div className="settings-readonly-row">
       <strong>{label}</strong>
       <span>{value}</span>
+    </div>
+  )
+}
+
+function SettingsStackedRow({
+  title,
+  value,
+  meta,
+  actions
+}: {
+  title: string
+  value?: string
+  meta?: string
+  actions?: ReactNode
+}): JSX.Element {
+  return (
+    <div className="settings-stacked-row">
+      <div className="settings-stacked-row-header">
+        <strong>{title}</strong>
+        {meta && <span>{meta}</span>}
+      </div>
+      {value && <code className="settings-stacked-row-value">{value}</code>}
+      {actions && <div className="settings-stacked-row-actions">{actions}</div>}
     </div>
   )
 }

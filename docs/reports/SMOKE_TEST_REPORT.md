@@ -1652,3 +1652,19 @@ Scope: documentation-only local GUI implications page. This completed the focuse
 | Phase status audit | Pass | Phase 3, Phase 4, and Phase 8 top-level statuses now match their current-contract completion receipts and preserve gated leftovers |
 
 Scope: Phase 10 closeout. Validation, docs, root roadmap status, and contributor enablement are complete for the current V1 contract. This closeout did not change runtime code, renderer IPC, server routes, transport calls, file access, config writes, session lifecycle, CSS tokens, or Command Code invocation behavior. Electron UI receipts remain recorded in the UI packages that changed rendered behavior and were not rerun for this docs-only closeout package.
+
+### 2026-06-06 Settings usability and agent creation
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `173/173` |
+| Build | Pass | `npm run build`; renderer assets `index-CvXNRnCn.js` and `index-BnqR7fGe.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser`; mock headless, mock session create/exit, multi-session independence, auth checks passed |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57420`; authenticated `http://127.0.0.1:57420/` loaded with title `Command Code` and no console warnings/errors |
+| Settings > Hooks browser proof | Pass | `.settings-page` scroll container reported `scrollHeight 1678`, `clientHeight 1192`, bottom reached, footer copy visible, and `9` stacked rows |
+| Settings > Agents browser proof | Pass | Temp project `/tmp/ccgui-settings-agent-nD4rUV`; rendered flow created `.commandcode/agents/settings-proof-agent.md`, showed created status and destination, then no-project state disabled create with explicit copy |
+| Electron UI proof | Pass | Built Electron app confirmed Hooks bottom scroll with `9` stacked rows and created `.commandcode/agents/electron-proof-agent.md`; screenshots saved to `/tmp/ccgui-settings-hooks-electron.png` and `/tmp/ccgui-settings-agents-electron.png` |
+| App preference restore | Pass | `~/.commandcode/gui-preferences.json` restored to empty project / empty recent projects after UI validation |
+
+Scope: Settings usability and project-agent creation package. Settings content now scrolls inside the right pane, Hooks rows use stacked readable rows with separate action strips, and Settings > Agents can create project-scoped agents by previewing a draft and writing through the existing scoped save route. `saveAgent` creates the already-validated parent directory for new project agents. This package did not add renderer IPC, broad filesystem capability, Command Code runtime semantics, agent routing behavior, hook execution, OS notifications, session lifecycle changes, or Command Code settings mutation. Browser screenshot capture timed out twice in the Browser backend; Browser DOM/interaction metrics passed and Electron screenshots were captured.

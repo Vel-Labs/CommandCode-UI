@@ -4300,10 +4300,13 @@ input[type="range"]::-webkit-slider-thumb {
 .settings-workspace {
   position: relative;
   z-index: 3;
-  display: block;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
   width: 100%;
   height: 100%;
+  min-height: 0;
   background: #151515;
+  overflow: hidden;
 }
 
 .sidebar-settings-mode {
@@ -4406,9 +4409,12 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 .settings-page {
+  height: 100%;
   min-width: 0;
+  min-height: 0;
   padding: 14px 24px 48px;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   background: #151515;
 }
 
@@ -5047,6 +5053,69 @@ input[type="range"]::-webkit-slider-thumb {
   white-space: nowrap;
 }
 
+.settings-stacked-list {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.settings-stacked-row {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.settings-stacked-row-header {
+  display: flex;
+  min-width: 0;
+  gap: 10px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.settings-stacked-row-header strong {
+  min-width: 0;
+  color: #f4f4f5;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.settings-stacked-row-header span {
+  min-width: 0;
+  color: #a0a0a6;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.settings-stacked-row-value {
+  display: block;
+  min-width: 0;
+  padding: 7px 8px;
+  border-radius: 6px;
+  color: #d4d4d8;
+  background: rgba(255, 255, 255, 0.035);
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.settings-stacked-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.settings-stacked-row-actions .settings-inline-action {
+  margin: 0;
+}
+
 .models-settings-grid {
   display: grid;
   gap: 14px;
@@ -5405,7 +5474,7 @@ input[type="range"]::-webkit-slider-thumb {
 
 @media (max-width: 980px) {
   .settings-workspace {
-    display: block;
+    display: grid;
   }
 
   .profile-stat-strip,
@@ -5443,8 +5512,18 @@ input[type="range"]::-webkit-slider-thumb {
 
   .settings-command-preview code,
   .settings-command-row code,
-  .settings-destination-note code {
+  .settings-destination-note code,
+  .settings-stacked-row-value {
     white-space: normal;
     overflow-wrap: anywhere;
+  }
+
+  .settings-stacked-row-header {
+    display: grid;
+    gap: 4px;
+  }
+
+  .settings-stacked-row-header span {
+    text-align: left;
   }
 }

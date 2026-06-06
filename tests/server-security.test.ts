@@ -156,6 +156,21 @@ describe('server filesystem boundaries', () => {
     expect(readFileSync(agentPath, 'utf8')).toContain('Updated settings agent')
   })
 
+  it('creates the project agent directory for scoped new agent saves', async () => {
+    const app = await startServer()
+    const project = tempProject()
+    const agentPath = path.join(project, '.commandcode', 'agents', 'created-from-settings.md')
+
+    const save = await apiPost<{ ok: boolean; error?: string }>(app, '/api/agents/save', {
+      cwd: project,
+      path: agentPath,
+      content: 'description: Created from Settings\n'
+    })
+
+    expect(save.ok).toBe(true)
+    expect(readFileSync(agentPath, 'utf8')).toContain('Created from Settings')
+  })
+
   it('removes registered workspace roots when sessions are deleted', async () => {
     const app = await startServer()
     const project = tempProject()

@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
 import { runProcess } from './cli'
@@ -389,6 +389,7 @@ export function listAgents(cwd?: string): AgentConfig[] {
 
 export function saveAgent(agentPath: string, content: string): boolean {
   try {
+    mkdirSync(path.dirname(agentPath), { recursive: true })
     writeFileSync(agentPath, content, 'utf8')
     return true
   } catch {

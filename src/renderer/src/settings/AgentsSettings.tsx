@@ -12,13 +12,17 @@ export function AgentsSettingsReadOnly({ transport, cwd }: { transport: Transpor
   const [content, setContent] = useState('')
   const [saveStatus, setSaveStatus] = useState('')
   const [loading, setLoading] = useState(false)
+  const [creating, setCreating] = useState(false)
 
-  const load = async (): Promise<void> => {
+  const load = async (): Promise<AgentConfig[]> => {
     setLoading(true)
     try {
-      setAgents((await transport.listAgents(cwd || undefined)).agents)
+      const nextAgents = (await transport.listAgents(cwd || undefined)).agents
+      setAgents(nextAgents)
+      return nextAgents
     } catch {
       setAgents([])
+      return []
     } finally {
       setLoading(false)
     }
@@ -37,6 +41,7 @@ export function AgentsSettingsReadOnly({ transport, cwd }: { transport: Transpor
       if (result.ok) {
         setSaveStatus(`Saved ${agentPath}`)
         setEditing(undefined)
+        setExpanded(agentPath)
         await load()
       } else {
         setSaveStatus(result.error || 'Agent save failed')
@@ -46,11 +51,37 @@ export function AgentsSettingsReadOnly({ transport, cwd }: { transport: Transpor
     }
   }
 
+  const createAgent = async (agentPath: string, draftContent: string): Promise<void> => {
+    setCreating(true)
+    setSaveStatus(`Creating ${agentPath}...`)
+    try {
+      const result = await transport.saveAgent(agentPath, draftContent, cwd)
+      if (result.ok) {
+        const nextAgents = await load()
+        const created = nextAgents.find((agent) => agent.path === agentPath)
+        setExpanded(created?.path || agentPath)
+        setEditing(undefined)
+        setSaveStatus(`Created ${agentPath}`)
+      } else {
+        setSaveStatus(result.error || 'Agent create failed')
+      }
+    } catch (error) {
+      setSaveStatus(error instanceof Error ? error.message : 'Agent create failed')
+    } finally {
+      setCreating(false)
+    }
+  }
+
   useEffect(() => { void load() }, [cwd])
 
   return (
-    <SettingsReadOnlyCard title={`Agent configs (${agents.length})`} loading={loading} onRefresh={load}>
-      <AgentHelper cwd={cwd} />
+    <SettingsReadOnlyCard title={`Agent configs (${agents.length})`} loading={loading} onRefresh={async () => { await load() }}>
+      <AgentHelper
+        cwd={cwd}
+        existingAgentPaths={agents.map((agent) => agent.path)}
+        creating={creating}
+        onCreate={createAgent}
+      />
       <p className="settings-muted">Agent edits use the existing project-scoped save route. Destination paths stay visible and server validation keeps writes under the selected project `.commandcode/agents/` root.</p>
       {saveStatus && <p className="settings-muted">{saveStatus}</p>}
       {agents.map((agent) => (
