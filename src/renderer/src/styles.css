@@ -4265,6 +4265,79 @@ input[type="range"]::-webkit-slider-thumb {
   white-space: nowrap;
 }
 
+.models-settings-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.models-boundary-list {
+  display: grid;
+  gap: 10px;
+}
+
+.models-boundary-row {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 0.65fr) minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.models-boundary-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  color: var(--cc-accent-warm, #f59e0b);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.models-boundary-row strong,
+.models-boundary-row span,
+.models-boundary-row small {
+  display: block;
+  min-width: 0;
+}
+
+.models-boundary-row strong {
+  color: #f4f4f5;
+  font-size: 13px;
+}
+
+.models-boundary-row span {
+  color: #d4d4d8;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.models-boundary-row small {
+  color: #a0a0a6;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.settings-status-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  padding: 3px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 999px;
+  color: #d4d4d8;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.settings-status-badge--muted {
+  color: #a0a0a6;
+  background: rgba(255, 255, 255, 0.035);
+}
+
 .settings-control-row {
   display: grid;
   grid-template-columns: minmax(150px, auto) minmax(180px, 1fr) auto;

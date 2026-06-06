@@ -891,3 +891,17 @@ Scope: added a pure renderer session model identity resolver and used it for ses
 | Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
 
 Scope: extracted documented model list parsing, favorite sorting, and search/filter matching into `src/renderer/src/services/modelCatalog.ts`, then added a search input to the existing model picker. This did not change Command Code model routing, CLI arguments, IPC routes, config writes, filesystem access, or session lifecycle. Real CLI path was not retested for this renderer-only picker slice.
+
+### 2026-06-06 Phase 4 read-only Models settings
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Not run | Package did not touch parser, transport, config, session, or shared helper code |
+| Build | Pass | `npm run build`; renderer assets `index-0J8Ve054.js` and `index-X_jYjd9B.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57372`; token proof returned `302`, cookie-authenticated `/` served built assets `index-0J8Ve054.js` and `index-X_jYjd9B.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:58042` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
+
+Scope: replaced the generic Models reference card with a read-only Settings > Models surface that separates single-session model selection, Command Code-owned task routing, model catalog search, and future/plugin-owned vision adapter routing. This did not change Command Code model routing, CLI arguments, IPC routes, config writes, filesystem access, or session lifecycle. Real CLI path was not retested for this renderer-only settings slice.

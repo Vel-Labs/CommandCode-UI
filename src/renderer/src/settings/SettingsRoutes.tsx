@@ -28,10 +28,10 @@ import {
   DesignSettingsReadOnly,
   HooksSettingsReadOnly,
   KeyboardSettingsReadOnly,
-  ModelsSettingsReadOnly,
   NotificationsSettings,
   TerminalSettings
 } from './ReferenceSettings'
+import { ModelsSettings } from './ModelsSettings'
 import { settingsItem } from './settingsRegistry'
 
 const implementedSettingsSections: SettingsSection[] = [
@@ -211,7 +211,7 @@ export function SettingsRoute(props: SettingsRouteProps): JSX.Element {
     case 'terminal':
       return <SettingsFrame title="Terminal"><TerminalSettings /></SettingsFrame>
     case 'models':
-      return <SettingsFrame title="Models"><ModelsSettingsReadOnly onConfigureModels={openConfigureModels} /></SettingsFrame>
+      return <SettingsFrame title="Models"><ModelsSettings model={model} onConfigureModels={openConfigureModels} openRuntimeSettings={() => openSection('runtime')} /></SettingsFrame>
     case 'design':
       return <SettingsFrame title="Design"><DesignSettingsReadOnly /></SettingsFrame>
     case 'hooks':
