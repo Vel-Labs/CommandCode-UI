@@ -256,6 +256,7 @@ export type McpServer = {
   name: string
   status: string
   toolCount?: number
+  tools?: string[]
   raw: string
 }
 

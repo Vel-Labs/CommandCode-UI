@@ -3,6 +3,7 @@ import path from 'node:path'
 import os from 'node:os'
 import { runProcess } from './cli'
 import { buildMcpActionArgs, type McpAction } from './mcpCommands'
+import { parseMcpListOutput } from './mcpList'
 import type {
   CliExecResult,
   DiscoveredSession,
@@ -398,25 +399,7 @@ export async function listMcp(commandExecutable?: string): Promise<McpServer[]> 
   const result = await runCli(commandExecutable, undefined, ['mcp', 'list'], 30_000)
   if (!result.ok) return []
 
-  const servers: McpServer[] = []
-  for (const line of result.stdout.split('\n')) {
-    const trimmed = line.trim()
-    if (!trimmed || trimmed.startsWith('No MCP')) continue
-    const status = trimmed.includes('disconnected') ? 'disconnected'
-      : trimmed.includes('connected') ? 'connected'
-      : trimmed.includes('error') ? 'error'
-      : 'unknown'
-
-    const toolMatch = trimmed.match(/(\d+)\s+tools?/i)
-    servers.push({
-      name: trimmed.split(/\s{2,}|\t|:/)[0] ?? trimmed,
-      status,
-      toolCount: toolMatch ? parseInt(toolMatch[1]!, 10) : undefined,
-      raw: trimmed
-    })
-  }
-
-  return servers
+  return parseMcpListOutput(result.stdout)
 }
 
 export async function mcpAction(commandExecutable: string | undefined, action: McpAction, serverName: string): Promise<CliExecResult> {

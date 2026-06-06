@@ -1071,3 +1071,17 @@ Scope: added tested pure MCP command builders and reused them for existing Setti
 | Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
 
 Scope: added tested MCP scope/path and policy metadata, then rendered read-only scope, config path, permission prompt, plan-mode, and secret-handling tiles in Settings > MCP. This did not add MCP add/remove/auth flows, config reads or writes, renderer IPC, secret storage, runtime mutation, or Command Code settings mutation. Real external MCP mutation was not retested for this read-only reference slice.
+
+### 2026-06-06 Phase 6 MCP tool list parsing
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `142/142` |
+| Build | Pass | `npm run build`; renderer assets `index-B8yrRZRO.js` and `index-NxwaFrMv.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57384`; token proof returned `302`, cookie-authenticated `/` served built assets `index-B8yrRZRO.js` and `index-NxwaFrMv.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:60729` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
+
+Scope: added tested MCP list-output parsing for optional registered tool names and rendered parsed tool chips in Settings > MCP when the existing list output contains names like `mcp__server__tool`. This did not add new MCP commands, config reads or writes, renderer IPC, secret storage, runtime mutation, or Command Code settings mutation. Real external MCP mutation was not retested for this read-only parsing slice.

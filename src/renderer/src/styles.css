@@ -1851,6 +1851,26 @@ input[type="range"]::-webkit-slider-thumb {
   font-family: "JetBrains Mono", SFMono-Regular, Menlo, Consolas, monospace;
 }
 
+.mcp-tool-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.mcp-tool-list code {
+  max-width: 100%;
+  overflow: hidden;
+  padding: 3px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 999px;
+  color: #d4d4d8;
+  background: rgba(0, 0, 0, 0.16);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .mcp-actions {
   display: flex;
   gap: 6px;

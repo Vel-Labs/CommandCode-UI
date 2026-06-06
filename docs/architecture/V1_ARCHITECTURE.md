@@ -166,10 +166,12 @@ Phase 3 has started with a pure parser/gate package:
 Phase 6 has started with a pure command-builder package:
 
 - `src/core/mcpCommands.ts` owns tested `cmd mcp connect|disconnect <server>` argument construction and display previews.
+- `src/core/mcpList.ts` owns MCP list-output parsing for server status, tool count, raw output, and optional registered tool names already present in `cmd mcp list` output.
 - `src/core/mcpReference.ts` owns tested scope path and policy metadata for local, project, and user MCP config, permission prompts, plan-mode restrictions, and secret-handling boundaries.
 - `src/core/discovery.ts` uses the same builder for the existing MCP action path.
 - Settings > MCP uses the shared preview builder, so visible previews and executed arguments stay aligned.
 - Settings > MCP renders read-only scope/path and policy tiles before server actions so operators can see the relevant config ownership and secret boundary before future writes.
+- Settings > MCP renders parsed `mcp__server__tool` names when the existing list output includes them. No additional tool-inspection command is run.
 - MCP add, remove, auth, server edit, connection test, diagnostics, and log viewing remain planned or gated. No MCP secrets are stored in GUI preferences.
 
 Suggested sections:

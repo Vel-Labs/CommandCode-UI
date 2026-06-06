@@ -118,7 +118,7 @@ export function SessionsSettingsReadOnly({
 }
 
 export function McpSettingsReadOnly({ transport, commandExecutable }: { transport: TransportAPI; commandExecutable: string }): JSX.Element {
-  const [servers, setServers] = useState<Array<{ name: string; status: string; toolCount?: number; raw: string }>>([])
+  const [servers, setServers] = useState<Array<{ name: string; status: string; toolCount?: number; tools?: string[]; raw: string }>>([])
   const [loading, setLoading] = useState(false)
   const [actionResult, setActionResult] = useState('')
 
@@ -172,6 +172,11 @@ export function McpSettingsReadOnly({ transport, commandExecutable }: { transpor
         <div key={server.name} className="settings-readonly-row">
           <strong>{server.name}</strong>
           <span>{server.status}{server.toolCount != null ? ` · ${server.toolCount} tools` : ''}</span>
+          {server.tools && server.tools.length > 0 && (
+            <div className="mcp-tool-list" aria-label={`${server.name} MCP tools`}>
+              {server.tools.map((tool) => <code key={tool}>{tool}</code>)}
+            </div>
+          )}
           <div className="settings-command-preview">
             <span>Connect preview</span>
             <code>{buildMcpActionPreview(commandExecutable, 'connect', server.name)}</code>
