@@ -1,35 +1,22 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
+import type { PointerEvent as ReactPointerEvent } from 'react'
 import type { JSX } from 'react'
 import {
-  ChevronDown,
   Activity,
-  CreditCard,
-  Download,
+  ChevronDown,
   Folder,
   FolderOpen,
-  Gauge,
   GitBranch,
   HardDrive,
   Keyboard,
   PanelBottom,
-  PanelLeftClose,
-  PanelLeftOpen,
   PanelRightOpen,
-  Palette,
   Play,
-  Plug,
-  RefreshCw,
   Route,
-  Search,
   Send,
-  Settings,
   Sparkles,
   SlidersHorizontal,
-  SquarePen,
   Terminal,
-  UserCircle,
-  Wrench,
   X
 } from 'lucide-react'
 import type { PermissionMode, SessionExitPayload, HeadlessRunResult } from '../../shared/types'
@@ -43,13 +30,14 @@ import { TerminalPane } from './components/TerminalPane'
 import { TabBar } from './components/TabBar'
 import { pushCommandHistory } from './components/CommandHistory'
 import { HeadlessHistory, type HeadlessJob } from './components/HeadlessHistory'
-import { ToastContainer, notify, playChime } from './components/ToastSystem'
+import { notify, playChime } from './components/ToastSystem'
 import { IdePanel } from './components/IdePanel'
 import { AdvancedPanel } from './components/AdvancedPanel'
 import { StatusPill } from './components/StatusPill'
 import { buildPtySubmitChunks } from '../../shared/ptyInput'
 import { RightInspectorPanel } from './inspectors/RightInspectorPanel'
 import { TranscriptWorkspace } from './workspaces/TranscriptWorkspace'
+import { ShellLayout } from './layout/ShellLayout'
 import type {
   AppearanceTheme,
   CommandPaletteItem,
@@ -1127,183 +1115,45 @@ export function App(): JSX.Element {
     setStatusLine(`Session exited with code=${payload.exitCode ?? 'null'} signal=${payload.signal ?? 'null'}`)
   }, [tabs])
 
-  const shellStyle = {
-    '--sidebar-width': `${sidebarWidth}px`,
-    '--right-inspector-width': `${rightInspectorWidth}px`
-  } as CSSProperties
-
   return (
-    <main className={`app-shell native-shell theme-${appearanceTheme} ${railCollapsed ? 'native-shell--collapsed' : ''}`} style={shellStyle}>
-      <ToastContainer />
-
-      <aside className={`sidebar-shell ${railCollapsed ? 'sidebar-shell--collapsed' : ''}`}>
-        <div className="sidebar-resize-handle" onPointerDown={startSidebarResize} title="Resize sidebar" />
-        <div className="sidebar-top">
-          <button
-            className="icon-button sidebar-collapse"
-            onClick={() => setRailCollapsed((value) => !value)}
-            title={railCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {railCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
-          </button>
-          {!railCollapsed && <div className="sidebar-app-title">Command Code</div>}
-        </div>
-
-        {settingsOpen ? (
-          !railCollapsed && (
-            <div className="sidebar-settings-mode">
-              <button className="settings-back sidebar-settings-back" onClick={() => setSettingsOpen(false)}>
-                Back to app
-              </button>
-              <div className="settings-search">Search settings...</div>
-              {settingsGroups.map((group) => (
-                <div key={group.label} className="settings-nav-group">
-                  <div className="settings-nav-heading">{group.label}</div>
-                  {group.items.map((item) => (
-                    <button
-                      key={item.id}
-                      className={`settings-nav-row ${settingsSection === item.id ? 'settings-nav-row--active' : ''}`}
-                      onClick={() => setSettingsSection(item.id)}
-                    >
-                      {item.icon}
-                      <span>{item.label}</span>
-                    </button>
-                  ))}
-                </div>
-              ))}
-            </div>
-          )
-        ) : (
-          <>
-            <nav className="sidebar-nav" aria-label="Primary">
-              <button className="sidebar-row" onClick={() => { setSettingsOpen(false); setOpenPopover(null); setActiveTabId(undefined); setSelectedTranscript(undefined); setRightInspector('none') }} title="New session">
-                <SquarePen size={18} />
-                {!railCollapsed && <span>New session</span>}
-              </button>
-              <button className="sidebar-row" onClick={() => setOpenPopover(null)} title="Search">
-                <Search size={18} />
-                {!railCollapsed && <span>Search</span>}
-              </button>
-              <button className="sidebar-row" onClick={() => { setSettingsOpen(false); setOpenPopover(openPopover === 'project' ? null : 'project') }} title="Projects">
-                <Folder size={18} />
-                {!railCollapsed && <span>Projects</span>}
-              </button>
-              <button className="sidebar-row" onClick={() => { setSettingsOpen(false); setOpenPopover(openPopover === 'runtime' ? null : 'runtime') }} title="Runtime">
-                <Gauge size={18} />
-                {!railCollapsed && <span>Runtime</span>}
-              </button>
-            </nav>
-
-            {!railCollapsed && (
-              <div className="sidebar-projects">
-                <button
-                  className="sidebar-heading-button"
-                  onClick={() => toggleSidebarSection('projects')}
-                  aria-expanded={!collapsedSidebarSections.projects}
-                >
-                  <ChevronDown size={14} />
-                  <span>Projects</span>
-                </button>
-                {!collapsedSidebarSections.projects && (
-                  <div className="sidebar-section-body">
-                    <button className={`project-row ${cwd ? 'project-row--active' : ''}`} onClick={() => { setSettingsOpen(false); setOpenPopover('project') }} title={cwd || 'Choose a project'}>
-                      <FolderOpen size={16} />
-                      <span>{projectLabel}</span>
-                    </button>
-                    {recentProjects.filter((project) => project !== cwd).slice(0, 4).map((project) => (
-                      <button key={project} className="project-row" onClick={() => { setSettingsOpen(false); setCwd(project) }} title={project}>
-                        <Folder size={16} />
-                        <span>{displayPath(project)}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {projectSessions.length > 0 && (
-                  <div className="sidebar-section">
-                    <button
-                      className="sidebar-heading-button"
-                      onClick={() => toggleSidebarSection('recentChats')}
-                      aria-expanded={!collapsedSidebarSections.recentChats}
-                    >
-                      <ChevronDown size={14} />
-                      <span>Recent chats</span>
-                    </button>
-                    {!collapsedSidebarSections.recentChats && (
-                      <div className="sidebar-section-body">
-                        {visibleRecentChats.map((session) => (
-                          <button
-                            key={session.id}
-                            className="project-row"
-                            onClick={() => openTranscriptSession(session)}
-                            title={`Open ${session.title || session.id}`}
-                          >
-                            <Terminal size={16} />
-                            <span>{session.title || session.id}</span>
-                          </button>
-                        ))}
-                        {projectSessions.length > 4 && (
-                          <button className="show-more-row" onClick={() => setShowAllRecentChats((value) => !value)}>
-                            {showAllRecentChats ? 'Show less' : `Show ${projectSessions.length - 4} more`}
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {tabs.length > 0 && (
-                  <div className="sidebar-section">
-                    <button
-                      className="sidebar-heading-button"
-                      onClick={() => toggleSidebarSection('activeSessions')}
-                      aria-expanded={!collapsedSidebarSections.activeSessions}
-                    >
-                      <ChevronDown size={14} />
-                      <span>Active sessions</span>
-                    </button>
-                    {!collapsedSidebarSections.activeSessions && (
-                      <div className="sidebar-section-body">
-                        {tabs.slice(-6).reverse().map((tab) => (
-                          <button key={tab.id} className={`project-row ${tab.id === activeTabId ? 'project-row--active' : ''}`} onClick={() => { setSettingsOpen(false); setActiveTabId(tab.id) }} title={tab.transcriptPath}>
-                            <Terminal size={16} />
-                            <span>{tab.label}</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </>
-        )}
-
-        <div className="sidebar-bottom">
-          <div className="sidebar-footer-row">
-            <button
-              className={`sidebar-row settings-footer-button ${settingsOpen ? 'sidebar-row--active' : ''}`}
-              onClick={() => { setRailCollapsed(false); setOpenPopover(null); setSettingsOpen(true); setSettingsSection('profile') }}
-              title="Settings"
-            >
-              <Settings size={18} />
-              {!railCollapsed && <span>Settings</span>}
-            </button>
-            <button
-              className={`sidebar-row update-row update-row--${updateState}`}
-              onClick={() => { setOpenPopover(null); updateState === 'available' ? void runUpdate() : void checkForUpdates() }}
-              title={updateDetails || updateLabel(updateState, updateVersion)}
-              aria-label={updateLabel(updateState, updateVersion)}
-              disabled={updateState === 'checking' || updateState === 'updating'}
-            >
-              {updateState === 'checking' || updateState === 'updating' ? <RefreshCw size={18} /> : <Download size={18} />}
-              {!railCollapsed && <span>{updateLabel(updateState, updateVersion)}</span>}
-            </button>
-          </div>
-        </div>
-      </aside>
-
-      <section className="native-main">
+    <ShellLayout
+      appearanceTheme={appearanceTheme}
+      railCollapsed={railCollapsed}
+      sidebarWidth={sidebarWidth}
+      rightInspectorWidth={rightInspectorWidth}
+      settingsOpen={settingsOpen}
+      settingsSection={settingsSection}
+      collapsedSidebarSections={collapsedSidebarSections}
+      projectLabel={projectLabel}
+      cwd={cwd}
+      recentProjects={recentProjects}
+      projectSessions={projectSessions}
+      visibleRecentChats={visibleRecentChats}
+      tabs={tabs}
+      activeTabId={activeTabId}
+      showAllRecentChats={showAllRecentChats}
+      openPopover={openPopover}
+      updateState={updateState}
+      updateVersion={updateVersion}
+      updateDetails={updateDetails}
+      onSidebarResizeStart={startSidebarResize}
+      onToggleRailCollapsed={() => setRailCollapsed((value) => !value)}
+      onBackFromSettings={() => setSettingsOpen(false)}
+      onSettingsSectionChange={setSettingsSection}
+      onNewSession={() => { setSettingsOpen(false); setOpenPopover(null); setActiveTabId(undefined); setSelectedTranscript(undefined); setRightInspector('none') }}
+      onSearch={() => setOpenPopover(null)}
+      onToggleProjectPopover={() => { setSettingsOpen(false); setOpenPopover(openPopover === 'project' ? null : 'project') }}
+      onToggleRuntimePopover={() => { setSettingsOpen(false); setOpenPopover(openPopover === 'runtime' ? null : 'runtime') }}
+      onToggleSidebarSection={toggleSidebarSection}
+      onOpenProjectPopover={() => { setSettingsOpen(false); setOpenPopover('project') }}
+      onSelectRecentProject={(project) => { setSettingsOpen(false); setCwd(project) }}
+      onOpenTranscriptSession={openTranscriptSession}
+      onToggleRecentChats={() => setShowAllRecentChats((value) => !value)}
+      onSelectActiveTab={(id) => { setSettingsOpen(false); setActiveTabId(id) }}
+      onOpenSettings={() => { setRailCollapsed(false); setOpenPopover(null); setSettingsOpen(true); setSettingsSection('profile') }}
+      onUpdateClick={() => { setOpenPopover(null); updateState === 'available' ? void runUpdate() : void checkForUpdates() }}
+      updateLabel={updateLabel}
+    >
         {workspaceView === 'settings' ? (
           <SettingsWorkspace
             section={settingsSection}
@@ -1625,8 +1475,7 @@ export function App(): JSX.Element {
             onConfigureModels={openConfigureModels}
           />
         )}
-      </section>
-    </main>
+    </ShellLayout>
   )
 }
 
@@ -1729,26 +1578,6 @@ type SettingsWorkspaceProps = {
   openDocs: () => void
   openAdvanced: () => void
 }
-
-const settingsGroups: Array<{ label: string; items: Array<{ id: SettingsSection; label: string; icon: JSX.Element }> }> = [
-  {
-    label: 'Personal',
-    items: [
-      { id: 'profile', label: 'Profile', icon: <UserCircle size={17} /> },
-      { id: 'general', label: 'General', icon: <Settings size={17} /> },
-      { id: 'appearance', label: 'Appearance', icon: <Palette size={17} /> },
-      { id: 'runtime', label: 'Runtime', icon: <Wrench size={17} /> },
-      { id: 'usage', label: 'Usage', icon: <CreditCard size={17} /> }
-    ]
-  },
-  {
-    label: 'Integrations',
-    items: [
-      { id: 'integrations', label: 'Integrations', icon: <Plug size={17} /> },
-      { id: 'advanced', label: 'Advanced', icon: <HardDrive size={17} /> }
-    ]
-  }
-]
 
 function SettingsWorkspace({
   section,

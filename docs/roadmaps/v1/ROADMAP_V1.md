@@ -219,9 +219,11 @@ Goal: make v1 feature work cheap to add without expanding the current renderer m
 
 Status on 2026-06-06: started. The first behavior-preserving extraction slice moved shared renderer view types to `src/renderer/src/appTypes.ts`, transcript UI to `src/renderer/src/workspaces/TranscriptWorkspace.tsx`, and the right inspector/environment panel to `src/renderer/src/inspectors/RightInspectorPanel.tsx`. Validation receipts for that slice: `npm run typecheck`, `npm run build`, `npx vitest run`, `npm run smoke:browser`, `npm run smoke:headless`, `npm run smoke:pty`, a real interactive `POST /api/sessions` receipt with `mock=false`, Browser route receipt at `http://127.0.0.1:5186/`, and Electron dev startup receipt.
 
+Second behavior-preserving extraction slice moved shell chrome, sidebar navigation, settings navigation rows, sidebar resize CSS variables, and update/footer controls into `src/renderer/src/layout/ShellLayout.tsx`. `App.tsx` still owns state coordination, transport calls, runtime mode changes, project preference persistence, and session lifecycle. Validation receipts for this slice: `npm run typecheck`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5186/`, and Electron dev startup with embedded app server `http://127.0.0.1:60751`. Screenshot automation remains not run because Playwright is not installed in this project.
+
 Remaining Phase 1 package order:
 
-1. Extract shell layout and sidebar without changing navigation behavior.
+1. Extract shell layout and sidebar without changing navigation behavior. Implemented and validated in the second extraction slice.
 2. Extract home workspace and composer presentation.
 3. Extract session workspace and workbench tool rail while preserving `TerminalPane` behavior.
 4. Extract settings workspace presentation without starting Phase 2 settings expansion.

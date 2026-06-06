@@ -73,6 +73,13 @@ V1 should split `src/renderer/src/App.tsx` into modules with clear ownership:
 
 Components should stay presentation-focused. Hooks can coordinate state, but transport calls should remain typed and easy to test.
 
+Current extraction status on 2026-06-06:
+
+- `src/renderer/src/layout/ShellLayout.tsx` owns shell chrome, sidebar navigation, settings navigation rows, sidebar CSS sizing variables, and update/footer controls.
+- `src/renderer/src/workspaces/TranscriptWorkspace.tsx` owns transcript presentation and inline transcript preview.
+- `src/renderer/src/inspectors/RightInspectorPanel.tsx` owns right-inspector presentation and environment display.
+- `src/renderer/src/App.tsx` still owns runtime state coordination, transport calls, session lifecycle, app/project preference persistence, popovers, home/session/settings workspace presentation, and command palette handling until later Phase 1 slices move those boundaries.
+
 ## Settings Center
 
 Settings should become the natural home for configuration, not just a profile/status page.

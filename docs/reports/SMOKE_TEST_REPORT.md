@@ -74,3 +74,18 @@ Deferred to v1:
 ## V1 Handoff
 
 V1 Phase 1 can begin after this report, [HARDENING_GATE.md](HARDENING_GATE.md), and the root [ROADMAP.md](../../ROADMAP.md) are treated as the v0 closeout contract.
+
+## V1 Incremental Receipts
+
+### 2026-06-06 Phase 1 shell/sidebar extraction
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5186`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:60751` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; no new dependency was added for this architecture-only extraction |
+
+Scope: behavior-preserving renderer extraction of shell chrome and sidebar presentation into `src/renderer/src/layout/ShellLayout.tsx`. Real CLI interactive path was not retested for this slice because PTY/session lifecycle and command builders were unchanged.
