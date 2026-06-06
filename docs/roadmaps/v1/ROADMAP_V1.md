@@ -350,9 +350,11 @@ Seventh read-only package replaced the placeholder Integrations page with a Sett
 
 Eighth read-only package made Profile an actionable Settings dashboard by adding shortcut tiles to General, Runtime, Usage, Project state, and Integrations while preserving its local runtime receipts. It did not add config writes, persistence fields, server routes, renderer IPC expansion, runtime/session changes, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `48/48`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5199/`, and Electron dev startup with embedded app server `http://127.0.0.1:64302`.
 
+Ninth gate package added `docs/reports/ADVANCED_PANEL_REMOVAL_GATE.md` to record Settings replacement coverage for AdvancedPanel tabs and the advanced-only actions that still block removal: session discovery/resume/reveal, Command Code usage summary refresh, agent writes, memory writes, MCP connect/disconnect, and expanded skill previews. This package did not change runtime behavior, renderer IPC, server routes, config writes, persistence fields, transport/session lifecycle, or Command Code settings mutation. Validation receipt: `npm run typecheck`.
+
 ### Scope
 
-- Fold AdvancedPanel content into Settings as first-class sections.
+- Fold AdvancedPanel content into Settings as first-class sections. Read-only replacement coverage is started; AdvancedPanel removal remains gated by `docs/reports/ADVANCED_PANEL_REMOVAL_GATE.md`.
 - Add or complete sections: General, Runtime, Models, Hooks, MCP, Agents, Skills, Design, Memory, Taste, Notifications, Terminal, Keyboard, Data, About, and Advanced Diagnostics.
 - Implement real settings search or remove the placeholder until search exists.
 - Populate Integrations with actual integration management or remove the dead section. Started with the read-only Settings hub; write-capable integration management remains gated.

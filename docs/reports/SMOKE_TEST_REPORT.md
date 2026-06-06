@@ -134,6 +134,15 @@ Scope: read-only Integrations hub package. The Integrations Settings page now ro
 
 Scope: read-only Profile dashboard package. Profile now includes shortcut tiles to General, Runtime, Usage, Project state, and Integrations while preserving runtime receipts. No config writes, persistence fields, server routes, renderer IPC expansion, runtime/session changes, or Command Code settings mutation were added.
 
+### 2026-06-06 Phase 2 AdvancedPanel removal gate
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Docs index | Pass | `docs/INDEX.md` links `docs/reports/ADVANCED_PANEL_REMOVAL_GATE.md` |
+
+Scope: documentation-only removal gate. `docs/reports/ADVANCED_PANEL_REMOVAL_GATE.md` records Settings replacement coverage for AdvancedPanel tabs and the remaining advanced-only blockers: session discovery/resume/reveal, Command Code usage summary refresh, agent writes, memory writes, MCP connect/disconnect, and expanded skill previews. No runtime behavior, renderer IPC, server routes, config writes, persistence fields, transport/session lifecycle, or Command Code settings mutation changed.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |
