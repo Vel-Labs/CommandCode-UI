@@ -101,11 +101,19 @@ export function McpSettingsReadOnly({ transport, commandExecutable }: { transpor
 
   return (
     <SettingsReadOnlyCard title={`MCP servers (${servers.length})`} loading={loading} onRefresh={load}>
-      <p className="settings-muted">Read-only `cmd mcp list` view. Add/remove/auth actions remain in Advanced until command previews and scopes are implemented.</p>
+      <p className="settings-muted">Read-only `cmd mcp list` view. Connect, disconnect, add, remove, and auth actions remain in Advanced until scopes and confirmation flows are implemented.</p>
       {servers.map((server) => (
         <div key={server.name} className="settings-readonly-row">
           <strong>{server.name}</strong>
           <span>{server.status}{server.toolCount != null ? ` · ${server.toolCount} tools` : ''}</span>
+          <div className="settings-command-preview">
+            <span>Connect preview</span>
+            <code>{mcpCommandPreview(commandExecutable, 'connect', server.name)}</code>
+          </div>
+          <div className="settings-command-preview">
+            <span>Disconnect preview</span>
+            <code>{mcpCommandPreview(commandExecutable, 'disconnect', server.name)}</code>
+          </div>
         </div>
       ))}
     </SettingsReadOnlyCard>
@@ -267,4 +275,13 @@ function formatSessionTime(value: string): string {
   const time = new Date(value)
   if (Number.isNaN(time.getTime())) return value
   return time.toLocaleString()
+}
+
+function mcpCommandPreview(commandExecutable: string, action: 'connect' | 'disconnect', serverName: string): string {
+  return [commandExecutable || 'cmd', 'mcp', action, serverName].map(shellWord).join(' ')
+}
+
+function shellWord(value: string): string {
+  if (/^[A-Za-z0-9_./:@-]+$/.test(value)) return value
+  return `'${value.replace(/'/g, "'\\''")}'`
 }

@@ -12,7 +12,7 @@ This gate records what Settings replaces from `src/renderer/src/components/Advan
 | Usage | Usage | Implemented read-only local headless history and Command Code usage summary refresh |
 | Taste | Taste | Implemented read-only |
 | Agents | Agents | Implemented read-only discovery |
-| MCP | MCP | Implemented read-only `cmd mcp list` view |
+| MCP | MCP | Implemented read-only `cmd mcp list` view with connect/disconnect command previews |
 | Skills | Skills | Implemented read-only discovery and content preview expansion |
 | Memory | Memory | Implemented read-only discovery |
 | Sessions | Sessions | Implemented read-only discovery; resume and reveal remain blocking |
@@ -33,7 +33,7 @@ Do not remove `AdvancedPanel` until:
 
 - every advanced-only action is either implemented in Settings or explicitly deferred in the roadmap;
 - every write-capable replacement shows destination path, scope, preview, validation, and cancel/revert affordance;
-- MCP connect/disconnect actions show exact command effects before execution;
+- MCP connect/disconnect actions keep showing exact command previews before execution;
 - session resume/reveal stays separate from transcript parsing or terminal-output heuristics;
 - Browser/Electron receipts confirm the Settings replacements are reachable;
 - the roadmap, architecture doc, and smoke report distinguish implemented, validated, blocked, and deferred behavior.

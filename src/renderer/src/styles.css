@@ -4141,6 +4141,32 @@ input[type="range"]::-webkit-slider-thumb {
   white-space: nowrap;
 }
 
+.settings-command-preview {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.settings-command-preview span {
+  color: #a0a0a6;
+  font-size: 12px;
+}
+
+.settings-command-preview code {
+  min-width: 0;
+  overflow: hidden;
+  color: #f4f4f5;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .settings-readonly-toggle {
   display: grid;
   width: 100%;
@@ -4258,6 +4284,11 @@ input[type="range"]::-webkit-slider-thumb {
     grid-template-columns: 1fr;
   }
 
+  .settings-command-preview {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-command-preview code,
   .settings-destination-note code {
     white-space: normal;
     overflow-wrap: anywhere;

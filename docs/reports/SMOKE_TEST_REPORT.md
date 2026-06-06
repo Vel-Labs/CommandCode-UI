@@ -199,6 +199,20 @@ Scope: read-only Settings Skills preview package. Skills now support expandable 
 
 Scope: read-only Settings Sessions discovery package. Settings now includes a Sessions section backed by existing `transport.discoverSessions(cwd)` and shows discovered sessions without resume or reveal actions. No server routes, renderer IPC expansion, config writes, persistence fields, transport/session lifecycle changes, file reveal actions, or Command Code settings mutation were added.
 
+### 2026-06-06 Phase 2 Settings MCP command previews
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `48/48` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5205`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets `index-DT8fCY9s.js` and `index-C8jcetpd.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:65482` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; no new dependency was added for this settings package |
+
+Scope: read-only Settings MCP command preview package. MCP Settings now shows connect/disconnect command previews for discovered servers. No server routes, renderer IPC expansion, config writes, persistence fields, transport/session lifecycle changes, MCP actions, or Command Code settings mutation were added.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |
