@@ -19,7 +19,7 @@ This gate records what Settings replaces from `src/renderer/src/components/Advan
 
 ## Blocking Advanced-Only Behavior
 
-No Advanced-only behavior is currently blocking replacement coverage. Removal still requires the rules below, including direct route receipts for the Settings replacements.
+No Advanced-only behavior is currently blocking replacement coverage. Direct Settings route receipts now exist for the replacement paths, including scoped file writes, session reveal/resume, and MCP connect/disconnect against safe fixtures.
 
 ## Removal Rules
 
@@ -34,7 +34,7 @@ Do not remove `AdvancedPanel` until:
 
 ## Current Decision
 
-Keep `AdvancedPanel` available until the removal rules are closed.
+`AdvancedPanel` is ready for a removal package if the package deletes the legacy modal entry points and preserves the Settings replacements below.
 
 Settings is now the primary navigation home for configuration and diagnostics, including project-scoped session resume, transcript reveal, MCP connect/disconnect execution, project-scoped agent writes, and project-scoped memory writes. Advanced no longer has an exclusive action, but removal remains gated by direct Browser/Electron reachability receipts and roadmap/doc closeout.
 

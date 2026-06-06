@@ -390,6 +390,8 @@ Twenty-seventh validation package exercised direct Settings write click-throughs
 
 Twenty-eighth validation package exercised Settings Sessions reveal/resume click-through against an isolated temporary `HOME` and temporary project served from `http://127.0.0.1:5219/`. The fixture created a project transcript under the Command Code project transcript store, loaded Settings Sessions through Settings search, observed the project transcript, clicked Reveal, and verified the Sessions page remained intact in the browser adapter. It then clicked Resume and observed `Real session started` from the UI while scoped to the temp project; the isolated server was stopped immediately afterward and the fixture was removed. This package did not exercise real MCP connect/disconnect, and it did not change app code. Validation receipt: `npm run typecheck`.
 
+Twenty-ninth MCP validation package fixed MCP status parsing so `disconnected` is not misclassified as `connected`, added a temp-executable regression test for `listMcp` and `mcpAction`, and exercised Settings MCP Connect/Disconnect against a fake local Command Code executable served from an isolated temporary `HOME` and temporary project at `http://127.0.0.1:5220/`. The in-app Browser opened Settings MCP, observed the fake `fixture` server as `disconnected`, clicked Connect and observed `fixture: ok - fixture: connect` plus `connected`, clicked Disconnect and observed `fixture: ok - fixture: disconnect` plus `disconnected`, then verified the temp state file and removed the fixture. No real external MCP server was mutated. Validation receipts: `npm run typecheck`, `npx vitest run` -> `58/58`, `npm run build`, and `npm run smoke:browser`.
+
 ### Scope
 
 - Fold AdvancedPanel content into Settings as first-class sections. Replacement coverage is implemented for AdvancedPanel sections; AdvancedPanel removal remains gated by `docs/reports/ADVANCED_PANEL_REMOVAL_GATE.md`.
@@ -437,7 +439,7 @@ Likely new files:
 - Settings navigation reaches every formerly advanced section.
 - Settings Advanced routes to explicit diagnostics sections instead of opening the generic Advanced modal.
 - Settings Sessions includes project-session resume and transcript reveal actions; direct reveal/resume click-through is validated against an isolated temp project transcript.
-- Settings MCP includes connect/disconnect execution with visible command previews; real MCP action click-through remains to be exercised against a safe server before removing the Advanced modal entirely.
+- Settings MCP includes connect/disconnect execution with visible command previews; direct Settings MCP action click-through is validated against a fake local Command Code executable and no real external MCP server was mutated.
 - Settings Agents includes project-scoped discovery and edit/save with visible destination paths; server tests cover that listed project agents use the same scoped root as the save route, and direct Settings save click-through is validated against an isolated temp project.
 - Settings Memory includes project-scoped edit/save with visible destination paths; direct Settings save click-through is validated against an isolated temp project.
 - Renderer-local toast/audio notification preferences persist and load. OS notifications, hook-triggered alerts, quiet mode, and readiness remain planned.

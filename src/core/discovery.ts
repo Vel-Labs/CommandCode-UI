@@ -391,8 +391,8 @@ export async function listMcp(commandExecutable?: string): Promise<McpServer[]> 
   for (const line of result.stdout.split('\n')) {
     const trimmed = line.trim()
     if (!trimmed || trimmed.startsWith('No MCP')) continue
-    const status = trimmed.includes('connected') ? 'connected'
-      : trimmed.includes('disconnected') ? 'disconnected'
+    const status = trimmed.includes('disconnected') ? 'disconnected'
+      : trimmed.includes('connected') ? 'connected'
       : trimmed.includes('error') ? 'error'
       : 'unknown'
 

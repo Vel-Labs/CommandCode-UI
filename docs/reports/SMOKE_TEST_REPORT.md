@@ -417,6 +417,22 @@ Scope: validation-only Settings write click-through package. It exercised the ex
 
 Scope: validation-only Settings session click-through package. It exercised existing Settings Sessions Reveal and Resume buttons against an isolated temp project transcript. It did not change app code, renderer IPC, server routes, config behavior, or Command Code settings.
 
+### 2026-06-06 Phase 2 Settings MCP click-through receipts
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `58/58` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| MCP parser regression | Pass | `tests/discovery.test.ts` covers that `disconnected` stays `disconnected`, then fake `mcp connect` changes status to `connected`, and fake `mcp disconnect` changes it back |
+| Isolated built server | Pass | `HOME=/tmp/ccgui-home-mcp-I53hXI CCGUI_FAKE_MCP_STATE=/tmp/ccgui-home-mcp-I53hXI/mcp-state npx tsx src/cli/ccgui.ts serve --port 5220`; app preferences pointed to temp project `/tmp/ccgui-project-mcp-ioYpz3` and fake command `/tmp/ccgui-home-mcp-I53hXI/fake-cmd` |
+| Settings MCP connect click-through | Pass | In-app Browser opened Settings MCP, showed `fixture` as `disconnected`, clicked Connect, and observed `fixture: ok - fixture: connect` plus `connected` |
+| Settings MCP disconnect click-through | Pass | In-app Browser clicked Disconnect, observed `fixture: ok - fixture: disconnect` plus `disconnected`, and the fake state file ended as `disconnected` |
+| Fixture cleanup | Pass | Removed isolated temp HOME, temp project, fake command, and state file after verification |
+
+Scope: Settings MCP validation package. It fixed disconnected-status parsing and exercised existing Settings MCP Connect/Disconnect buttons against a fake local Command Code executable. No real external MCP server was mutated.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |
