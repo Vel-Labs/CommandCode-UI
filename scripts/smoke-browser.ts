@@ -55,6 +55,35 @@ async function main() {
   })
   console.log('7.3 Mock session exited via /exit write')
 
+  // 7.3b Multi-session independence: one held session must not block another.
+  const sessions = await Promise.all([0, 1, 2].map(async () => {
+    const res = await fetch(`${base}/api/sessions`, {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ cwd: '.', useMock: true })
+    })
+    return await res.json() as { id: string }
+  }))
+
+  await fetch(`${base}/api/sessions/${sessions[0]!.id}/write`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({ data: 'partial input without newline' })
+  })
+  await fetch(`${base}/api/sessions/${sessions[1]!.id}/write`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({ data: '/exit\r' })
+  })
+  const thirdWrite = await fetch(`${base}/api/sessions/${sessions[2]!.id}/write`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({ data: '/help\r' })
+  })
+  const firstCleanup = await fetch(`${base}/api/sessions/${sessions[0]!.id}`, { method: 'DELETE', headers: headers() })
+  const thirdCleanup = await fetch(`${base}/api/sessions/${sessions[2]!.id}`, { method: 'DELETE', headers: headers() })
+  console.log('7.3b Multi-session independence:', thirdWrite.status === 200 && firstCleanup.status === 200 && thirdCleanup.status === 200 ? 'PASS' : 'FAIL')
+
   // 7.4 Token validation: no token = 401
   const noAuth = await fetch(`${base}/api/check`, {
     method: 'POST',

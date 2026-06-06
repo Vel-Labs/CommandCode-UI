@@ -1382,3 +1382,13 @@ Scope: safe file preview package. `.html` and `.htm` files now render as source 
 | Unit tests | Pass | `npx vitest run` -> `162/162` |
 
 Scope: regression-test package. `tests/cli.test.ts` now verifies that a mock session held at partial input remains active while another live session exits and a third session remains active, then the first session can still respond to a later command. This did not change runtime code, renderer IPC, server routes, terminal behavior, config writes, file access, or Command Code invocation behavior.
+
+### 2026-06-06 Phase 8 browser multi-session smoke
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `162/162` |
+| Browser/API smoke | Pass | `npm run smoke:browser` -> `7.3b Multi-session independence: PASS` |
+
+Scope: validation script package. `scripts/smoke-browser.ts` now starts three mock sessions, holds one at partial input, exits a second, verifies a third still accepts input, and cleans up active sessions. This did not change app runtime code, renderer IPC, server routes, terminal behavior, config writes, file access, or Command Code invocation behavior.
