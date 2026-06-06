@@ -174,6 +174,7 @@ Phase 6 has started with a pure command-builder package:
 - Settings > MCP renders parsed `mcp__server__tool` names when the existing list output includes them. No additional tool-inspection command is run.
 - Settings > MCP shows preview-only gated commands for details, remove, auth status, and auth clear. Those previews are not executable from the GUI yet.
 - `/api/mcp/list` returns read-only list diagnostics (`ok`, `stdout`, `stderr`, `error`) alongside `servers`, and Settings > MCP surfaces failures instead of treating failed list commands as empty state.
+- `src/renderer/src/settings/McpSettings.tsx` owns Settings > MCP presentation; `AdvancedReadOnlySettings.tsx` no longer owns the MCP route content.
 - MCP add, remove, auth, server edit, connection test, diagnostics, and log viewing remain planned or gated. No MCP secrets are stored in GUI preferences.
 
 Suggested sections:

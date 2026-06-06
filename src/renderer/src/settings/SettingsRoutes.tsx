@@ -7,7 +7,6 @@ import type { AppearanceTheme, RuntimeMode, SettingsSection, UpdateState } from 
 import type { HeadlessJob } from '../components/HeadlessHistory'
 import {
   AgentsSettingsReadOnly,
-  McpSettingsReadOnly,
   MemorySettingsReadOnly,
   ProjectStateSettings,
   SessionsSettingsReadOnly,
@@ -31,6 +30,7 @@ import {
   TerminalSettings
 } from './ReferenceSettings'
 import { ModelsSettings } from './ModelsSettings'
+import { McpSettings } from './McpSettings'
 import { settingsItem } from './settingsRegistry'
 import { DesignHelper } from '../workflows/DesignHelper'
 
@@ -195,7 +195,7 @@ export function SettingsRoute(props: SettingsRouteProps): JSX.Element {
     case 'sessions':
       return <SettingsFrame title="Sessions"><SessionsSettingsReadOnly transport={transport} cwd={cwd} onResumeSession={onResumeSession} /></SettingsFrame>
     case 'mcp':
-      return <SettingsFrame title="MCP"><McpSettingsReadOnly transport={transport} commandExecutable={commandExecutable} /></SettingsFrame>
+      return <SettingsFrame title="MCP"><McpSettings transport={transport} commandExecutable={commandExecutable} /></SettingsFrame>
     case 'agents':
       return <SettingsFrame title="Agents"><AgentsSettingsReadOnly transport={transport} cwd={cwd} /></SettingsFrame>
     case 'skills':

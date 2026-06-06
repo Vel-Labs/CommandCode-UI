@@ -1114,3 +1114,17 @@ Scope: added tested preview builders and Settings > MCP display rows for gated M
 | Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
 
 Scope: extended the existing read-only MCP list route to return list diagnostics and made Settings > MCP show failure text instead of silently treating failed list commands as empty results. This did not add new MCP commands, config reads or writes, renderer IPC, secret storage, runtime mutation, or Command Code settings mutation. Real external MCP mutation was not retested for this read-only diagnostics slice.
+
+### 2026-06-06 Phase 6 MCP settings module extraction
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `145/145` |
+| Build | Pass | `npm run build`; renderer assets `index-v30dRzNV.js` and `index-8BkyITsP.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57387`; token proof returned `302`, cookie-authenticated `/` served built assets `index-v30dRzNV.js` and `index-8BkyITsP.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:61460` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
+
+Scope: extracted Settings > MCP presentation into a dedicated `McpSettings.tsx` module and updated route ownership without changing MCP transport behavior, command previews, diagnostics, tool chips, or connect/disconnect actions. This did not add new MCP commands, config reads or writes, renderer IPC, secret storage, runtime mutation, or Command Code settings mutation.
