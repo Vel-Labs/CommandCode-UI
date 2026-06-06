@@ -340,6 +340,8 @@ Second read-only package added Settings-hosted views for Project state, MCP, Age
 
 Third read-only package added reference pages for Keyboard, Notifications, Terminal, Models, Design, Hooks, and About via `src/renderer/src/settings/ReferenceSettings.tsx`. These pages expose current shortcuts, existing notification/terminal boundaries, model/design/hook entry points, and update visibility without adding preference writes, server routes, or Command Code config mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `41/41`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5195/`, and Electron dev startup with embedded app server `http://127.0.0.1:63129`.
 
+Fourth presentation package extracted existing Profile, General, Runtime, Appearance, Usage, Integrations, and Advanced settings pages into `src/renderer/src/settings/CoreSettings.tsx`. Existing callbacks and persistence behavior remain at the prior ownership boundary; this package did not add config writes, persistence changes, server routes, renderer IPC expansion, runtime/session changes, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `41/41`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5196/`, and Electron dev startup with embedded app server `http://127.0.0.1:63392`.
+
 ### Scope
 
 - Fold AdvancedPanel content into Settings as first-class sections.

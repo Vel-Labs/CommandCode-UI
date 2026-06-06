@@ -128,6 +128,20 @@ Scope: Settings-hosted read-only Project state, MCP, Agents, Skills, Memory, and
 
 Scope: Settings-hosted read-only reference pages for Keyboard, Notifications, Terminal, Models, Design, Hooks, and About. No preference writes, config writes, persistence changes, server routes, runtime/session changes, or Command Code settings mutation were added.
 
+### 2026-06-06 Phase 2 core settings presentation extraction
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `41/41` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5196`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets `index-CmL9yZwl.js` and `index-B2ORLVyZ.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:63392` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; no new dependency was added for this settings package |
+
+Scope: behavior-preserving extraction of existing Profile, General, Runtime, Appearance, Usage, Integrations, and Advanced settings presentation into `src/renderer/src/settings/CoreSettings.tsx`. Existing callbacks remain owned by `App.tsx` and `SettingsWorkspace`; no config writes, persistence changes, server routes, renderer IPC expansion, runtime/session changes, or Command Code settings mutation were added.
+
 ### 2026-06-06 Phase 1 closeout
 
 | Check | Result | Receipt |
