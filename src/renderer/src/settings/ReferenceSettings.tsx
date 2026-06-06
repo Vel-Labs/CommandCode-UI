@@ -121,8 +121,8 @@ export function NotificationsSettings(): JSX.Element {
           )
         })}
       </div>
-      <ReferenceRow label="Response-ready notifications" value="Deferred until explicit readiness state exists" />
-      <p className="settings-muted">These settings only control existing renderer toast/audio cues. OS notifications, hook-triggered alerts, quiet mode, and per-session readiness remain planned.</p>
+      <ReferenceRow label="Session readiness" value="Unread state is visible in tabs; response-ready delivery remains gated" />
+      <p className="settings-muted">These settings only control existing renderer toast/audio cues. OS notifications, hook-triggered alerts, quiet mode, and response-ready/input-required notification delivery remain planned.</p>
     </SettingsReferenceCard>
   )
 }
@@ -415,7 +415,7 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
           </div>
         ))}
       </div>
-      <p className="settings-muted">Hook file reads, writes, test payload execution, OS notifications, quiet mode, and response-ready state remain gated by `docs/reports/HOOKS_NOTIFICATIONS_GATE.md`.</p>
+      <p className="settings-muted">Scoped hook discovery and enable/disable writes are available. Broader hook editing, command execution, OS notifications, quiet mode, and response-ready delivery remain gated by `docs/reports/HOOKS_NOTIFICATIONS_GATE.md`.</p>
     </SettingsReferenceCard>
   )
 }

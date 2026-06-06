@@ -575,6 +575,16 @@ Scope: pure session readiness model package for Phase 3. Added `src/renderer/src
 
 Scope: renderer/session wiring package for Phase 3 readiness state. Session data callbacks now carry `live` versus `replay` metadata, `App.tsx` keeps per-tab reducer-backed readiness state, and tabs/sidebar rows display unread/readiness badges while ignoring replay buffers for unread state. No OS notifications, toast dispatch, audio behavior, response-ready inference, input-required runtime inference, terminal byte-length heuristic, renderer IPC, file access, hook execution, or Command Code settings mutation was added. The real Command Code interactive path was not exercised; PTY health was smoke-tested only.
 
+### 2026-06-06 Phase 3 Settings reference alignment
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser`; mock session created/exited, auth checks passed |
+
+Scope: Settings reference copy alignment for Phase 3. Notifications now distinguishes visible unread readiness state from still-gated response-ready/input-required notification delivery, and Hooks now distinguishes implemented scoped discovery/enable-disable writes from broader hook editing and command execution. No settings persistence changes, server routes, renderer IPC, file access, hook execution, OS notifications, audio behavior, or Command Code settings mutation was added.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |
