@@ -1668,3 +1668,16 @@ Scope: Phase 10 closeout. Validation, docs, root roadmap status, and contributor
 | App preference restore | Pass | `~/.commandcode/gui-preferences.json` restored to empty project / empty recent projects after UI validation |
 
 Scope: Settings usability and project-agent creation package. Settings content now scrolls inside the right pane, Hooks rows use stacked readable rows with separate action strips, and Settings > Agents can create project-scoped agents by previewing a draft and writing through the existing scoped save route. `saveAgent` creates the already-validated parent directory for new project agents. This package did not add renderer IPC, broad filesystem capability, Command Code runtime semantics, agent routing behavior, hook execution, OS notifications, session lifecycle changes, or Command Code settings mutation. Browser screenshot capture timed out twice in the Browser backend; Browser DOM/interaction metrics passed and Electron screenshots were captured.
+
+### 2026-06-06 Settings size-aware layout
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Build | Pass | `npm run build`; renderer assets `index-DXba7yM6.js` and `index-w7ZvMGYi.css` before final docs-only receipt update |
+| Browser/API smoke | Pass | `npm run smoke:browser`; mock headless, mock session create/exit, multi-session independence, auth checks passed |
+| Built browser route | Pass | `http://127.0.0.1:57421/` loaded with title `Command Code` and no console warnings/errors |
+| Electron constrained viewport | Pass | Built Electron at `1058x768` showed `.settings-page` top `0`, bottom `768`, `clientHeight 768`, `scrollHeight 1150`, `overviewColumns 3`, `compactColumns 2`, and bottom scroll reached |
+| Screenshots | Pass | `/tmp/ccgui-settings-hooks-size-aware-electron-v3.png` and `/tmp/ccgui-settings-hooks-size-aware-electron-bottom.png` |
+
+Scope: Settings size-awareness follow-up. The native shell height chain now constrains Settings to the visible Electron window, Settings cards use the available right-pane width, Hooks overview items use a compact responsive grid, and compact Settings row groups become multi-column when the viewport allows. This package did not change renderer IPC, file access, config writes, hook behavior, agent behavior, session lifecycle, or Command Code runtime semantics.

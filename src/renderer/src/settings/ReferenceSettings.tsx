@@ -453,13 +453,15 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
         <code>settings.json: hooks</code>
         <small>read/write gated</small>
       </div>
-      <ReferenceRow label="Project scope" value=".commandcode/settings.json" />
-      <ReferenceRow label="User scope" value="~/.commandcode/settings.json" />
-      <ReferenceRow label="Precedence" value="Project settings before user settings" />
-      <ReferenceRow label="Documented events" value="PreToolUse, PostToolUse, Stop" />
-      <ReferenceRow label="Parser gate" value="Invalid JSON and unsupported shapes fail before future writes" />
-      <ReferenceRow label="Execution owner" value="Command Code runs hooks; the GUI only prepares display, validation, and diagnostics" />
-      <div className="settings-stacked-list">
+      <div className="settings-overview-grid">
+        <ReferenceRow label="Project scope" value=".commandcode/settings.json" />
+        <ReferenceRow label="User scope" value="~/.commandcode/settings.json" />
+        <ReferenceRow label="Precedence" value="Project settings before user settings" />
+        <ReferenceRow label="Documented events" value="PreToolUse, PostToolUse, Stop" />
+        <ReferenceRow label="Parser gate" value="Invalid JSON and unsupported shapes fail before future writes" />
+        <ReferenceRow label="Execution owner" value="Command Code runs hooks; the GUI prepares display, validation, and diagnostics" />
+      </div>
+      <div className="settings-stacked-list settings-stacked-list--compact">
         {(discovery?.sources ?? []).map((source) => (
           <SettingsStackedRow
             key={`${source.sourceScope}:${source.sourcePath}`}
@@ -639,13 +641,13 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
         <p className="settings-muted">No hook commands found in the documented project or user settings scopes.</p>
       )}
       {discovery && [...discovery.warnings, ...discovery.errors].length > 0 && (
-        <div className="settings-stacked-list">
+        <div className="settings-stacked-list settings-stacked-list--compact">
           {[...discovery.warnings, ...discovery.errors].map((message) => (
             <SettingsStackedRow key={message} title="Diagnostic" value={message} meta="read-only" />
           ))}
         </div>
       )}
-      <div className="settings-stacked-list">
+      <div className="settings-stacked-list settings-stacked-list--compact">
         <SettingsStackedRow
           title="Hook logs"
           value=".commandcode/hooks, ~/.commandcode/hooks"
@@ -686,7 +688,7 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
         <p className="settings-muted">No hook log files found in the scoped project or user hook directories.</p>
       )}
       {hookLogs && hookLogs.errors.length > 0 && (
-        <div className="settings-stacked-list">
+        <div className="settings-stacked-list settings-stacked-list--compact">
           {hookLogs.errors.map((message) => (
             <SettingsStackedRow key={message} title="Log diagnostic" value={message} meta="read-only" />
           ))}
@@ -707,7 +709,7 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
           {hookLogRead.error && <p className="settings-muted">{hookLogRead.error}</p>}
         </div>
       )}
-      <div className="settings-stacked-list">
+      <div className="settings-stacked-list settings-stacked-list--compact">
         {examples.map((example) => (
           <SettingsStackedRow
             key={example.label}
