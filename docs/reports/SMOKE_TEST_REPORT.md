@@ -1492,3 +1492,20 @@ Scope: CSS-only popover polish package. Native popovers now have desktop attachm
 | Built Electron screenshot | Pass | `/tmp/ccgui-phase9-git-badge-electron.png`; no-project state rendered `git unavailable` without driving the native folder picker or mutating app preferences |
 
 Scope: read-only git header display package. Home and active-session headers now show a compact git badge from the existing `transport.gitStatus(cwd)` route. This did not add git mutations, branch switching, diff actions, renderer IPC, server routes, file access capability, config writes, session lifecycle changes, or Command Code invocation behavior.
+
+### 2026-06-06 Phase 9 PTY health badge
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `169/169` |
+| Build | Pass | `npm run build`; renderer assets `index-BDiS2blp.js` and `index-CyWwlfpS.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` -> `7.3b Multi-session independence: PASS` |
+| PTY smoke | Pass | `npm run smoke:pty` -> `PTY smoke test PASSED`; shell `/bin/zsh`, output `"ok"` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57407`; token proof returned `302`, cookie-authenticated `/` served built assets `index-BDiS2blp.js` and `index-CyWwlfpS.css` |
+| Built asset UI proof | Pass | `rg -n "pty-health-badge|ptyHealthDisplay|PtyHealthBadge|PTY connected|PTY unavailable" out/renderer/assets/index-BDiS2blp.js out/renderer/assets/index-CyWwlfpS.css` |
+| Browser UI PTY state | Pass | Home badge rendered `PTY connected`; session header rendered `PTY connected/bin/zsh`; tooltip `PTY healthy via /bin/zsh` |
+| Browser screenshots | Pass | `/tmp/ccgui-phase9-pty-badge-home.png`, `/tmp/ccgui-phase9-pty-badge-session.png` |
+| Built Electron screenshot | Pass | `/tmp/ccgui-phase9-pty-badge-electron.png`; home badge rendered `PTY connected` |
+
+Scope: PTY health display package. Home and active-session headers now show a compact badge from the existing PTY doctor result. This did not add PTY calls, alter PTY/session lifecycle, change fallback-to-Demo behavior, broaden renderer IPC, add server routes, mutate config, change file access, or invoke Command Code differently.

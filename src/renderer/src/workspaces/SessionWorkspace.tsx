@@ -2,10 +2,12 @@ import type { JSX } from 'react'
 import { GitBranch, HardDrive, Keyboard, PanelBottom, PanelRightOpen, X } from 'lucide-react'
 import type { SessionExitPayload } from '../../../shared/types'
 import type { GitEnvironmentStatus } from '../../../core/types'
+import type { PtyDoctorResult } from '../../../core/ptyDoctor'
 import type { TransportAPI } from '../../../core/transport'
 import type { RightInspector, SessionTab } from '../appTypes'
 import { ComposerBar } from '../components/ComposerBar'
 import { GitEnvironmentBadge } from '../components/GitEnvironmentBadge'
+import { PtyHealthBadge } from '../components/PtyHealthBadge'
 import { StatusPill } from '../components/StatusPill'
 import { TabBar } from '../components/TabBar'
 import { TerminalPane } from '../components/TerminalPane'
@@ -22,6 +24,7 @@ export function SessionWorkspace({
   bottomTerminalOpen,
   shellSessionId,
   terminalInputEnabled,
+  ptyHealth,
   statusLine,
   composerPrompt,
   showPlanSuggestion,
@@ -62,6 +65,7 @@ export function SessionWorkspace({
   bottomTerminalOpen: boolean
   shellSessionId?: string
   terminalInputEnabled: boolean
+  ptyHealth: PtyDoctorResult | null
   statusLine: string
   composerPrompt: string
   showPlanSuggestion: boolean
@@ -104,6 +108,7 @@ export function SessionWorkspace({
             <span>{activeTab?.projectLabel || projectLabel}</span>
             <StatusPill label={sessionModelLabel({ model: activeTab?.model, transcriptModel: activeTab?.resumedSession?.model })} tone="default" />
             <StatusPill label={activeTab?.mock ? 'mock' : 'real cli'} tone={activeTab?.mock ? 'purple' : 'warn'} />
+            <PtyHealthBadge ptyHealth={ptyHealth} />
             {activeReadiness && <StatusPill label={activeReadiness.label} tone={activeReadiness.tone} />}
             {activeTab?.readiness.unread && activeReadiness?.label !== 'unread output' && <StatusPill label="unread" tone="purple" />}
             <StatusPill label={permissionLabel} tone={permissionTone} />

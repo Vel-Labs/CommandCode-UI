@@ -1179,7 +1179,7 @@ export function App(): JSX.Element {
             onModel={() => setOpenPopover(openPopover === 'model' ? null : 'model')}
             onSlash={() => setOpenPopover(openPopover === 'slash' ? null : 'slash')}
             runtimeMode={runtimeMode}
-            ptyHealthLabel={ptyHealthLabel(ptyHealth)}
+            ptyHealth={ptyHealth}
             statusLine={statusLine}
             gitStatus={gitStatus}
             gitStatusLoading={gitStatusLoading}
@@ -1228,6 +1228,7 @@ export function App(): JSX.Element {
               bottomTerminalOpen={bottomTerminalOpen}
               shellSessionId={shellSessionId}
               terminalInputEnabled={terminalInputEnabled}
+              ptyHealth={ptyHealth}
               statusLine={statusLine}
               composerPrompt={composerPrompt}
               showPlanSuggestion={showPlanSuggestion}

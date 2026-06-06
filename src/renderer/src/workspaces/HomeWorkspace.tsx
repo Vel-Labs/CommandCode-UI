@@ -1,8 +1,10 @@
 import type { JSX } from 'react'
 import type { GitEnvironmentStatus } from '../../../core/types'
+import type { PtyDoctorResult } from '../../../core/ptyDoctor'
 import type { RuntimeMode } from '../appTypes'
 import { ComposerBar } from '../components/ComposerBar'
 import { GitEnvironmentBadge } from '../components/GitEnvironmentBadge'
+import { PtyHealthBadge } from '../components/PtyHealthBadge'
 
 export function HomeWorkspace({
   prompt,
@@ -19,7 +21,7 @@ export function HomeWorkspace({
   onModel,
   onSlash,
   runtimeMode,
-  ptyHealthLabel,
+  ptyHealth,
   statusLine,
   gitStatus,
   gitStatusLoading
@@ -38,7 +40,7 @@ export function HomeWorkspace({
   onModel: () => void
   onSlash: () => void
   runtimeMode: RuntimeMode
-  ptyHealthLabel: string
+  ptyHealth: PtyDoctorResult | null
   statusLine: string
   gitStatus: GitEnvironmentStatus | null
   gitStatusLoading: boolean
@@ -65,7 +67,7 @@ export function HomeWorkspace({
         />
         <div className="home-status-row">
           <span>{runtimeMode === 'mock' ? 'demo runtime' : 'real session'}</span>
-          <span>{ptyHealthLabel}</span>
+          <PtyHealthBadge ptyHealth={ptyHealth} compact />
           <span>{model || 'default model'}</span>
           <span>{statusLine || 'idle'}</span>
           <GitEnvironmentBadge status={gitStatus} loading={gitStatusLoading} compact />

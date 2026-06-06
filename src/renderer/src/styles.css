@@ -451,6 +451,53 @@ textarea:focus {
   background: rgba(76,29,149,0.22);
 }
 
+.pty-health-badge {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  max-width: min(300px, 100%);
+  gap: 6px;
+  padding: 6px 9px;
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 999px;
+  color: #d4d4d8;
+  background: rgba(255,255,255,0.045);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.pty-health-label,
+.pty-health-detail {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pty-health-label {
+  color: #f4f4f5;
+  font-weight: 650;
+}
+
+.pty-health-detail {
+  color: #a1a1aa;
+}
+
+.pty-health-badge--good {
+  border-color: rgba(163,230,53,0.3);
+  background: rgba(77,124,15,0.16);
+}
+
+.pty-health-badge--warn {
+  border-color: rgba(251,191,36,0.34);
+  background: rgba(146,64,14,0.18);
+}
+
+.pty-health-badge--bad {
+  border-color: rgba(251,113,133,0.34);
+  background: rgba(159,18,57,0.18);
+}
+
 .workspace {
   position: relative;
   display: grid;
