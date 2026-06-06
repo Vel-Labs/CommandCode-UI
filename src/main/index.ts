@@ -1,10 +1,66 @@
 import { app, BrowserWindow, dialog, ipcMain, shell, session } from 'electron'
 import path from 'node:path'
+import { existsSync, realpathSync, statSync } from 'node:fs'
+import os from 'node:os'
 import { createAppServer } from '../server/index'
 
 let serverToken = ''
 let serverPort = 0
 let mainWindow: BrowserWindow | null = null
+const knownProjectPaths = new Set<string>()
+
+function realOrResolved(targetPath: string): string {
+  const resolved = path.resolve(targetPath)
+  try {
+    return realpathSync(resolved)
+  } catch {
+    let current = resolved
+    const missingParts: string[] = []
+    while (!existsSync(current)) {
+      const parent = path.dirname(current)
+      if (parent === current) return resolved
+      missingParts.unshift(path.basename(current))
+      current = parent
+    }
+    try {
+      return path.join(realpathSync(current), ...missingParts)
+    } catch {
+      return resolved
+    }
+  }
+}
+
+function realExistingPath(targetPath: string): string {
+  const resolved = path.resolve(targetPath)
+  try {
+    return realpathSync(resolved)
+  } catch {
+    return resolved
+  }
+}
+
+function isPathUnderRoot(targetPath: string, root: string): boolean {
+  const realTarget = realOrResolved(targetPath)
+  const realRoot = realOrResolved(root)
+  return realTarget === realRoot || realTarget.startsWith(realRoot + path.sep)
+}
+
+function isAllowedTranscriptPath(targetPath: string): boolean {
+  const home = os.homedir()
+  const allowedRoots = [
+    path.join(home, '.commandcode', 'projects'),
+    path.join(home, '.commandcode', 'sessions'),
+    path.join(home, '.commandcode', 'transcripts'),
+    path.join(home, '.commandcode-gui-starter', 'transcripts')
+  ]
+  return allowedRoots.some((root) => isPathUnderRoot(targetPath, root))
+}
+
+function isProjectDirectory(targetPath: string): boolean {
+  if (!existsSync(targetPath) || !statSync(targetPath).isDirectory()) return false
+  if ([...knownProjectPaths].some((root) => isPathUnderRoot(targetPath, root))) return true
+  return ['.git', '.commandcode', 'package.json', 'AGENTS.md', 'COMMANDCODE.md'].some((marker) => existsSync(path.join(targetPath, marker)))
+}
 
 function createWindow(): BrowserWindow {
   const win = new BrowserWindow({
@@ -82,6 +138,10 @@ ipcMain.handle('cc:choose-directory', async () => {
     title: 'Choose a project for Command Code'
   })
 
+  if (!result.canceled && result.filePaths[0]) {
+    knownProjectPaths.add(realExistingPath(result.filePaths[0]))
+  }
+
   return {
     canceled: result.canceled,
     path: result.filePaths[0]
@@ -97,7 +157,19 @@ ipcMain.handle('cc:open-external', async (_event, url: string) => {
 })
 
 ipcMain.handle('cc:reveal-transcript', async (_event, transcriptPath: string) => {
-  shell.showItemInFolder(transcriptPath)
+  const resolved = realExistingPath(transcriptPath)
+  if (!isAllowedTranscriptPath(resolved) || !existsSync(resolved) || statSync(resolved).isDirectory()) {
+    throw new Error('Transcript reveal denied')
+  }
+  shell.showItemInFolder(resolved)
+})
+
+ipcMain.handle('cc:reveal-path', async (_event, targetPath: string) => {
+  const resolved = realExistingPath(targetPath)
+  if (!isProjectDirectory(resolved)) {
+    throw new Error('Project reveal denied')
+  }
+  shell.showItemInFolder(resolved)
 })
 
 ipcMain.handle('cc:get-server-info', () => {

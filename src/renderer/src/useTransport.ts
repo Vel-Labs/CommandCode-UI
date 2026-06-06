@@ -13,6 +13,7 @@ export function useTransport(): TransportAPI {
           chooseDirectory: () => Promise<{ canceled: boolean; path?: string }>
           openExternal: (url: string) => Promise<void>
           revealTranscript: (path: string) => Promise<void>
+          revealPath: (path: string) => Promise<void>
         }
       }).commandCode
 
@@ -20,6 +21,7 @@ export function useTransport(): TransportAPI {
         t.chooseDirectory = () => cc.chooseDirectory()
         t.openExternal = (url: string) => cc.openExternal(url)
         t.revealTranscript = (path: string) => cc.revealTranscript(path)
+        t.revealPath = (path: string) => cc.revealPath(path)
       }
     }
 

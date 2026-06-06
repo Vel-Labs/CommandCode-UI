@@ -12,11 +12,13 @@ Command Code is powerful as a CLI and as a headless harness. That power also cre
 
 This app turns that workflow into a small desktop cockpit:
 
-- **Start from intent:** type what you want done, then pick project, mode, model, and permissions from the composer row.
+- **Start from intent:** type what you want done, then pick project, session surface, model, and access from the composer row.
 - **Keep the CLI honest:** interactive work runs through a PTY, and one-shot automation runs through `cmd --print`.
-- **Make risk visible:** `standard`, `plan`, `auto-accept`, and `trust` states stay on-screen instead of being hidden in configuration.
+- **Make risk visible:** `standard`, `auto-accept`, and `trust` access states stay on-screen instead of being hidden in configuration.
 - **Support headless work:** run non-interactive prompts from the GUI while preserving receipts and exit status.
 - **Expose health:** PTY, auth, IDE, model, and command binary checks are inspectable without scraping terminal output.
+- **Keep Command Code current:** startup performs a read-only `cmd update --check-only`, and the sidebar Update chip runs `cmd update` only when the operator clicks it.
+- **Surface important releases:** known Command Code patch notes appear in-app after update checks or completed updates, with direct access to relevant slash commands.
 
 This is intentionally an adapter, not a fork. The GUI does not own model semantics, tool permissions, taste learning, checkpoint internals, or private Command Code APIs. Command Code remains the engine and source of execution truth.
 
@@ -42,11 +44,21 @@ The default theme uses the Command Code spectral grid. The Blueprint theme keeps
 - PTY-backed interactive Command Code session runner
 - Headless `cmd --print` runner for non-interactive jobs
 - Mock mode so the interface can be explored before Command Code is installed
-- Composer-first new session flow with project, mode, model, and permission chips
+- Composer-first new session flow with project, model, and permission chips
+- Real sessions by default when PTY is healthy, with Mock kept as Demo mode
+- Grouped command palette for `/plan`, `/design surface`, `/configure-models`, `/agents`, `/skills`, `/mcp`, `/usage`, and headless `cmd --print`
+- Model picker with local favorite models, per-project model persistence, and task model routing through `/configure-models`
+- Project-state reference for `.commandcode` commands, skills, taste, memory, GUI preferences, and existing Command Code chat contexts
+- Click existing project contexts to resume them through Command Code's own `cmd --resume <session-title-or-id>` path, with chat history visible in the right inspector
 - Settings page with profile, runtime, appearance, usage, integrations, and advanced sections
 - Selectable appearance themes with local persistence
-- Runtime checks for CLI and PTY health
-- Files drawer, docs sidecar, advanced drawer, command history, and headless run history
+- Runtime checks for CLI, PTY health, and available Command Code updates
+- Codex-like workbench rail for IDE/Finder, environment status, repo terminal, and right sidebar controls
+- Right inspector for files, file preview, transcript/history, docs, environment status, IDE status, and advanced actions
+- `Cmd+T` / `Ctrl+T` opens another Command Code session in the same selected project
+- The composer is the primary prompt surface; Enter sends and Shift+Enter inserts a line break. Command Code selection prompts automatically enter Menu input so arrow keys and Enter go to the terminal, while the header Terminal button opens a separate shell in the repo for commands like `npm run dev`
+- `Ctrl+O` terminal expansion shortcut opens active session details in the right inspector
+- Resizable left sidebar and right inspector, with collapse when dragged below the useful width
 - Product icon assets for macOS, Windows, and Linux packaging
 
 ## Prerequisites
@@ -66,7 +78,27 @@ npm install
 npm run dev
 ```
 
-Use **Mock** mode first if you only want to validate the GUI. Switch to **Real session** after `cmd --version`, `cmd status --json`, and the PTY health check pass.
+Use **Demo mode** first if you only want to validate the GUI. The normal composer path starts a **Real session** when `cmd --version`, `cmd status --json`, and the PTY health check pass. Headless work is available from the command palette as **Run headless**, which executes `cmd --print` and records the result in history.
+
+On launch, the app checks for Command Code CLI updates with `cmd update --check-only`. This is intentionally non-mutating. Use the Update chip in the lower-left sidebar to run `cmd update` when an update is available, or to manually refresh update status.
+
+When the installed version has known patch notes, the app shows a local release-note modal once. For Command Code `0.32.3`, the modal highlights `/configure-models`, which routes background requests such as compaction and session title generation to models of your choice.
+
+The release-note modal is driven by the actual installed version returned from `cmd update --check-only`; it is not a separate hardcoded marketing surface. The copy is local release metadata keyed by version, and dismissal is saved in local storage.
+
+## Project State And Chat Contexts
+
+The app treats `.commandcode` as a canonical project signal, but keeps ownership boundaries explicit:
+
+- `<project>/.commandcode/commands/` contains repo-local Command Code command prompts.
+- `<project>/.commandcode/skills/` contains repo-local skill definitions.
+- `<project>/.commandcode/taste/` contains project taste notes owned by Command Code semantics.
+- `<project>/.commandcode/memory/` contains optional project memory files surfaced by the GUI memory editor.
+- `<project>/.commandcode/gui-preferences.json` is GUI-owned adapter state for model, runtime, access, and appearance choices.
+- `~/.commandcode/gui-preferences.json` is GUI-owned app state for the last selected project, recent projects, command binary, model defaults, appearance, dismissed release notes, and sidebar/inspector widths. This file is what keeps `npm run dev` from forgetting state when Electron starts the local server on a new port.
+- `~/.commandcode/projects/<project-slug>/` contains Command Code runtime-owned chat contexts, metadata, checkpoints, and settings.
+
+Advanced → Project state shows these locations and the files found in each section. Existing project chat contexts appear in the sidebar as recent chats, initially capped with Show more. Selecting one immediately starts a real Command Code PTY with `cmd --resume <session-title-or-id>` and keeps the prior transcript/history visible in the right inspector. The GUI does not append directly to runtime-owned `.jsonl` transcript or checkpoint files.
 
 ## Localhost Browser Mode
 
@@ -133,7 +165,7 @@ Preload bridge
 Electron main process / local server
   ├─ PTY SessionManager -> cmd [interactive]
   ├─ child_process runner -> cmd --print [headless]
-  ├─ command-code doctor/status/list-models helpers
+  ├─ command-code doctor/status/list-models/update helpers
   └─ guarded external links + directory picker
         │
         ▼
@@ -144,9 +176,10 @@ Installed Command Code CLI
 
 - **Do not parse the TUI as the source of truth.** Display terminal output faithfully and add structured state only through stable CLI/API surfaces.
 - **Treat headless and interactive as separate paths.** Headless is clean for automation; interactive sessions need a real PTY.
-- **Keep permissions explicit.** Risky modes should be visible in the composer and active-session header.
+- **Keep permissions explicit.** Risky access states should be visible in the composer and active-session header.
 - **Fail closed.** The renderer does not get broad shell capability. Main process spawning is scoped to the configured Command Code binary and controlled arguments.
 - **Keep desktop comfort separate from runtime ownership.** Settings, themes, and project pickers improve operation without changing Command Code semantics.
+- **Persist local preferences without owning runtime semantics.** Renderer storage is used as a fast client cache, while selected project preferences are mirrored to `<project>/.commandcode/gui-preferences.json` so a project can signal its preferred GUI model, runtime surface, and safety defaults.
 
 ## Validation
 

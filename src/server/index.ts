@@ -1,7 +1,8 @@
 import { createServer, IncomingMessage, ServerResponse } from 'node:http'
 import { randomBytes } from 'node:crypto'
 import { parse as parseUrl } from 'node:url'
-import { readFileSync, existsSync, readdirSync, statSync, realpathSync } from 'node:fs'
+import { readFileSync, existsSync, readdirSync, statSync, realpathSync, mkdirSync, writeFileSync } from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import { WebSocketServer, WebSocket } from 'ws'
 import { CoreSessionManager, type PtySpawnFn } from '../core/sessions'
@@ -9,6 +10,7 @@ import { ptyDoctorAsync } from '../core/ptyDoctor'
 import {
   checkCommandCode,
   commandCodeStatus,
+  commandCodeUpdate,
   listModels,
   runHeadless,
   runProcess,
@@ -25,15 +27,21 @@ import {
   mcpAction,
   listSkills,
   listMemories,
-  saveMemory
+  saveMemory,
+  projectCommandCodeReference
 } from '../core/discovery'
 import type {
   CliExecResult,
+  AppGuiPreferences,
+  AppGuiPreferencesResult,
   DiscoveredSession,
   FileEntry,
+  GitEnvironmentStatus,
   HeadlessRunOptions,
   IdeStatusResult,
   MemoryFile,
+  ProjectGuiPreferences,
+  ProjectGuiPreferencesResult,
   SessionStartOptions,
   SessionStartResult,
   SkillEntry,
@@ -107,6 +115,54 @@ function parseBody(req: IncomingMessage, maxBytes: number = MAX_BODY_BYTES): Pro
     })
     req.on('error', reject)
   })
+}
+
+function parseNumstat(raw: string): { insertions: number; deletions: number } {
+  let insertions = 0
+  let deletions = 0
+  for (const line of raw.split(/\r?\n/)) {
+    const [adds, dels] = line.trim().split(/\s+/)
+    const addCount = Number(adds)
+    const delCount = Number(dels)
+    if (Number.isFinite(addCount)) insertions += addCount
+    if (Number.isFinite(delCount)) deletions += delCount
+  }
+  return { insertions, deletions }
+}
+
+function parseGitStatus(cwd: string, root: string | undefined, raw: string, numstatRaw: string): GitEnvironmentStatus {
+  const lines = raw.split(/\r?\n/).filter(Boolean)
+  const branchLine = lines.find((line) => line.startsWith('## '))
+  const branchMatch = branchLine?.match(/^##\s+([^\s.]+|[^.\s]+(?:\/[^\s.]+)?)/)
+  const ahead = Number(branchLine?.match(/ahead\s+(\d+)/)?.[1] ?? 0)
+  const behind = Number(branchLine?.match(/behind\s+(\d+)/)?.[1] ?? 0)
+  const files = lines
+    .filter((line) => !line.startsWith('## '))
+    .map((line) => ({
+      status: line.slice(0, 2).trim() || line.slice(0, 2),
+      path: line.slice(3).trim()
+    }))
+    .filter((file) => file.path)
+
+  const { insertions, deletions } = parseNumstat(numstatRaw)
+
+  return {
+    ok: true,
+    cwd,
+    root,
+    branch: branchMatch?.[1],
+    ahead,
+    behind,
+    filesChanged: files.length,
+    insertions,
+    deletions,
+    added: files.filter((file) => file.status.includes('A')).length,
+    modified: files.filter((file) => file.status.includes('M') || file.status.includes('R') || file.status.includes('C')).length,
+    deleted: files.filter((file) => file.status.includes('D')).length,
+    untracked: files.filter((file) => file.status === '??').length,
+    files: files.slice(0, 20),
+    raw
+  }
 }
 
 function extractParams(pathname: string, pattern: string): Record<string, string> | null {
@@ -214,10 +270,29 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
     }
   }
 
-  function isPathUnderRoot(filePath: string, root: string): boolean {
+  function resolveBoundaryPath(filePath: string): string {
     const resolved = path.resolve(filePath)
-    let realTarget: string
-    try { realTarget = realpathSync(resolved) } catch { realTarget = resolved }
+    try {
+      return realpathSync(resolved)
+    } catch {
+      let current = resolved
+      const missingParts: string[] = []
+      while (!existsSync(current)) {
+        const parent = path.dirname(current)
+        if (parent === current) return resolved
+        missingParts.unshift(path.basename(current))
+        current = parent
+      }
+      try {
+        return path.join(realpathSync(current), ...missingParts)
+      } catch {
+        return resolved
+      }
+    }
+  }
+
+  function isPathUnderRoot(filePath: string, root: string): boolean {
+    const realTarget = resolveBoundaryPath(filePath)
     let realRoot: string
     try { realRoot = realpathSync(root) } catch { realRoot = root }
     return realTarget.startsWith(realRoot + path.sep) || realTarget === realRoot
@@ -228,11 +303,36 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
     return undefined
   }
 
+  function cleanupSession(sessionId: string): void {
+    const existing = idleTimers.get(sessionId)
+    if (existing) clearTimeout(existing)
+    idleTimers.delete(sessionId)
+    workspaceRoots.delete(sessionId)
+  }
+
+  sessionManager.on('session:exit', (payload) => {
+    cleanupSession(payload.sessionId)
+  })
+
+  function resolveWorkspaceRoot(cwdInput?: string): { root?: string; error?: string } {
+    const activeRoot = findWorkspaceRoot()
+    if (!cwdInput?.trim()) {
+      return activeRoot ? { root: activeRoot } : { error: 'Access denied — choose a project before browsing files' }
+    }
+
+    try {
+      const normalized = normalizeCwd(cwdInput)
+      return { root: realpathSync(normalized) }
+    } catch (err) {
+      return { error: err instanceof Error ? err.message : 'Invalid project directory' }
+    }
+  }
+
   const ALLOWED_MEMORY_NAMES = new Set(['COMMANDCODE.md', 'AGENTS.md', 'CLAUDE.md'])
 
   function isAllowedMemoryPath(filePath: string, root: string): boolean {
     if (!isPathUnderRoot(filePath, root)) return false
-    const relative = path.relative(root, filePath)
+    const relative = path.relative(resolveBoundaryPath(root), resolveBoundaryPath(filePath))
     const base = path.basename(filePath)
     if (ALLOWED_MEMORY_NAMES.has(base)) return true
     if (relative.startsWith('.commandcode' + path.sep + 'memory' + path.sep)) return true
@@ -241,8 +341,110 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
 
   function isAllowedAgentPath(filePath: string, root: string): boolean {
     if (!isPathUnderRoot(filePath, root)) return false
-    const relative = path.relative(root, filePath)
+    const relative = path.relative(resolveBoundaryPath(root), resolveBoundaryPath(filePath))
     return relative.startsWith('.commandcode' + path.sep + 'agents' + path.sep)
+  }
+
+  function isAllowedTranscriptPath(filePath: string): boolean {
+    const home = os.homedir()
+    const allowedRoots = [
+      path.join(home, '.commandcode', 'projects'),
+      path.join(home, '.commandcode', 'sessions'),
+      path.join(home, '.commandcode', 'transcripts'),
+      path.join(home, '.commandcode-gui-starter', 'transcripts')
+    ]
+    return allowedRoots.some((root) => isPathUnderRoot(filePath, root))
+  }
+
+  function appPreferencesPath(): string {
+    return path.join(os.homedir(), '.commandcode', 'gui-preferences.json')
+  }
+
+  function sanitizeStringArray(input: unknown, maxItems: number): string[] | undefined {
+    if (!Array.isArray(input)) return undefined
+    return input
+      .filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+      .map((item) => item.trim())
+      .slice(0, maxItems)
+  }
+
+  function sanitizeProjectModels(input: unknown): Record<string, string> | undefined {
+    if (!input || typeof input !== 'object') return undefined
+    const out: Record<string, string> = {}
+    for (const [project, model] of Object.entries(input as Record<string, unknown>)) {
+      if (typeof project === 'string' && typeof model === 'string' && project.trim() && model.trim()) {
+        out[project.trim()] = model.trim()
+      }
+    }
+    return out
+  }
+
+  function sanitizeAppPreferences(input: unknown): AppGuiPreferences {
+    const raw = (input && typeof input === 'object') ? input as Record<string, unknown> : {}
+    const next: AppGuiPreferences = {
+      version: 1,
+      updatedAt: new Date().toISOString()
+    }
+
+    if (typeof raw.cwd === 'string') next.cwd = raw.cwd
+    const recentProjects = sanitizeStringArray(raw.recentProjects, 12)
+    if (recentProjects) next.recentProjects = recentProjects
+    if (typeof raw.commandExecutable === 'string' && raw.commandExecutable.trim()) next.commandExecutable = raw.commandExecutable.trim()
+    if (typeof raw.model === 'string') next.model = raw.model
+    const projectModels = sanitizeProjectModels(raw.projectModels)
+    if (projectModels) next.projectModels = projectModels
+    if (raw.appearanceTheme === 'cc-spectrum' || raw.appearanceTheme === 'terminal-minimal' || raw.appearanceTheme === 'blueprint' || raw.appearanceTheme === 'high-contrast') {
+      next.appearanceTheme = raw.appearanceTheme
+    }
+    const releaseNotesSeen = sanitizeStringArray(raw.releaseNotesSeen, 50)
+    if (releaseNotesSeen) next.releaseNotesSeen = releaseNotesSeen
+    if (typeof raw.sidebarWidth === 'number' && Number.isFinite(raw.sidebarWidth)) {
+      next.sidebarWidth = Math.min(420, Math.max(220, raw.sidebarWidth))
+    }
+    if (typeof raw.rightInspectorWidth === 'number' && Number.isFinite(raw.rightInspectorWidth)) {
+      next.rightInspectorWidth = Math.min(720, Math.max(320, raw.rightInspectorWidth))
+    }
+
+    return next
+  }
+
+  function projectPreferencesPath(cwdInput: string | undefined): { root?: string; prefPath?: string; error?: string } {
+    const cwd = cwdInput?.trim()
+    if (!cwd) return { error: 'Missing project path' }
+
+    const root = path.resolve(cwd)
+    if (!existsSync(root) || !statSync(root).isDirectory()) {
+      return { error: 'Project path not found' }
+    }
+
+    return {
+      root,
+      prefPath: path.join(root, '.commandcode', 'gui-preferences.json')
+    }
+  }
+
+  function sanitizeProjectPreferences(input: unknown, root: string): ProjectGuiPreferences {
+    const raw = (input && typeof input === 'object') ? input as Record<string, unknown> : {}
+    const next: ProjectGuiPreferences = {
+      version: 1,
+      projectPath: root,
+      updatedAt: new Date().toISOString()
+    }
+
+    if (typeof raw.model === 'string') next.model = raw.model
+    if (raw.runtimeMode === 'mock' || raw.runtimeMode === 'real-session') next.runtimeMode = raw.runtimeMode
+    if (raw.permissionMode === 'standard' || raw.permissionMode === 'plan' || raw.permissionMode === 'auto-accept') next.permissionMode = raw.permissionMode
+    if (typeof raw.trust === 'boolean') next.trust = raw.trust
+    if (typeof raw.skipOnboarding === 'boolean') next.skipOnboarding = raw.skipOnboarding
+    if (typeof raw.headlessMaxTurns === 'number' && Number.isFinite(raw.headlessMaxTurns)) {
+      next.headlessMaxTurns = Math.max(1, Math.min(100, Math.floor(raw.headlessMaxTurns)))
+    }
+    if (typeof raw.headlessYolo === 'boolean') next.headlessYolo = raw.headlessYolo
+    if (raw.appearanceTheme === 'cc-spectrum' || raw.appearanceTheme === 'terminal-minimal' || raw.appearanceTheme === 'blueprint' || raw.appearanceTheme === 'high-contrast') {
+      next.appearanceTheme = raw.appearanceTheme
+    }
+
+    return next
   }
 
   // WS server is created after HTTP server
@@ -276,12 +478,83 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
     )
   })
 
+  addRoute('POST', '/api/update', async ({ body }) => {
+    const { commandExecutable, cwd, checkOnly } = body as Record<string, unknown>
+    return commandCodeUpdate(
+      typeof commandExecutable === 'string' ? commandExecutable : undefined,
+      typeof cwd === 'string' ? cwd : undefined,
+      checkOnly !== false
+    )
+  })
+
   addRoute('POST', '/api/models', async ({ body }) => {
     const { commandExecutable, cwd } = body as Record<string, unknown>
     return listModels(
       typeof commandExecutable === 'string' ? commandExecutable : undefined,
       typeof cwd === 'string' ? cwd : undefined
     )
+  })
+
+  addRoute('POST', '/api/app/preferences', async () => {
+    const prefPath = appPreferencesPath()
+    if (!existsSync(prefPath)) {
+      return { ok: true, path: prefPath, preferences: { version: 1 } } satisfies AppGuiPreferencesResult
+    }
+
+    const stat = statSync(prefPath)
+    if (stat.size > 64 * 1024) {
+      return { ok: false, path: prefPath, error: 'App GUI preferences file is too large' } satisfies AppGuiPreferencesResult
+    }
+
+    try {
+      const parsed = JSON.parse(readFileSync(prefPath, 'utf8')) as AppGuiPreferences
+      return { ok: true, path: prefPath, preferences: parsed } satisfies AppGuiPreferencesResult
+    } catch {
+      return { ok: false, path: prefPath, error: 'App GUI preferences file is invalid JSON' } satisfies AppGuiPreferencesResult
+    }
+  })
+
+  addRoute('POST', '/api/app/preferences/save', async ({ body }) => {
+    const { preferences } = body as { preferences?: unknown }
+    const prefPath = appPreferencesPath()
+    const sanitized = sanitizeAppPreferences(preferences)
+    mkdirSync(path.dirname(prefPath), { recursive: true })
+    writeFileSync(prefPath, `${JSON.stringify(sanitized, null, 2)}\n`, 'utf8')
+    return { ok: true, path: prefPath, preferences: sanitized } satisfies AppGuiPreferencesResult
+  })
+
+  addRoute('POST', '/api/project/preferences', async ({ body }) => {
+    const { cwd } = body as { cwd?: string }
+    const target = projectPreferencesPath(cwd)
+    if (target.error || !target.prefPath) return { ok: false, error: target.error } satisfies ProjectGuiPreferencesResult
+
+    if (!existsSync(target.prefPath)) {
+      return { ok: true, path: target.prefPath, preferences: { version: 1, projectPath: target.root } } satisfies ProjectGuiPreferencesResult
+    }
+
+    const stat = statSync(target.prefPath)
+    if (stat.size > 64 * 1024) {
+      return { ok: false, path: target.prefPath, error: 'Project GUI preferences file is too large' } satisfies ProjectGuiPreferencesResult
+    }
+
+    try {
+      const parsed = JSON.parse(readFileSync(target.prefPath, 'utf8')) as ProjectGuiPreferences
+      return { ok: true, path: target.prefPath, preferences: parsed } satisfies ProjectGuiPreferencesResult
+    } catch {
+      return { ok: false, path: target.prefPath, error: 'Project GUI preferences file is invalid JSON' } satisfies ProjectGuiPreferencesResult
+    }
+  })
+
+  addRoute('POST', '/api/project/preferences/save', async ({ body }) => {
+    const { cwd, preferences } = body as { cwd?: string; preferences?: unknown }
+    const target = projectPreferencesPath(cwd)
+    if (target.error || !target.root || !target.prefPath) return { ok: false, error: target.error } satisfies ProjectGuiPreferencesResult
+
+    const sanitized = sanitizeProjectPreferences(preferences, target.root)
+    mkdirSync(path.dirname(target.prefPath), { recursive: true })
+    writeFileSync(target.prefPath, `${JSON.stringify(sanitized, null, 2)}\n`, 'utf8')
+
+    return { ok: true, path: target.prefPath, preferences: sanitized } satisfies ProjectGuiPreferencesResult
   })
 
   addRoute('POST', '/api/headless', async ({ body }) => {
@@ -305,8 +578,10 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
   addRoute('POST', '/api/sessions', async ({ body }) => {
     const options = body as SessionStartOptions
     const result = sessionManager.start(options)
-    registerWorkspace(result.id, result.cwd)
-    resetIdleTimer(result.id)
+    if (sessionManager.isActive(result.id)) {
+      registerWorkspace(result.id, result.cwd)
+      resetIdleTimer(result.id)
+    }
     return result
   })
 
@@ -315,6 +590,29 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
     sessionManager.write(params.id!, data ?? '')
     resetIdleTimer(params.id!)
     return { ok: true }
+  })
+
+  addRoute('POST', '/api/sessions/transcript', async ({ body }) => {
+    const { transcriptPath } = body as { transcriptPath?: string }
+    if (!transcriptPath) return { error: 'No transcript path provided' }
+
+    const resolved = path.resolve(transcriptPath)
+    if (!isAllowedTranscriptPath(resolved)) {
+      return { error: 'Access denied — path outside Command Code transcript stores' }
+    }
+
+    if (!existsSync(resolved) || statSync(resolved).isDirectory()) {
+      return { error: 'Transcript not found' }
+    }
+
+    const stat = statSync(resolved)
+    if (stat.size > MAX_FILE_READ_BYTES) {
+      return { error: `Transcript too large (${(stat.size / 1024 / 1024).toFixed(1)}MB). Max: 1MB.` }
+    }
+
+    const content = readFileSync(resolved, 'utf8')
+    const ext = path.extname(resolved).toLowerCase()
+    return { content, path: resolved, ext }
   })
 
   addRoute('POST', '/api/sessions/:id/resize', async ({ body, params }) => {
@@ -337,20 +635,25 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
 
   addRoute('DELETE', '/api/sessions/:id', async ({ params }) => {
     sessionManager.forceKill(params.id!)
+    cleanupSession(params.id!)
     return { ok: true }
   })
 
   // File system browsing — contained to registered workspace roots
   addRoute('POST', '/api/files/list', async ({ body }) => {
-    const { dir } = body as { dir?: string }
-    const target = path.resolve(dir ?? '.')
-    const wsRoot = findWorkspaceRoot()
+    const { dir, cwd } = body as { dir?: string; cwd?: string }
+    const workspace = resolveWorkspaceRoot(cwd)
+    if (!workspace.root) {
+      return { error: workspace.error || 'Access denied — project root is required', entries: [] }
+    }
+
+    const target = path.resolve(dir ?? workspace.root)
 
     if (!existsSync(target) || !statSync(target).isDirectory()) {
       return { error: 'Directory not found', entries: [] }
     }
 
-    if (wsRoot && !isPathUnderRoot(target, wsRoot)) {
+    if (!isPathUnderRoot(target, workspace.root)) {
       return { error: 'Access denied — path outside workspace root', entries: [] }
     }
 
@@ -376,12 +679,16 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
   })
 
   addRoute('POST', '/api/files/read', async ({ body }) => {
-    const { filePath: fp } = body as { filePath?: string }
+    const { filePath: fp, cwd } = body as { filePath?: string; cwd?: string }
     if (!fp) return { error: 'No path provided' }
-    const resolved = path.resolve(fp)
-    const wsRoot = findWorkspaceRoot()
+    const workspace = resolveWorkspaceRoot(cwd)
+    if (!workspace.root) {
+      return { error: workspace.error || 'Access denied — project root is required' }
+    }
 
-    if (wsRoot && !isPathUnderRoot(resolved, wsRoot)) {
+    const resolved = path.resolve(fp)
+
+    if (!isPathUnderRoot(resolved, workspace.root)) {
       return { error: 'Access denied — path outside workspace root' }
     }
 
@@ -422,9 +729,83 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
     return ideResult
   })
 
+  addRoute('POST', '/api/git/status', async ({ body }) => {
+    const { cwd } = body as { cwd?: string }
+    let dir: string
+    try {
+      dir = normalizeCwd(cwd)
+    } catch (err) {
+      return {
+        ok: false,
+        cwd: cwd || '.',
+        filesChanged: 0,
+        insertions: 0,
+        deletions: 0,
+        added: 0,
+        modified: 0,
+        deleted: 0,
+        untracked: 0,
+        files: [],
+        raw: '',
+        error: err instanceof Error ? err.message : 'Invalid project directory'
+      } satisfies GitEnvironmentStatus
+    }
+
+    const rootResult = await runProcess('git', ['rev-parse', '--show-toplevel'], dir, 10_000)
+    if (rootResult.exitCode !== 0) {
+      return {
+        ok: false,
+        cwd: dir,
+        filesChanged: 0,
+        insertions: 0,
+        deletions: 0,
+        added: 0,
+        modified: 0,
+        deleted: 0,
+        untracked: 0,
+        files: [],
+        raw: rootResult.stderr || rootResult.stdout,
+        error: 'Not a git repository'
+      } satisfies GitEnvironmentStatus
+    }
+
+    const root = rootResult.stdout.trim() || dir
+    const [statusResult, worktreeDiff, stagedDiff] = await Promise.all([
+      runProcess('git', ['status', '--porcelain=v1', '--branch'], root, 10_000),
+      runProcess('git', ['diff', '--numstat'], root, 10_000),
+      runProcess('git', ['diff', '--cached', '--numstat'], root, 10_000)
+    ])
+
+    if (statusResult.exitCode !== 0) {
+      return {
+        ok: false,
+        cwd: dir,
+        root,
+        filesChanged: 0,
+        insertions: 0,
+        deletions: 0,
+        added: 0,
+        modified: 0,
+        deleted: 0,
+        untracked: 0,
+        files: [],
+        raw: statusResult.stderr || statusResult.stdout,
+        error: 'Git status failed'
+      } satisfies GitEnvironmentStatus
+    }
+
+    return parseGitStatus(dir, root, statusResult.stdout, `${worktreeDiff.stdout}\n${stagedDiff.stdout}`)
+  })
+
   // Session discovery & usage & taste/agents/MCP/skills/memory
-  addRoute('POST', '/api/sessions/discover', async () => {
-    return { sessions: discoverSessions() }
+  addRoute('POST', '/api/sessions/discover', async ({ body }) => {
+    const { cwd } = body as { cwd?: string }
+    return { sessions: discoverSessions(cwd) }
+  })
+
+  addRoute('POST', '/api/project/commandcode-reference', async ({ body }) => {
+    const { cwd } = body as { cwd?: string }
+    return { reference: projectCommandCodeReference(cwd) }
   })
 
   addRoute('POST', '/api/usage', async ({ body }) => {
@@ -441,13 +822,15 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
   })
 
   addRoute('POST', '/api/agents/save', async ({ body }) => {
-    const { path: agentPath, content } = body as { path?: string; content?: string }
+    const { path: agentPath, content, cwd } = body as { path?: string; content?: string; cwd?: string }
     if (!agentPath || content == null) return { ok: false, error: 'Missing path or content' }
-    const wsRoot = findWorkspaceRoot()
-    if (wsRoot && !isAllowedAgentPath(agentPath, wsRoot)) {
+    const workspace = resolveWorkspaceRoot(cwd)
+    if (!workspace.root) return { ok: false, error: workspace.error || 'Access denied — project root is required' }
+    const resolved = path.resolve(agentPath)
+    if (!isAllowedAgentPath(resolved, workspace.root)) {
       return { ok: false, error: 'Access denied — agent path must be under .commandcode/agents/' }
     }
-    const ok = saveAgent(agentPath, content)
+    const ok = saveAgent(resolved, content)
     return { ok, error: ok ? undefined : 'Failed to save agent config' }
   })
 
@@ -478,13 +861,15 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
   })
 
   addRoute('POST', '/api/memories/save', async ({ body }) => {
-    const { path: memPath, content } = body as { path?: string; content?: string }
+    const { path: memPath, content, cwd } = body as { path?: string; content?: string; cwd?: string }
     if (!memPath || content == null) return { ok: false, error: 'Missing path or content' }
-    const wsRoot = findWorkspaceRoot()
-    if (wsRoot && !isAllowedMemoryPath(memPath, wsRoot)) {
+    const workspace = resolveWorkspaceRoot(cwd)
+    if (!workspace.root) return { ok: false, error: workspace.error || 'Access denied — project root is required' }
+    const resolved = path.resolve(memPath)
+    if (!isAllowedMemoryPath(resolved, workspace.root)) {
       return { ok: false, error: 'Access denied — memory only writable to COMMANDCODE.md, AGENTS.md, CLAUDE.md, or .commandcode/memory/' }
     }
-    const ok = saveMemory(memPath, content)
+    const ok = saveMemory(resolved, content)
     return { ok, error: ok ? undefined : 'Failed to save memory file' }
   })
 
@@ -737,8 +1122,7 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
     if (existing) clearTimeout(existing)
     idleTimers.set(sessionId, setTimeout(() => {
       sessionManager.forceKill(sessionId)
-      idleTimers.delete(sessionId)
-      workspaceRoots.delete(sessionId)
+      cleanupSession(sessionId)
     }, SESSION_IDLE_TIMEOUT))
   }
 
@@ -784,6 +1168,7 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
         for (const timer of idleTimers.values()) clearTimeout(timer)
         idleTimers.clear()
         sessionManager.killAll()
+        workspaceRoots.clear()
         wss.close()
         httpServer.close(() => resolve())
       })

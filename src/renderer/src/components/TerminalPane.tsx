@@ -1,24 +1,61 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { JSX } from 'react'
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import { WebLinksAddon } from '@xterm/addon-web-links'
 import type { SessionExitPayload } from '../../../shared/types'
 import type { TransportAPI } from '../../../core/transport'
+import { looksLikeCliSelectionPrompt } from '../../../shared/terminalPrompts'
 import { notify } from './ToastSystem'
 
 type TerminalPaneProps = {
   transport: TransportAPI
   sessionId?: string
-  onExit: (payload: SessionExitPayload) => void
+  onExit?: (payload: SessionExitPayload) => void
+  onExpandRequest?: () => void
+  onInputRequest?: () => void
+  onInputCommit?: () => void
+  compact?: boolean
+  inputEnabled?: boolean
+  notifyResponses?: boolean
 }
 
-export function TerminalPane({ transport, sessionId, onExit }: TerminalPaneProps): JSX.Element {
+export function TerminalPane({ transport, sessionId, onExit, onExpandRequest, onInputRequest, onInputCommit, compact = false, inputEnabled = true, notifyResponses = true }: TerminalPaneProps): JSX.Element {
   const hostRef = useRef<HTMLDivElement | null>(null)
   const terminalRef = useRef<Terminal | null>(null)
   const fitRef = useRef<FitAddon | null>(null)
   const sessionRef = useRef<string | undefined>(sessionId)
   const notifiedRef = useRef(true)
+  const lastSizeRef = useRef({ cols: 0, rows: 0 })
+  const lastUserInputAtRef = useRef(0)
+  const recentOutputRef = useRef('')
+  const onExpandRequestRef = useRef(onExpandRequest)
+  const onInputRequestRef = useRef(onInputRequest)
+  const onInputCommitRef = useRef(onInputCommit)
+  const inputEnabledRef = useRef(inputEnabled)
+  const [followingOutput, setFollowingOutput] = useState(true)
+
+  useEffect(() => {
+    onExpandRequestRef.current = onExpandRequest
+  }, [onExpandRequest])
+
+  useEffect(() => {
+    onInputRequestRef.current = onInputRequest
+  }, [onInputRequest])
+
+  useEffect(() => {
+    onInputCommitRef.current = onInputCommit
+  }, [onInputCommit])
+
+  useEffect(() => {
+    inputEnabledRef.current = inputEnabled
+    if (terminalRef.current) {
+      terminalRef.current.options.disableStdin = !inputEnabled
+      if (inputEnabled) {
+        terminalRef.current.focus()
+      }
+    }
+  }, [inputEnabled])
 
   useEffect(() => {
     if (!hostRef.current || terminalRef.current) return
@@ -30,6 +67,8 @@ export function TerminalPane({ transport, sessionId, onExit }: TerminalPaneProps
       fontSize: 13,
       lineHeight: 1.25,
       scrollback: 20_000,
+      scrollOnUserInput: false,
+      disableStdin: !inputEnabledRef.current,
       theme: {
         background: '#050505',
         foreground: '#f4f4f5',
@@ -52,14 +91,29 @@ export function TerminalPane({ transport, sessionId, onExit }: TerminalPaneProps
     terminal.loadAddon(new WebLinksAddon())
     terminal.open(hostRef.current)
     fit.fit()
-
     terminal.writeln('\x1b[35mCommand Code GUI\x1b[0m')
     terminal.writeln('Start a session from the left rail, or enable Mock mode to preview the UI.')
     terminal.writeln('')
 
     terminal.onData((data) => {
+      if (!inputEnabledRef.current) {
+        return
+      }
+      lastUserInputAtRef.current = Date.now()
+      if (data === '\x0f') {
+        onExpandRequestRef.current?.()
+        return
+      }
       const active = sessionRef.current
       if (active) transport.write(active, data)
+      if (data.includes('\r') || data.includes('\n')) {
+        onInputCommitRef.current?.()
+      }
+    })
+
+    const scrollDisposable = terminal.onScroll(() => {
+      const buffer = terminal.buffer.active
+      setFollowingOutput(buffer.viewportY >= buffer.baseY - 1)
     })
 
     terminalRef.current = terminal
@@ -68,11 +122,20 @@ export function TerminalPane({ transport, sessionId, onExit }: TerminalPaneProps
     const resize = (): void => {
       fit.fit()
       const active = sessionRef.current
-      if (active) transport.resize(active, terminal.cols, terminal.rows)
+      const nextSize = { cols: terminal.cols, rows: terminal.rows }
+      const changed = nextSize.cols !== lastSizeRef.current.cols || nextSize.rows !== lastSizeRef.current.rows
+      lastSizeRef.current = nextSize
+      if (active && changed) transport.resize(active, terminal.cols, terminal.rows)
     }
 
+    const resizeObserver = new ResizeObserver(() => {
+      window.requestAnimationFrame(resize)
+    })
+    resizeObserver.observe(hostRef.current)
     window.addEventListener('resize', resize)
     return () => {
+      resizeObserver.disconnect()
+      scrollDisposable.dispose()
       window.removeEventListener('resize', resize)
       terminal.dispose()
       terminalRef.current = null
@@ -91,24 +154,46 @@ export function TerminalPane({ transport, sessionId, onExit }: TerminalPaneProps
     terminal.writeln('\x1b[2mattaching session ' + sessionId + '\x1b[0m')
     terminal.writeln('')
     fitRef.current?.fit()
+    if (inputEnabledRef.current) {
+      terminal.focus()
+    }
+    terminal.scrollToBottom()
+    setFollowingOutput(true)
+    lastSizeRef.current = { cols: terminal.cols, rows: terminal.rows }
     transport.resize(sessionId, terminal.cols, terminal.rows)
 
     notifiedRef.current = false
 
     const offData = transport.onSessionData(sessionId, (data) => {
-      terminal.write(data)
+      recentOutputRef.current = (recentOutputRef.current + data).slice(-6000)
+      if (!inputEnabledRef.current && looksLikeCliSelectionPrompt(recentOutputRef.current)) {
+        onInputRequestRef.current?.()
+      }
 
-      if (!notifiedRef.current && data.length > 20) {
+      const buffer = terminal.buffer.active
+      const wasFollowing = buffer.viewportY >= buffer.baseY - 1
+      const recentUserInput = Date.now() - lastUserInputAtRef.current < 900
+      terminal.write(data, () => {
+        if (wasFollowing && !recentUserInput) {
+          terminal.scrollToBottom()
+        }
+        const nextBuffer = terminal.buffer.active
+        setFollowingOutput(nextBuffer.viewportY >= nextBuffer.baseY - 1)
+      })
+
+      if (notifyResponses && !notifiedRef.current && data.length > 20) {
         notifiedRef.current = true
         setTimeout(() => notify('AI responded', 'session-response'), 300)
       }
     })
 
-    const offExit = transport.onSessionExit(sessionId, (payload) => {
-      terminal.writeln('')
-      terminal.writeln(`\x1b[35msession exited\x1b[0m code=${payload.exitCode ?? 'null'} signal=${payload.signal ?? 'null'}`)
-      onExit(payload)
-    })
+    const offExit = onExit
+      ? transport.onSessionExit(sessionId, (payload) => {
+        terminal.writeln('')
+        terminal.writeln(`\x1b[35msession exited\x1b[0m code=${payload.exitCode ?? 'null'} signal=${payload.signal ?? 'null'}`)
+        onExit(payload)
+      })
+      : () => undefined
 
     return () => {
       offData()
@@ -116,5 +201,21 @@ export function TerminalPane({ transport, sessionId, onExit }: TerminalPaneProps
     }
   }, [sessionId, onExit, transport])
 
-  return <div className="terminal-host" ref={hostRef} />
+  return (
+    <div
+      className={`terminal-host-wrap ${compact ? 'terminal-host-wrap--compact' : ''} ${inputEnabled ? 'terminal-host-wrap--input-enabled' : 'terminal-host-wrap--read-only'}`}
+      onMouseDown={() => {
+        if (!inputEnabledRef.current) {
+          onInputRequestRef.current?.()
+        }
+      }}
+    >
+      <div className="terminal-host" ref={hostRef} />
+      {!followingOutput && (
+        <button className="terminal-jump-button" onClick={() => { terminalRef.current?.scrollToBottom(); terminalRef.current?.focus(); setFollowingOutput(true) }}>
+          Jump to prompt
+        </button>
+      )}
+    </div>
+  )
 }

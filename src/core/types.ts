@@ -17,10 +17,87 @@ export type CommandCodeStatus = {
   error?: string
 }
 
+export type CommandCodeUpdateResult = {
+  ok: boolean
+  command: string
+  stdout: string
+  stderr: string
+  exitCode: number | null
+  checkOnly: boolean
+  upToDate: boolean
+  updateAvailable: boolean
+  version?: string
+  error?: string
+}
+
+export type GitEnvironmentStatus = {
+  ok: boolean
+  cwd: string
+  root?: string
+  branch?: string
+  ahead?: number
+  behind?: number
+  filesChanged: number
+  insertions: number
+  deletions: number
+  added: number
+  modified: number
+  deleted: number
+  untracked: number
+  files: Array<{ path: string; status: string }>
+  raw: string
+  error?: string
+}
+
+export type ProjectGuiPreferences = {
+  version: 1
+  projectPath?: string
+  model?: string
+  runtimeMode?: 'mock' | 'real-session'
+  permissionMode?: PermissionMode
+  trust?: boolean
+  skipOnboarding?: boolean
+  headlessMaxTurns?: number
+  headlessYolo?: boolean
+  appearanceTheme?: 'cc-spectrum' | 'terminal-minimal' | 'blueprint' | 'high-contrast'
+  updatedAt?: string
+}
+
+export type ProjectGuiPreferencesResult = {
+  ok: boolean
+  path?: string
+  preferences?: ProjectGuiPreferences
+  error?: string
+}
+
+export type AppGuiPreferences = {
+  version: 1
+  cwd?: string
+  recentProjects?: string[]
+  commandExecutable?: string
+  model?: string
+  projectModels?: Record<string, string>
+  appearanceTheme?: 'cc-spectrum' | 'terminal-minimal' | 'blueprint' | 'high-contrast'
+  releaseNotesSeen?: string[]
+  sidebarWidth?: number
+  rightInspectorWidth?: number
+  updatedAt?: string
+}
+
+export type AppGuiPreferencesResult = {
+  ok: boolean
+  path?: string
+  preferences?: AppGuiPreferences
+  error?: string
+}
+
 export type SessionStartOptions = {
   cwd: string
+  terminalMode?: 'command-code' | 'shell'
   commandExecutable?: string
   initialPrompt?: string
+  resume?: string
+  continueLast?: boolean
   model?: string
   permissionMode?: PermissionMode
   trust?: boolean
@@ -115,8 +192,33 @@ export type DiscoveredSession = {
   timestamp: string
   transcriptPath: string
   sizeBytes: number
+  title?: string
   cwd?: string
   model?: string
+  source?: 'global' | 'project'
+}
+
+export type ProjectCommandCodeFile = {
+  name: string
+  path: string
+  sizeBytes: number
+  updatedAt: string
+}
+
+export type ProjectCommandCodeSection = {
+  key: 'commands' | 'skills' | 'taste' | 'memory' | 'preferences' | 'sessions'
+  label: string
+  description: string
+  path: string
+  exists: boolean
+  files: ProjectCommandCodeFile[]
+}
+
+export type ProjectCommandCodeReference = {
+  projectPath: string
+  projectCommandCodePath: string
+  userProjectContextPath: string
+  sections: ProjectCommandCodeSection[]
 }
 
 export type UsageSummary = {

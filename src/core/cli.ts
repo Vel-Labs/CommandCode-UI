@@ -5,6 +5,7 @@ import path from 'node:path'
 import type {
   CommandCodeCheck,
   CommandCodeStatus,
+  CommandCodeUpdateResult,
   HeadlessRunOptions,
   HeadlessRunResult,
   ModelListResult,
@@ -75,6 +76,8 @@ export function buildCommonArgs(options: {
 
 export function buildInteractiveArgs(options: {
   initialPrompt?: string
+  resume?: string
+  continueLast?: boolean
   model?: string
   permissionMode?: PermissionMode
   trust?: boolean
@@ -82,6 +85,12 @@ export function buildInteractiveArgs(options: {
   addDirs?: string[]
 }): string[] {
   const args: string[] = []
+  if (options.continueLast) {
+    args.push('--continue')
+  } else if (options.resume?.trim()) {
+    args.push('--resume', options.resume.trim())
+  }
+
   if (options.initialPrompt?.trim()) {
     args.push(options.initialPrompt.trim())
   }
@@ -217,6 +226,30 @@ export async function commandCodeStatus(commandExecutable?: string, cwdInput?: s
     stdout: result.stdout,
     stderr: result.stderr,
     parsed,
+    error: result.exitCode === 0 ? undefined : `Command exited with ${result.exitCode}`
+  }
+}
+
+export async function commandCodeUpdate(commandExecutable?: string, cwdInput?: string, checkOnly = true): Promise<CommandCodeUpdateResult> {
+  const command = getCommandExecutable(commandExecutable)
+  const cwd = normalizeCwd(cwdInput)
+  const args = checkOnly ? ['update', '--check-only'] : ['update']
+  const result = await runProcess(command, args, cwd, 120_000)
+  const output = `${result.stdout}\n${result.stderr}`
+  const upToDate = /up to date/i.test(output)
+  const updateAvailable = /update available|new version|out of date/i.test(output) && !upToDate
+  const version = output.match(/(\d+\.\d+\.\d+(?:[-\w.]*)?)/)?.[1]
+
+  return {
+    ok: result.exitCode === 0,
+    command,
+    stdout: result.stdout,
+    stderr: result.stderr,
+    exitCode: result.exitCode,
+    checkOnly,
+    upToDate,
+    updateAvailable,
+    version,
     error: result.exitCode === 0 ? undefined : `Command exited with ${result.exitCode}`
   }
 }

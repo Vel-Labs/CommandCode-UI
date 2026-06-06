@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { buildInteractiveArgs, buildHeadlessArgs, getCommandExecutable, normalizeCwd } from '../src/core/cli'
+import { buildPtySubmitChunks } from '../src/shared/ptyInput'
+import { looksLikeCliSelectionPrompt, stripAnsi } from '../src/shared/terminalPrompts'
 import os from 'node:os'
 
 describe('getCommandExecutable', () => {
@@ -47,6 +49,18 @@ describe('buildInteractiveArgs', () => {
 
   it('includes initialPrompt verbatim', () => {
     expect(buildInteractiveArgs({ initialPrompt: 'hello' })).toEqual(['hello'])
+  })
+
+  it('includes --resume before common options', () => {
+    expect(buildInteractiveArgs({ resume: 'Verify roadmap layers', model: 'deepseek' })).toEqual(['--resume', 'Verify roadmap layers', '--model', 'deepseek'])
+  })
+
+  it('includes --continue for the last conversation', () => {
+    expect(buildInteractiveArgs({ continueLast: true })).toEqual(['--continue'])
+  })
+
+  it('prefers --continue over --resume when both are provided', () => {
+    expect(buildInteractiveArgs({ continueLast: true, resume: 'older session' })).toEqual(['--continue'])
   })
 
   it('includes --model when model is provided', () => {
@@ -144,5 +158,52 @@ describe('buildHeadlessArgs', () => {
     const args = buildHeadlessArgs({ ...baseOptions, trust: true, skipOnboarding: true })
     expect(args).toContain('--trust')
     expect(args).toContain('--skip-onboarding')
+  })
+})
+
+describe('buildPtySubmitChunks', () => {
+  it('turns composer prompts into keystrokes plus Enter', () => {
+    expect(buildPtySubmitChunks('test')).toEqual(['t', 'e', 's', 't', '\r'])
+  })
+
+  it('trims outer whitespace before submitting', () => {
+    expect(buildPtySubmitChunks('  test  ')).toEqual(['t', 'e', 's', 't', '\r'])
+  })
+
+  it('normalizes CRLF prompt content before submitting', () => {
+    expect(buildPtySubmitChunks('one\r\ntwo')).toEqual(['o', 'n', 'e', '\n', 't', 'w', 'o', '\r'])
+  })
+
+  it('sends only Enter for empty input', () => {
+    expect(buildPtySubmitChunks('   ')).toEqual(['\r'])
+  })
+})
+
+describe('looksLikeCliSelectionPrompt', () => {
+  it('detects Command Code shell permission menus', () => {
+    const output = [
+      'Execute Shell Command',
+      '',
+      'Command Code needs to execute npx vitest run.',
+      '',
+      '❯ 1. Yes',
+      '  2. Yes, allow all edits during this session [shift+tab]',
+      '  3. No, and tell Command Code what to do differently'
+    ].join('\n')
+
+    expect(looksLikeCliSelectionPrompt(output)).toBe(true)
+  })
+
+  it('handles ANSI-decorated selection output', () => {
+    const output = '\x1b[33mExecute Shell Command\x1b[0m\r\nCommand Code needs permission\r\n\x1b[36m❯ 1. Yes\x1b[0m\r\n  2. No'
+
+    expect(stripAnsi(output)).not.toContain('\x1b')
+    expect(looksLikeCliSelectionPrompt(output)).toBe(true)
+  })
+
+  it('does not treat ordinary numbered output as a menu', () => {
+    const output = ['Test plan', '1. Add unit tests', '2. Run build'].join('\n')
+
+    expect(looksLikeCliSelectionPrompt(output)).toBe(false)
   })
 })

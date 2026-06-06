@@ -1,23 +1,33 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
 import type { JSX } from 'react'
 import {
   ChevronDown,
   Activity,
   CreditCard,
+  Download,
+  BookOpen,
+  FileText,
   Folder,
   FolderOpen,
   Gauge,
   GitBranch,
   HardDrive,
   Keyboard,
+  PanelBottom,
   PanelLeftClose,
   PanelLeftOpen,
+  PanelRightOpen,
   Palette,
   Play,
   Plug,
+  RefreshCw,
+  Route,
+  RotateCcw,
   Search,
   Send,
   Settings,
+  Sparkles,
   SlidersHorizontal,
   SquarePen,
   Terminal,
@@ -26,6 +36,7 @@ import {
   X
 } from 'lucide-react'
 import type { PermissionMode, SessionExitPayload, HeadlessRunResult } from '../../shared/types'
+import type { AppGuiPreferences, CommandCodeUpdateResult, DiscoveredSession, GitEnvironmentStatus, ProjectGuiPreferences } from '../../core/types'
 import type { PtyDoctorResult } from '../../core/ptyDoctor'
 import type { TransportAPI } from '../../core/transport'
 import { useTransport } from './useTransport'
@@ -39,15 +50,28 @@ import { ToastContainer, notify, playChime } from './components/ToastSystem'
 import { IdePanel } from './components/IdePanel'
 import { FileBrowser } from './components/FileBrowser'
 import { FileViewer } from './components/FileViewer'
-import { DocsSidecar } from './components/DocsSidecar'
 import { AdvancedPanel } from './components/AdvancedPanel'
 import { StatusPill } from './components/StatusPill'
+import { buildPtySubmitChunks } from '../../shared/ptyInput'
 
-type WorkspaceView = 'home' | 'session' | 'settings'
-type RuntimeMode = 'mock' | 'real-session' | 'headless'
-type PopoverKey = 'project' | 'mode' | 'permission' | 'runtime' | 'slash' | null
+type WorkspaceView = 'home' | 'session' | 'transcript' | 'settings'
+type RightInspector = 'none' | 'files' | 'file' | 'transcript' | 'docs' | 'advanced' | 'environment' | 'ide'
+type RuntimeMode = 'mock' | 'real-session'
+type PopoverKey = 'project' | 'mode' | 'permission' | 'runtime' | 'model' | 'slash' | null
 type SettingsSection = 'profile' | 'general' | 'runtime' | 'appearance' | 'usage' | 'integrations' | 'advanced'
 type AppearanceTheme = 'cc-spectrum' | 'terminal-minimal' | 'blueprint' | 'high-contrast'
+type CommandAction = 'insert' | 'send' | 'run-headless'
+type UpdateState = 'idle' | 'checking' | 'available' | 'current' | 'updating' | 'failed'
+type SidebarSection = 'projects' | 'recentChats' | 'activeSessions'
+
+type CommandPaletteItem = {
+  id: string
+  label: string
+  command: string
+  group: 'Session' | 'Planning' | 'Design' | 'Agents' | 'Runtime' | 'Project'
+  description: string
+  action?: CommandAction
+}
 
 type SessionTab = {
   id: string
@@ -58,11 +82,69 @@ type SessionTab = {
   transcriptPath: string
   projectLabel: string
   runtimeMode: RuntimeMode
+  resumedSession?: DiscoveredSession
+}
+
+type WorkEvent = {
+  id: string
+  label: string
+  detail: string
+  tone?: 'default' | 'warn' | 'good'
 }
 
 const RECENT_KEY = 'ccgui.recent-dirs'
 const APPEARANCE_KEY = 'ccgui.appearance-theme'
-const quickCommands = ['/status', '/help', '/clear', '/exit']
+const PROJECT_MODEL_KEY = 'ccgui.project-models'
+const RELEASE_NOTES_SEEN_KEY = 'ccgui.release-notes-seen'
+const SIDEBAR_WIDTH_KEY = 'ccgui.sidebar-width'
+const INSPECTOR_WIDTH_KEY = 'ccgui.right-inspector-width'
+const SIDEBAR_MIN_WIDTH = 220
+const SIDEBAR_MAX_WIDTH = 420
+const SIDEBAR_COLLAPSE_WIDTH = 170
+const DEFAULT_SIDEBAR_WIDTH = 292
+const INSPECTOR_MIN_WIDTH = 320
+const INSPECTOR_MAX_WIDTH = 720
+const INSPECTOR_COLLAPSE_WIDTH = 280
+const DEFAULT_INSPECTOR_WIDTH = 420
+const PTY_KEYSTROKE_DELAY_MS = 20
+const commandPaletteItems: CommandPaletteItem[] = [
+  { id: 'help', label: 'Help', command: '/help', group: 'Session', description: 'Show available Command Code commands.' },
+  { id: 'status', label: 'Status', command: '/status', group: 'Session', description: 'Inspect current runtime and authentication state.' },
+  { id: 'clear', label: 'Clear', command: '/clear', group: 'Session', description: 'Clear the interactive conversation view.' },
+  { id: 'exit', label: 'Exit', command: '/exit', group: 'Session', description: 'Ask the current session to exit cleanly.' },
+  { id: 'plan', label: 'Create a plan', command: '/plan', group: 'Planning', description: 'Enter Command Code plan mode for the current task.' },
+  { id: 'headless', label: 'Run headless', command: 'cmd --print', group: 'Planning', description: 'Run the current prompt once with cmd --print and record the result.', action: 'run-headless' },
+  { id: 'design', label: 'Design surface', command: '/design surface', group: 'Design', description: 'Run a design-surface pass for UI and product work.' },
+  { id: 'agents', label: 'Agents', command: '/agents', group: 'Agents', description: 'Manage Command Code agent configurations.' },
+  { id: 'skills', label: 'Skills', command: '/skills', group: 'Agents', description: 'Browse and use available skills.' },
+  { id: 'model', label: 'Model', command: '/model', group: 'Runtime', description: 'Switch or inspect the active model.' },
+  { id: 'configure-models', label: 'Configure models', command: '/configure-models', group: 'Runtime', description: 'Route background tasks like compaction and session titles to specific models.' },
+  { id: 'usage', label: 'Usage', command: '/usage', group: 'Runtime', description: 'Show credits and usage information.' },
+  { id: 'context', label: 'Context', command: '/context', group: 'Runtime', description: 'Inspect context window usage.' },
+  { id: 'memory', label: 'Memory', command: '/memory', group: 'Project', description: 'Manage project memory files.' },
+  { id: 'taste', label: 'Taste', command: '/taste', group: 'Project', description: 'Manage taste learning packages.' },
+  { id: 'mcp', label: 'MCP', command: '/mcp', group: 'Project', description: 'Manage MCP servers.' }
+]
+const commandGroups: CommandPaletteItem['group'][] = ['Session', 'Planning', 'Design', 'Agents', 'Runtime', 'Project']
+const releaseNotes: Record<string, {
+  eyebrow: string
+  title: string
+  body: string
+  bullets: string[]
+  command?: string
+}> = {
+  '0.32.3': {
+    eyebrow: 'New in v0.32.3',
+    title: '/configure-models',
+    body: 'Routes background requests to a model of your choice, so the expensive work and the lightweight housekeeping work can use different models.',
+    bullets: [
+      'Run compaction on MiniMax M2.5.',
+      'Assign session titles with DeepSeek V4 Flash.',
+      'Pick a model for each task, then press r to reset.'
+    ],
+    command: '/configure-models'
+  }
+}
 const appearanceOptions: Array<{
   id: AppearanceTheme
   name: string
@@ -132,15 +214,52 @@ function saveRecentProject(dir: string): string[] {
   return next
 }
 
+function loadProjectModels(): Record<string, string> {
+  try {
+    return JSON.parse(localStorage.getItem(PROJECT_MODEL_KEY) || '{}') as Record<string, string>
+  } catch {
+    return {}
+  }
+}
+
+function saveProjectModel(project: string, model: string): void {
+  if (!project.trim()) return
+  const projectModels = loadProjectModels()
+  if (model.trim()) {
+    projectModels[project] = model
+  } else {
+    delete projectModels[project]
+  }
+  localStorage.setItem(PROJECT_MODEL_KEY, JSON.stringify(projectModels))
+}
+
+function loadSeenReleaseNotes(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(RELEASE_NOTES_SEEN_KEY) || '[]') as string[]
+  } catch {
+    return []
+  }
+}
+
+function loadNumberPreference(key: string, fallback: number, min: number, max: number): number {
+  const raw = Number(localStorage.getItem(key))
+  if (!Number.isFinite(raw)) return fallback
+  return Math.min(max, Math.max(min, raw))
+}
+
+function markReleaseNoteSeen(version: string): void {
+  const seen = loadSeenReleaseNotes()
+  if (seen.includes(version)) return
+  localStorage.setItem(RELEASE_NOTES_SEEN_KEY, JSON.stringify([...seen, version]))
+}
+
 function modeLabel(mode: RuntimeMode): string {
-  if (mode === 'real-session') return 'Real session'
-  if (mode === 'headless') return 'Headless'
-  return 'Mock'
+  return mode === 'mock' ? 'Demo mode' : 'Real session'
 }
 
 function permissionLabel(permissionMode: PermissionMode, trust: boolean): string {
-  if (trust) return 'trust'
-  return permissionMode
+  if (trust || permissionMode === 'auto-accept') return 'Full access'
+  return 'Standard'
 }
 
 function isRiskyPermission(permissionMode: PermissionMode, trust: boolean): boolean {
@@ -154,6 +273,25 @@ function ptyHealthLabel(ptyHealth: PtyDoctorResult | null): string {
   return 'PTY unavailable'
 }
 
+function looksPlanLike(input: string): boolean {
+  return /\b(plan|planning|roadmap|approach|strategy)\b/i.test(input)
+}
+
+function updateStateFromResult(result: CommandCodeUpdateResult): UpdateState {
+  if (!result.ok) return 'failed'
+  if (result.updateAvailable) return 'available'
+  return 'current'
+}
+
+function updateLabel(state: UpdateState, version?: string): string {
+  if (state === 'checking') return 'Checking updates'
+  if (state === 'updating') return 'Updating'
+  if (state === 'available') return 'Update available'
+  if (state === 'failed') return 'Update check failed'
+  if (state === 'current') return version || 'Up to date'
+  return 'Check updates'
+}
+
 let tabCounter = 1
 
 export function App(): JSX.Element {
@@ -165,32 +303,58 @@ export function App(): JSX.Element {
   const [permissionMode, setPermissionMode] = useState<PermissionMode>('standard')
   const [trust, setTrust] = useState(false)
   const [skipOnboarding, setSkipOnboarding] = useState(false)
-  const [runtimeMode, setRuntimeModeState] = useState<RuntimeMode>('mock')
+  const [runtimeMode, setRuntimeModeState] = useState<RuntimeMode>('real-session')
   const [composerPrompt, setComposerPrompt] = useState('')
   const [headlessMaxTurns, setHeadlessMaxTurns] = useState(10)
   const [headlessYolo, setHeadlessYolo] = useState(false)
   const [tabs, setTabs] = useState<SessionTab[]>([])
+  const [projectSessions, setProjectSessions] = useState<DiscoveredSession[]>([])
   const [activeTabId, setActiveTabId] = useState<string | undefined>()
   const [statusLine, setStatusLine] = useState('')
   const [headlessJobs, setHeadlessJobs] = useState<HeadlessJob[]>([])
   const [viewingFile, setViewingFile] = useState<string | undefined>()
-  const [docsOpen, setDocsOpen] = useState(false)
   const [advancedOpen, setAdvancedOpen] = useState(false)
-  const [filesOpen, setFilesOpen] = useState(false)
+  const [rightInspector, setRightInspector] = useState<RightInspector>('none')
+  const [bottomTerminalOpen, setBottomTerminalOpen] = useState(false)
+  const [shellSessionId, setShellSessionId] = useState<string | undefined>()
+  const [terminalInputEnabled, setTerminalInputEnabled] = useState(false)
+  const [showAllRecentChats, setShowAllRecentChats] = useState(false)
+  const [collapsedSidebarSections, setCollapsedSidebarSections] = useState<Record<SidebarSection, boolean>>({
+    projects: false,
+    recentChats: false,
+    activeSessions: false
+  })
+  const [selectedTranscript, setSelectedTranscript] = useState<DiscoveredSession | undefined>()
+  const [resumeFailure, setResumeFailure] = useState('')
+  const [workEvents, setWorkEvents] = useState<WorkEvent[]>([])
   const [railCollapsed, setRailCollapsed] = useState(false)
+  const [sidebarWidth, setSidebarWidth] = useState(() => loadNumberPreference(SIDEBAR_WIDTH_KEY, DEFAULT_SIDEBAR_WIDTH, SIDEBAR_MIN_WIDTH, SIDEBAR_MAX_WIDTH))
+  const [rightInspectorWidth, setRightInspectorWidth] = useState(() => loadNumberPreference(INSPECTOR_WIDTH_KEY, DEFAULT_INSPECTOR_WIDTH, INSPECTOR_MIN_WIDTH, INSPECTOR_MAX_WIDTH))
   const [openPopover, setOpenPopover] = useState<PopoverKey>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [settingsSection, setSettingsSection] = useState<SettingsSection>('profile')
   const [appearanceTheme, setAppearanceThemeState] = useState<AppearanceTheme>(loadAppearanceTheme)
   const [ptyHealth, setPtyHealth] = useState<PtyDoctorResult | null>(null)
+  const [updateState, setUpdateState] = useState<UpdateState>('idle')
+  const [updateVersion, setUpdateVersion] = useState<string | undefined>()
+  const [updateDetails, setUpdateDetails] = useState('')
+  const [releaseNoteVersion, setReleaseNoteVersion] = useState<string | undefined>()
   const jobCounter = useRef(1)
+  const popoverRef = useRef<HTMLDivElement | null>(null)
+  const startupUpdateCheckStarted = useRef(false)
+  const appPreferencesHydrated = useRef(false)
+  const appPreferenceSaveTimer = useRef<number | undefined>(undefined)
+  const hydratedProjectRef = useRef<string | undefined>(undefined)
+  const projectPreferenceSaveTimer = useRef<number | undefined>(undefined)
 
   const useMock = runtimeMode === 'mock'
   const activeTab = tabs.find((t) => t.id === activeTabId)
-  const workspaceView: WorkspaceView = settingsOpen ? 'settings' : activeTabId ? 'session' : 'home'
+  const workspaceView: WorkspaceView = settingsOpen ? 'settings' : activeTabId ? 'session' : selectedTranscript ? 'transcript' : 'home'
   const projectLabel = displayPath(cwd)
   const realSessionDisabled = Boolean(ptyHealth && (!ptyHealth.available || !ptyHealth.healthy))
   const riskyPermission = isRiskyPermission(permissionMode, trust)
+  const showPlanSuggestion = looksPlanLike(composerPrompt) && !composerPrompt.trim().startsWith('/plan')
+  const visibleRecentChats = showAllRecentChats ? projectSessions : projectSessions.slice(0, 4)
 
   const refreshPtyHealth = useCallback(async (): Promise<PtyDoctorResult> => {
     const result = await transport.ptyHealth()
@@ -222,10 +386,261 @@ export function App(): JSX.Element {
     }
   }, [refreshPtyHealth])
 
+  const checkForUpdates = useCallback(async (): Promise<void> => {
+    setUpdateState('checking')
+    try {
+      const result = await transport.update(commandExecutable, cwd || '.', true)
+      setUpdateState(updateStateFromResult(result))
+      setUpdateVersion(result.version)
+      setUpdateDetails((result.stdout || result.stderr).trim())
+      if (result.ok && result.version && releaseNotes[result.version] && !loadSeenReleaseNotes().includes(result.version)) {
+        setReleaseNoteVersion(result.version)
+      }
+    } catch (err) {
+      setUpdateState('failed')
+      setUpdateDetails(err instanceof Error ? err.message : 'Update check failed')
+    }
+  }, [transport, commandExecutable, cwd])
+
+  useEffect(() => {
+    if (startupUpdateCheckStarted.current) return
+    startupUpdateCheckStarted.current = true
+    void checkForUpdates()
+  }, [checkForUpdates])
+
+  useEffect(() => {
+    let cancelled = false
+
+    transport.loadAppPreferences()
+      .then((result) => {
+        if (cancelled || !result.ok || !result.preferences) return
+        const prefs = result.preferences
+        if (typeof prefs.cwd === 'string') {
+          setCwdState(prefs.cwd)
+          localStorage.setItem('ccgui.cwd', prefs.cwd)
+        }
+        if (Array.isArray(prefs.recentProjects)) {
+          setRecentProjects(prefs.recentProjects)
+          localStorage.setItem(RECENT_KEY, JSON.stringify(prefs.recentProjects))
+        }
+        if (typeof prefs.commandExecutable === 'string' && prefs.commandExecutable.trim()) {
+          setCommandExecutableState(prefs.commandExecutable)
+          localStorage.setItem('ccgui.command', prefs.commandExecutable)
+        }
+        if (typeof prefs.model === 'string') {
+          setModel(prefs.model)
+          localStorage.setItem('ccgui.model', prefs.model)
+        }
+        if (prefs.projectModels && typeof prefs.projectModels === 'object') {
+          localStorage.setItem(PROJECT_MODEL_KEY, JSON.stringify(prefs.projectModels))
+        }
+        if (prefs.appearanceTheme === 'cc-spectrum' || prefs.appearanceTheme === 'terminal-minimal' || prefs.appearanceTheme === 'blueprint' || prefs.appearanceTheme === 'high-contrast') {
+          setAppearanceThemeState(prefs.appearanceTheme)
+          localStorage.setItem(APPEARANCE_KEY, prefs.appearanceTheme)
+        }
+        if (Array.isArray(prefs.releaseNotesSeen)) {
+          localStorage.setItem(RELEASE_NOTES_SEEN_KEY, JSON.stringify(prefs.releaseNotesSeen))
+        }
+        if (typeof prefs.sidebarWidth === 'number') {
+          const width = Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, prefs.sidebarWidth))
+          setSidebarWidth(width)
+          localStorage.setItem(SIDEBAR_WIDTH_KEY, String(width))
+        }
+        if (typeof prefs.rightInspectorWidth === 'number') {
+          const width = Math.min(INSPECTOR_MAX_WIDTH, Math.max(INSPECTOR_MIN_WIDTH, prefs.rightInspectorWidth))
+          setRightInspectorWidth(width)
+          localStorage.setItem(INSPECTOR_WIDTH_KEY, String(width))
+        }
+      })
+      .catch(() => {
+        // Keep renderer-local defaults if the file-backed app preference read fails.
+      })
+      .finally(() => {
+        if (!cancelled) appPreferencesHydrated.current = true
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [transport])
+
+  useEffect(() => {
+    if (ptyHealth && (!ptyHealth.available || !ptyHealth.healthy) && runtimeMode === 'real-session') {
+      setRuntimeModeState('mock')
+      setStatusLine(ptyHealth.error || 'PTY unavailable. Using Demo mode.')
+    }
+  }, [ptyHealth, runtimeMode])
+
+  useEffect(() => {
+    if (!openPopover) return
+
+    const onPointerDown = (event: PointerEvent): void => {
+      const target = event.target
+      if (target instanceof Node && popoverRef.current?.contains(target)) return
+      setOpenPopover(null)
+    }
+
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') {
+        setOpenPopover(null)
+      }
+    }
+
+    document.addEventListener('pointerdown', onPointerDown, true)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown, true)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [openPopover])
+
+  useEffect(() => {
+    setTerminalInputEnabled(false)
+  }, [activeTabId])
+
+  useEffect(() => {
+    if (!cwd.trim()) {
+      hydratedProjectRef.current = undefined
+      setProjectSessions([])
+      return
+    }
+
+    let cancelled = false
+    hydratedProjectRef.current = undefined
+
+    transport.loadProjectPreferences(cwd)
+      .then((result) => {
+        if (cancelled) return
+        const prefs = result.preferences
+        if (result.ok && prefs) {
+          if (typeof prefs.model === 'string') {
+            setModel(prefs.model)
+            localStorage.setItem('ccgui.model', prefs.model)
+          }
+          if (prefs.runtimeMode === 'mock' || prefs.runtimeMode === 'real-session') {
+            setRuntimeModeState(prefs.runtimeMode)
+          }
+          if (prefs.permissionMode === 'standard' || prefs.permissionMode === 'plan' || prefs.permissionMode === 'auto-accept') {
+            setPermissionMode(prefs.permissionMode)
+          }
+          if (typeof prefs.trust === 'boolean') setTrust(prefs.trust)
+          if (typeof prefs.skipOnboarding === 'boolean') setSkipOnboarding(prefs.skipOnboarding)
+          if (typeof prefs.headlessMaxTurns === 'number') setHeadlessMaxTurns(prefs.headlessMaxTurns)
+          if (typeof prefs.headlessYolo === 'boolean') setHeadlessYolo(prefs.headlessYolo)
+          if (prefs.appearanceTheme === 'cc-spectrum' || prefs.appearanceTheme === 'terminal-minimal' || prefs.appearanceTheme === 'blueprint' || prefs.appearanceTheme === 'high-contrast') {
+            setAppearanceThemeState(prefs.appearanceTheme)
+            localStorage.setItem(APPEARANCE_KEY, prefs.appearanceTheme)
+          }
+        }
+      })
+      .catch(() => {
+        // Project preferences are additive. Local renderer cache remains the fallback.
+      })
+      .finally(() => {
+        if (!cancelled) hydratedProjectRef.current = cwd
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [transport, cwd])
+
+  useEffect(() => {
+    if (!cwd.trim()) {
+      setProjectSessions([])
+      if (shellSessionId) {
+        void transport.forceKill(shellSessionId)
+        setShellSessionId(undefined)
+        setBottomTerminalOpen(false)
+      }
+      return
+    }
+
+    let cancelled = false
+    transport.discoverSessions(cwd)
+      .then((result) => {
+        if (!cancelled) {
+          setProjectSessions(result.sessions.filter((session) => session.source === 'project').slice(0, 6))
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setProjectSessions([])
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [transport, cwd])
+
+  useEffect(() => {
+    if (!cwd.trim() || hydratedProjectRef.current !== cwd) return
+
+    if (projectPreferenceSaveTimer.current) {
+      window.clearTimeout(projectPreferenceSaveTimer.current)
+    }
+
+    const preferences: ProjectGuiPreferences = {
+      version: 1,
+      projectPath: cwd,
+      model,
+      runtimeMode,
+      permissionMode,
+      trust,
+      skipOnboarding,
+      headlessMaxTurns,
+      headlessYolo,
+      appearanceTheme,
+      updatedAt: new Date().toISOString()
+    }
+
+    projectPreferenceSaveTimer.current = window.setTimeout(() => {
+      void transport.saveProjectPreferences(cwd, preferences)
+    }, 500)
+
+    return () => {
+      if (projectPreferenceSaveTimer.current) window.clearTimeout(projectPreferenceSaveTimer.current)
+    }
+  }, [transport, cwd, model, runtimeMode, permissionMode, trust, skipOnboarding, headlessMaxTurns, headlessYolo, appearanceTheme])
+
+  useEffect(() => {
+    if (!appPreferencesHydrated.current) return
+
+    if (appPreferenceSaveTimer.current) {
+      window.clearTimeout(appPreferenceSaveTimer.current)
+    }
+
+    const preferences: AppGuiPreferences = {
+      version: 1,
+      cwd,
+      recentProjects,
+      commandExecutable,
+      model,
+      projectModels: loadProjectModels(),
+      appearanceTheme,
+      releaseNotesSeen: loadSeenReleaseNotes(),
+      sidebarWidth,
+      rightInspectorWidth,
+      updatedAt: new Date().toISOString()
+    }
+
+    appPreferenceSaveTimer.current = window.setTimeout(() => {
+      void transport.saveAppPreferences(preferences)
+    }, 500)
+
+    return () => {
+      if (appPreferenceSaveTimer.current) window.clearTimeout(appPreferenceSaveTimer.current)
+    }
+  }, [transport, cwd, recentProjects, commandExecutable, model, appearanceTheme, sidebarWidth, rightInspectorWidth])
+
   const setCwd = (value: string): void => {
     setCwdState(value)
     localStorage.setItem('ccgui.cwd', value)
     setRecentProjects(saveRecentProject(value))
+    const savedModel = loadProjectModels()[value]
+    if (savedModel !== undefined) {
+      setModel(savedModel)
+      localStorage.setItem('ccgui.model', savedModel)
+    }
   }
 
   const setCommandExecutable = (value: string): void => {
@@ -236,6 +651,7 @@ export function App(): JSX.Element {
   const setModelPersisted = (value: string): void => {
     setModel(value)
     localStorage.setItem('ccgui.model', value)
+    saveProjectModel(cwd, value)
   }
 
   const setAppearanceTheme = (value: AppearanceTheme): void => {
@@ -249,6 +665,29 @@ export function App(): JSX.Element {
     setOpenPopover(null)
   }
 
+  const writeComposerSubmit = async (sessionId: string, prompt: string, mock: boolean): Promise<void> => {
+    if (mock) {
+      await transport.write(sessionId, `${prompt.trim()}\r`)
+      return
+    }
+
+    for (const chunk of buildPtySubmitChunks(prompt)) {
+      await transport.write(sessionId, chunk)
+      await new Promise((resolve) => window.setTimeout(resolve, PTY_KEYSTROKE_DELAY_MS))
+    }
+  }
+
+  const addWorkEvent = (label: string, detail: string, tone: WorkEvent['tone'] = 'default'): void => {
+    setWorkEvents((prev) => [
+      { id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, label, detail, tone },
+      ...prev
+    ].slice(0, 12))
+  }
+
+  const openRightInspector = (next: RightInspector): void => {
+    setRightInspector(next)
+  }
+
   const chooseProject = async (): Promise<void> => {
     const result = await transport.chooseDirectory()
     if (!result.canceled && result.path) {
@@ -259,32 +698,39 @@ export function App(): JSX.Element {
 
   const cwdReady = useMemo(() => Boolean(cwd.trim()) || useMock, [cwd, useMock])
 
-  const startSession = async (initialPrompt?: string): Promise<void> => {
+  const startSession = async (initialPrompt?: string, resumeSession?: DiscoveredSession, options?: { keepTranscriptInspector?: boolean }): Promise<void> => {
+    const resume = resumeSession ? (resumeSession.title || resumeSession.id) : undefined
+    const shouldUseMock = resume ? false : useMock
+    const effectiveRuntimeMode: RuntimeMode = resume ? 'real-session' : runtimeMode
     if (!cwdReady) {
       setStatusLine('Choose a project directory first, or switch to Mock mode.')
       return
     }
-    if (runtimeMode === 'real-session' && realSessionDisabled) {
+    if (effectiveRuntimeMode === 'real-session' && realSessionDisabled) {
       setStatusLine(ptyHealth?.error || 'Real session is disabled because PTY is unhealthy.')
       return
     }
+    if (resume && runtimeMode === 'mock') {
+      setRuntimeModeState('real-session')
+    }
 
-    setStatusLine('Starting session...')
+    setStatusLine(resume ? `Resuming ${resumeSession?.title || resume}...` : 'Starting session...')
     try {
       const result = await transport.startSession({
         cwd: cwd || '.',
         commandExecutable,
         initialPrompt: initialPrompt?.trim() || undefined,
+        resume: resume?.trim() || undefined,
         model: model || undefined,
         permissionMode,
         trust,
         skipOnboarding,
         cols: 120,
         rows: 34,
-        useMock
+        useMock: shouldUseMock
       })
 
-      const label = `session ${tabCounter++}`
+      const label = resume ? `resume ${tabCounter++}` : `session ${tabCounter++}`
       const newTab: SessionTab = {
         id: result.id,
         label,
@@ -293,22 +739,61 @@ export function App(): JSX.Element {
         stopStage: 0,
         transcriptPath: result.transcriptPath,
         projectLabel,
-        runtimeMode
+        runtimeMode: effectiveRuntimeMode,
+        resumedSession: resumeSession
       }
 
       setTabs((prev) => [...prev, newTab])
       setActiveTabId(result.id)
+      setSelectedTranscript(options?.keepTranscriptInspector ? resumeSession : undefined)
+      if (options?.keepTranscriptInspector && resumeSession) {
+        setRightInspector('transcript')
+      }
+      setResumeFailure('')
       notify(`${result.mock ? 'Mock' : 'Real'} session started`, 'session-started')
       playChime('session-started')
-      setStatusLine(`${result.mock ? 'Mock' : 'Real'} session started: ${newTab.label}`)
+      addWorkEvent(resume ? 'Session resumed' : 'Session started', resume ? (resumeSession?.title || resume) : newTab.label, 'good')
+      setStatusLine(`${result.mock ? 'Mock' : 'Real'} session ${resume ? 'resumed' : 'started'}: ${newTab.label}`)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to start session'
       setStatusLine(`Failed: ${message}`)
+      if (resumeSession) {
+        setSelectedTranscript(resumeSession)
+        setResumeFailure(message)
+        addWorkEvent('Resume failed', `${resumeSession.title || resumeSession.id}: ${message}`, 'warn')
+      }
       notify(`Session start failed: ${message}`, 'session-error')
     }
   }
 
-  const runHeadless = async (prompt: string, maxTurns: number, yolo: boolean): Promise<void> => {
+  const resumeProjectSession = async (session: DiscoveredSession): Promise<void> => {
+    setSelectedTranscript(session)
+    setRightInspector('transcript')
+    await startSession(undefined, session, { keepTranscriptInspector: true })
+  }
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== 't') return
+      event.preventDefault()
+      openNewProjectSession()
+    }
+
+    window.addEventListener('keydown', onKeyDown, true)
+    return () => window.removeEventListener('keydown', onKeyDown, true)
+  })
+
+  const openTranscriptSession = (session: DiscoveredSession): void => {
+    setSelectedTranscript(session)
+    setResumeFailure('')
+    setSettingsOpen(false)
+    setOpenPopover(null)
+    setRightInspector('transcript')
+    addWorkEvent('Resuming context', session.title || session.id)
+    void startSession(undefined, session, { keepTranscriptInspector: true })
+  }
+
+  const runHeadless = async (prompt: string, maxTurns: number, yolo: boolean, plan = false): Promise<void> => {
     if (!prompt.trim()) return
     if (!cwd.trim() && !useMock) {
       setStatusLine('Choose a project directory before running headless.')
@@ -334,6 +819,7 @@ export function App(): JSX.Element {
         permissionMode,
         maxTurns,
         yolo,
+        plan,
         trust,
         skipOnboarding,
         timeoutMs: 10 * 60 * 1000,
@@ -366,19 +852,35 @@ export function App(): JSX.Element {
     if (!prompt) return
 
     if (activeTabId) {
-      await transport.write(activeTabId, `${prompt}\r`)
+      await writeComposerSubmit(activeTabId, prompt, Boolean(activeTab?.mock))
       pushCommandHistory(prompt)
       setComposerPrompt('')
+      setTerminalInputEnabled(false)
       return
     }
 
     setComposerPrompt('')
-    if (runtimeMode === 'headless') {
-      await runHeadless(prompt, headlessMaxTurns, headlessYolo)
+    setOpenPopover(null)
+
+    await startSession(prompt)
+  }
+
+  const usePlanMode = async (): Promise<void> => {
+    const prompt = composerPrompt.trim()
+    if (!prompt) return
+
+    if (activeTabId) {
+      const planPrompt = `/plan ${prompt}`
+      await writeComposerSubmit(activeTabId, planPrompt, Boolean(activeTab?.mock))
+      pushCommandHistory(`/plan ${prompt}`)
+      setComposerPrompt('')
+      setOpenPopover(null)
+      setTerminalInputEnabled(false)
       return
     }
 
-    await startSession(prompt)
+    setComposerPrompt(`/plan ${prompt}`)
+    setOpenPopover(null)
   }
 
   const updateTab = (id: string, update: Partial<SessionTab>) => {
@@ -428,28 +930,237 @@ export function App(): JSX.Element {
     setStatusLine(result.ok ? `OK ${result.command}: ${result.version || result.stdout.trim()}${ptySuffix}` : `Failed: ${result.stderr || result.error}${ptySuffix}`)
   }
 
-  const sendSlash = async (command: string): Promise<void> => {
-    if (activeTabId) {
-      await transport.write(activeTabId, `${command}\r`)
-      pushCommandHistory(command.trim())
+  const toggleSidebarSection = (section: SidebarSection): void => {
+    setCollapsedSidebarSections((current) => ({ ...current, [section]: !current[section] }))
+  }
+
+  const closeShellTerminal = async (): Promise<void> => {
+    if (shellSessionId) {
+      await transport.forceKill(shellSessionId)
+    }
+    setShellSessionId(undefined)
+    setBottomTerminalOpen(false)
+  }
+
+  const openShellTerminal = async (): Promise<void> => {
+    if (!cwd.trim()) {
+      setStatusLine('Choose a project directory before opening a terminal.')
       return
     }
-    setComposerPrompt(command)
+
+    setBottomTerminalOpen(true)
+    if (shellSessionId) return
+
+    try {
+      const result = await transport.startSession({
+        cwd,
+        terminalMode: 'shell',
+        cols: 120,
+        rows: 22,
+        useMock: false
+      })
+      setShellSessionId(result.id)
+      setStatusLine(`Terminal opened in ${displayPath(result.cwd)}.`)
+      addWorkEvent('Terminal opened', `Shell session in ${displayPath(result.cwd)}`)
+    } catch (err) {
+      setBottomTerminalOpen(false)
+      const message = err instanceof Error ? err.message : 'Failed to open terminal'
+      setStatusLine(message)
+      notify(`Terminal failed: ${message}`, 'session-error')
+    }
+  }
+
+  const toggleShellTerminal = async (): Promise<void> => {
+    if (bottomTerminalOpen) {
+      await closeShellTerminal()
+      return
+    }
+    await openShellTerminal()
+  }
+
+  const runUpdate = async (): Promise<void> => {
+    setUpdateState('updating')
+    setStatusLine('Updating Command Code...')
+    try {
+      const result = await transport.update(commandExecutable, cwd || '.', false)
+      setUpdateState(updateStateFromResult(result))
+      setUpdateVersion(result.version)
+      setUpdateDetails((result.stdout || result.stderr).trim())
+      if (result.ok && result.version && releaseNotes[result.version]) {
+        setReleaseNoteVersion(result.version)
+      }
+      setStatusLine(result.ok ? (result.stdout || 'Command Code update complete.').trim() : (result.stderr || result.error || 'Command Code update failed.'))
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Command Code update failed.'
+      setUpdateState('failed')
+      setUpdateDetails(message)
+      setStatusLine(message)
+    }
+  }
+
+  const runHeadlessFromComposer = async (): Promise<void> => {
+    const prompt = composerPrompt.trim()
+    if (!prompt) {
+      setStatusLine('Type a prompt before running headless.')
+      return
+    }
+
+    setComposerPrompt('')
+    setOpenPopover(null)
+    await runHeadless(prompt, headlessMaxTurns, headlessYolo)
+  }
+
+  const runCommand = async (item: CommandPaletteItem): Promise<void> => {
+    if (item.action === 'run-headless') {
+      await runHeadlessFromComposer()
+      return
+    }
+
+    if (activeTabId) {
+      await writeComposerSubmit(activeTabId, item.command, Boolean(activeTab?.mock))
+      pushCommandHistory(item.command.trim())
+      setOpenPopover(null)
+      setTerminalInputEnabled(false)
+      return
+    }
+
+    setComposerPrompt((current) => {
+      const trimmed = current.trim()
+      if (!trimmed || trimmed.startsWith('/')) return item.command
+      return `${item.command} ${trimmed}`
+    })
     setOpenPopover(null)
   }
 
+  const saveCurrentAppPreferences = (): void => {
+    void transport.saveAppPreferences({
+      version: 1,
+      cwd,
+      recentProjects,
+      commandExecutable,
+      model,
+      projectModels: loadProjectModels(),
+      appearanceTheme,
+      releaseNotesSeen: loadSeenReleaseNotes(),
+      sidebarWidth,
+      rightInspectorWidth,
+      updatedAt: new Date().toISOString()
+    })
+  }
+
+  const openConfigureModels = async (): Promise<void> => {
+    const item = commandPaletteItems.find((candidate) => candidate.id === 'configure-models')
+    if (!item) return
+    await runCommand(item)
+    if (releaseNoteVersion) {
+      markReleaseNoteSeen(releaseNoteVersion)
+      saveCurrentAppPreferences()
+      setReleaseNoteVersion(undefined)
+    }
+  }
+
+  const dismissReleaseNotes = (): void => {
+    if (releaseNoteVersion) {
+      markReleaseNoteSeen(releaseNoteVersion)
+      saveCurrentAppPreferences()
+    }
+    setReleaseNoteVersion(undefined)
+  }
+
+  const startSidebarResize = (event: ReactPointerEvent<HTMLDivElement>): void => {
+    event.preventDefault()
+    const startX = event.clientX
+    const startWidth = sidebarWidth
+
+    const onMove = (moveEvent: PointerEvent): void => {
+      const rawWidth = startWidth + moveEvent.clientX - startX
+      if (rawWidth <= SIDEBAR_COLLAPSE_WIDTH) {
+        setRailCollapsed(true)
+        return
+      }
+      const nextWidth = Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, rawWidth))
+      setRailCollapsed(false)
+      setSidebarWidth(nextWidth)
+      localStorage.setItem(SIDEBAR_WIDTH_KEY, String(nextWidth))
+    }
+
+    const onUp = (): void => {
+      document.body.classList.remove('is-resizing-panel')
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+    }
+
+    document.body.classList.add('is-resizing-panel')
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', onUp, { once: true })
+  }
+
+  const startInspectorResize = (event: ReactPointerEvent<HTMLDivElement>): void => {
+    event.preventDefault()
+    const startX = event.clientX
+    const startWidth = rightInspectorWidth
+
+    const onMove = (moveEvent: PointerEvent): void => {
+      const rawWidth = startWidth - (moveEvent.clientX - startX)
+      if (rawWidth <= INSPECTOR_COLLAPSE_WIDTH) {
+        setRightInspector('none')
+        return
+      }
+      const nextWidth = Math.min(INSPECTOR_MAX_WIDTH, Math.max(INSPECTOR_MIN_WIDTH, rawWidth))
+      setRightInspectorWidth(nextWidth)
+      localStorage.setItem(INSPECTOR_WIDTH_KEY, String(nextWidth))
+    }
+
+    const onUp = (): void => {
+      document.body.classList.remove('is-resizing-panel')
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+    }
+
+    document.body.classList.add('is-resizing-panel')
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', onUp, { once: true })
+  }
+
+  const openTerminalExpansion = (): void => {
+    if (!activeTab) return
+    setRightInspector('transcript')
+    addWorkEvent('Opened terminal details', 'Ctrl+O opened the active transcript in the inspector.')
+  }
+
+  const openNewProjectSession = (): void => {
+    setSettingsOpen(false)
+    setSelectedTranscript(undefined)
+    void startSession()
+  }
+
   const onExit = useCallback((payload: SessionExitPayload): void => {
+    const exitingTab = tabs.find((tab) => tab.id === payload.sessionId)
+    if (exitingTab?.resumedSession && payload.exitCode !== 0) {
+      setSelectedTranscript(exitingTab.resumedSession)
+      setResumeFailure(`Resume exited with code=${payload.exitCode ?? 'null'} signal=${payload.signal ?? 'null'}`)
+      setRightInspector('transcript')
+      addWorkEvent('Resume exited', exitingTab.resumedSession.title || exitingTab.resumedSession.id, 'warn')
+    } else {
+      addWorkEvent('Session exited', exitingTab?.label || payload.sessionId)
+    }
     removeTab(payload.sessionId)
     notify('Session exited', 'session-exited')
     playChime('session-exited')
     setStatusLine(`Session exited with code=${payload.exitCode ?? 'null'} signal=${payload.signal ?? 'null'}`)
-  }, [])
+  }, [tabs])
+
+  const shellStyle = {
+    '--sidebar-width': `${sidebarWidth}px`,
+    '--right-inspector-width': `${rightInspectorWidth}px`
+  } as CSSProperties
 
   return (
-    <main className={`app-shell native-shell theme-${appearanceTheme} ${railCollapsed ? 'native-shell--collapsed' : ''}`}>
+    <main className={`app-shell native-shell theme-${appearanceTheme} ${railCollapsed ? 'native-shell--collapsed' : ''}`} style={shellStyle}>
       <ToastContainer />
 
       <aside className={`sidebar-shell ${railCollapsed ? 'sidebar-shell--collapsed' : ''}`}>
+        <div className="sidebar-resize-handle" onPointerDown={startSidebarResize} title="Resize sidebar" />
         <div className="sidebar-top">
           <button
             className="icon-button sidebar-collapse"
@@ -488,11 +1199,11 @@ export function App(): JSX.Element {
         ) : (
           <>
             <nav className="sidebar-nav" aria-label="Primary">
-              <button className="sidebar-row" onClick={() => { setSettingsOpen(false); setOpenPopover(null); setActiveTabId(undefined) }} title="New session">
+              <button className="sidebar-row" onClick={() => { setSettingsOpen(false); setOpenPopover(null); setActiveTabId(undefined); setSelectedTranscript(undefined); setRightInspector('none') }} title="New session">
                 <SquarePen size={18} />
                 {!railCollapsed && <span>New session</span>}
               </button>
-              <button className="sidebar-row" title="Search">
+              <button className="sidebar-row" onClick={() => setOpenPopover(null)} title="Search">
                 <Search size={18} />
                 {!railCollapsed && <span>Search</span>}
               </button>
@@ -507,44 +1218,111 @@ export function App(): JSX.Element {
             </nav>
 
             {!railCollapsed && (
-          <div className="sidebar-projects">
-            <div className="sidebar-heading">Projects</div>
-            <button className={`project-row ${cwd ? 'project-row--active' : ''}`} onClick={() => { setSettingsOpen(false); setOpenPopover('project') }} title={cwd || 'Choose a project'}>
-              <FolderOpen size={16} />
-              <span>{projectLabel}</span>
-            </button>
-            {recentProjects.filter((project) => project !== cwd).slice(0, 5).map((project) => (
-              <button key={project} className="project-row" onClick={() => { setSettingsOpen(false); setCwd(project) }} title={project}>
-                <Folder size={16} />
-                <span>{displayPath(project)}</span>
-              </button>
-            ))}
+              <div className="sidebar-projects">
+                <button
+                  className="sidebar-heading-button"
+                  onClick={() => toggleSidebarSection('projects')}
+                  aria-expanded={!collapsedSidebarSections.projects}
+                >
+                  <ChevronDown size={14} />
+                  <span>Projects</span>
+                </button>
+                {!collapsedSidebarSections.projects && (
+                  <div className="sidebar-section-body">
+                    <button className={`project-row ${cwd ? 'project-row--active' : ''}`} onClick={() => { setSettingsOpen(false); setOpenPopover('project') }} title={cwd || 'Choose a project'}>
+                      <FolderOpen size={16} />
+                      <span>{projectLabel}</span>
+                    </button>
+                    {recentProjects.filter((project) => project !== cwd).slice(0, 4).map((project) => (
+                      <button key={project} className="project-row" onClick={() => { setSettingsOpen(false); setCwd(project) }} title={project}>
+                        <Folder size={16} />
+                        <span>{displayPath(project)}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
 
-            {tabs.length > 0 && (
-              <>
-                <div className="sidebar-heading sidebar-heading--sessions">Sessions</div>
-                {tabs.slice(-6).reverse().map((tab) => (
-                  <button key={tab.id} className={`project-row ${tab.id === activeTabId ? 'project-row--active' : ''}`} onClick={() => { setSettingsOpen(false); setActiveTabId(tab.id) }} title={tab.transcriptPath}>
-                    <Terminal size={16} />
-                    <span>{tab.label}</span>
-                  </button>
-                ))}
-              </>
-            )}
-          </div>
+                {projectSessions.length > 0 && (
+                  <div className="sidebar-section">
+                    <button
+                      className="sidebar-heading-button"
+                      onClick={() => toggleSidebarSection('recentChats')}
+                      aria-expanded={!collapsedSidebarSections.recentChats}
+                    >
+                      <ChevronDown size={14} />
+                      <span>Recent chats</span>
+                    </button>
+                    {!collapsedSidebarSections.recentChats && (
+                      <div className="sidebar-section-body">
+                        {visibleRecentChats.map((session) => (
+                          <button
+                            key={session.id}
+                            className="project-row"
+                            onClick={() => openTranscriptSession(session)}
+                            title={`Open ${session.title || session.id}`}
+                          >
+                            <Terminal size={16} />
+                            <span>{session.title || session.id}</span>
+                          </button>
+                        ))}
+                        {projectSessions.length > 4 && (
+                          <button className="show-more-row" onClick={() => setShowAllRecentChats((value) => !value)}>
+                            {showAllRecentChats ? 'Show less' : `Show ${projectSessions.length - 4} more`}
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {tabs.length > 0 && (
+                  <div className="sidebar-section">
+                    <button
+                      className="sidebar-heading-button"
+                      onClick={() => toggleSidebarSection('activeSessions')}
+                      aria-expanded={!collapsedSidebarSections.activeSessions}
+                    >
+                      <ChevronDown size={14} />
+                      <span>Active sessions</span>
+                    </button>
+                    {!collapsedSidebarSections.activeSessions && (
+                      <div className="sidebar-section-body">
+                        {tabs.slice(-6).reverse().map((tab) => (
+                          <button key={tab.id} className={`project-row ${tab.id === activeTabId ? 'project-row--active' : ''}`} onClick={() => { setSettingsOpen(false); setActiveTabId(tab.id) }} title={tab.transcriptPath}>
+                            <Terminal size={16} />
+                            <span>{tab.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
           </>
         )}
 
         <div className="sidebar-bottom">
-          <button
-            className={`sidebar-row ${settingsOpen ? 'sidebar-row--active' : ''}`}
-            onClick={() => { setRailCollapsed(false); setOpenPopover(null); setSettingsOpen(true); setSettingsSection('profile') }}
-            title="Settings"
-          >
-            <Settings size={18} />
-            {!railCollapsed && <span>Settings</span>}
-          </button>
+          <div className="sidebar-footer-row">
+            <button
+              className={`sidebar-row settings-footer-button ${settingsOpen ? 'sidebar-row--active' : ''}`}
+              onClick={() => { setRailCollapsed(false); setOpenPopover(null); setSettingsOpen(true); setSettingsSection('profile') }}
+              title="Settings"
+            >
+              <Settings size={18} />
+              {!railCollapsed && <span>Settings</span>}
+            </button>
+            <button
+              className={`sidebar-row update-row update-row--${updateState}`}
+              onClick={() => { setOpenPopover(null); updateState === 'available' ? void runUpdate() : void checkForUpdates() }}
+              title={updateDetails || updateLabel(updateState, updateVersion)}
+              aria-label={updateLabel(updateState, updateVersion)}
+              disabled={updateState === 'checking' || updateState === 'updating'}
+            >
+              {updateState === 'checking' || updateState === 'updating' ? <RefreshCw size={18} /> : <Download size={18} />}
+              {!railCollapsed && <span>{updateLabel(updateState, updateVersion)}</span>}
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -577,7 +1355,8 @@ export function App(): JSX.Element {
             appearanceTheme={appearanceTheme}
             setAppearanceTheme={setAppearanceTheme}
             runCheck={runCheck}
-            openDocs={() => setDocsOpen(true)}
+            openConfigureModels={openConfigureModels}
+            openDocs={() => openRightInspector('docs')}
             openAdvanced={() => setAdvancedOpen(true)}
           />
         ) : workspaceView === 'home' ? (
@@ -589,76 +1368,173 @@ export function App(): JSX.Element {
                 prompt={composerPrompt}
                 setPrompt={setComposerPrompt}
                 onSubmit={submitComposer}
+                showPlanSuggestion={showPlanSuggestion}
+                onPlanMode={usePlanMode}
                 projectLabel={projectLabel}
-                runtimeMode={runtimeMode}
                 modelLabel={model || 'Default'}
                 permissionLabel={permissionLabel(permissionMode, trust)}
                 riskyPermission={riskyPermission}
                 onProject={() => setOpenPopover(openPopover === 'project' ? null : 'project')}
-                onMode={() => setOpenPopover(openPopover === 'mode' ? null : 'mode')}
                 onPermission={() => setOpenPopover(openPopover === 'permission' ? null : 'permission')}
-                onRuntime={() => setOpenPopover(openPopover === 'runtime' ? null : 'runtime')}
+                onModel={() => setOpenPopover(openPopover === 'model' ? null : 'model')}
                 onSlash={() => setOpenPopover(openPopover === 'slash' ? null : 'slash')}
               />
               <div className="home-status-row">
-                <span>{runtimeMode === 'mock' ? 'mock runtime' : runtimeMode === 'headless' ? 'headless run' : 'real session'}</span>
+                <span>{runtimeMode === 'mock' ? 'demo runtime' : 'real session'}</span>
                 <span>{ptyHealthLabel(ptyHealth)}</span>
                 <span>{model || 'default model'}</span>
                 <span>{statusLine || 'idle'}</span>
               </div>
             </div>
           </section>
+        ) : workspaceView === 'transcript' && selectedTranscript ? (
+          <div className={`workbench-shell ${rightInspector !== 'none' ? 'workbench-shell--with-inspector' : ''}`}>
+            <TranscriptWorkspace
+              session={selectedTranscript}
+              transport={transport}
+              statusLine={statusLine}
+              resumeFailure={resumeFailure}
+              workEvents={workEvents}
+              onResume={() => void resumeProjectSession(selectedTranscript)}
+              onReveal={() => transport.revealTranscript(selectedTranscript.transcriptPath)}
+              onOpenTranscript={() => openRightInspector('transcript')}
+            />
+            <RightInspectorPanel
+              mode={rightInspector}
+              transport={transport}
+              cwd={cwd}
+              commandExecutable={commandExecutable}
+              filePath={viewingFile}
+              transcript={selectedTranscript}
+              onClose={() => setRightInspector('none')}
+              onSelectFile={(path) => { setViewingFile(path); setRightInspector('file'); addWorkEvent('Opened file', displayPath(path)) }}
+              onOpenFiles={() => setRightInspector('files')}
+              onOpenTranscript={() => setRightInspector('transcript')}
+              onOpenDocs={() => setRightInspector('docs')}
+              onOpenAdvanced={() => setRightInspector('advanced')}
+              onRevealTranscript={() => transport.revealTranscript(selectedTranscript.transcriptPath)}
+              onOpenSettings={() => { setRailCollapsed(false); setOpenPopover(null); setSettingsOpen(true); setSettingsSection('profile') }}
+              onResizeStart={startInspectorResize}
+            />
+          </div>
         ) : (
-          <section className="session-workspace" aria-label="Active session">
-            <header className="session-header">
-              <div className="session-title-group">
-                <div className="session-title">{activeTab?.label || 'Session'}</div>
-                <div className="session-context">{activeTab?.projectLabel || projectLabel}</div>
-              </div>
-              <div className="session-actions">
-                <StatusPill label={activeTab?.mock ? 'mock' : 'real cli'} tone={activeTab?.mock ? 'purple' : 'warn'} />
-                <StatusPill label={permissionLabel(permissionMode, trust)} tone={riskyPermission ? 'warn' : permissionMode === 'plan' ? 'purple' : 'default'} />
-                <button className="ghost-button native-ghost" onClick={() => setFilesOpen(true)}><FolderOpen size={16} /> Files</button>
-                {activeTab?.transcriptPath && (
-                  <button className="ghost-button native-ghost" onClick={() => transport.revealTranscript(activeTab.transcriptPath)} title={activeTab.transcriptPath}>Transcript</button>
-                )}
-                <button className="ghost-button native-ghost" onClick={stopSession}>Stop</button>
-                <button className="ghost-button native-ghost" onClick={() => setAdvancedOpen(true)}>Advanced</button>
-                <button className="ghost-button native-ghost" onClick={() => { setRailCollapsed(false); setOpenPopover(null); setSettingsOpen(true); setSettingsSection('profile') }}>
-                  <Settings size={16} /> Settings
-                </button>
-              </div>
-            </header>
+          <div className={`workbench-shell ${rightInspector !== 'none' ? 'workbench-shell--with-inspector' : ''}`}>
+            <section className={`session-workspace ${bottomTerminalOpen ? 'session-workspace--bottom-terminal' : ''}`} aria-label="Active session">
+              <header className="session-header session-header--compact">
+                <div className="session-title-group">
+                  <div className="session-title">{activeTab?.label || 'Session'}</div>
+                  <div className="session-context">
+                    <span>{activeTab?.projectLabel || projectLabel}</span>
+                    <StatusPill label={activeTab?.mock ? 'mock' : 'real cli'} tone={activeTab?.mock ? 'purple' : 'warn'} />
+                    <StatusPill label={permissionLabel(permissionMode, trust)} tone={riskyPermission ? 'warn' : permissionMode === 'plan' ? 'purple' : 'default'} />
+                  </div>
+                </div>
+                <WorkbenchToolRail
+                  rightInspector={rightInspector}
+                  bottomTerminalOpen={bottomTerminalOpen}
+                  onOpenIde={() => openRightInspector('ide')}
+                  onOpenEnvironment={() => openRightInspector('environment')}
+                  onToggleTerminal={() => void toggleShellTerminal()}
+                  onToggleInspector={() => openRightInspector(rightInspector === 'none' ? 'files' : 'none')}
+                />
+              </header>
 
-            <TabBar tabs={tabs} activeId={activeTabId} onSelect={setActiveTabId} onKill={killTab} />
+              <TabBar tabs={tabs} activeId={activeTabId} onSelect={setActiveTabId} onKill={killTab} />
 
-            <section className="terminal-card native-terminal-card">
-              <TerminalPane transport={transport} sessionId={activeTabId} onExit={onExit} />
+              <section className="terminal-card native-terminal-card">
+                <TerminalPane
+                  transport={transport}
+                  sessionId={activeTabId}
+                  inputEnabled={terminalInputEnabled}
+                  onInputRequest={() => setTerminalInputEnabled(true)}
+                  onInputCommit={() => setTerminalInputEnabled(false)}
+                  onExit={onExit}
+                  onExpandRequest={openTerminalExpansion}
+                />
+              </section>
+
+              {bottomTerminalOpen && shellSessionId && (
+                <section className="bottom-terminal-panel" aria-label="Bottom terminal">
+                  <header className="bottom-terminal-header">
+                    <span>Terminal · {projectLabel}</span>
+                    <button className="icon-button" onClick={() => void closeShellTerminal()} title="Close bottom terminal"><X size={15} /></button>
+                  </header>
+                  <TerminalPane
+                    transport={transport}
+                    sessionId={shellSessionId}
+                    compact
+                    notifyResponses={false}
+                    onExit={() => {
+                      setShellSessionId(undefined)
+                      setBottomTerminalOpen(false)
+                      setStatusLine('Terminal exited.')
+                    }}
+                  />
+                </section>
+              )}
+
+              <div className="session-composer">
+                <div className="session-utility-row">
+                  <button className="ghost-button native-ghost" onClick={stopSession}>Stop</button>
+                  <span>{terminalInputEnabled ? 'Menu input enabled. Use terminal menus, then return to the composer.' : (statusLine || 'Click terminal for menus; use composer for prompts.')}</span>
+                  <button
+                    className={`ghost-button native-ghost terminal-input-toggle ${terminalInputEnabled ? 'terminal-input-toggle--active' : ''}`}
+                    onClick={() => setTerminalInputEnabled((value) => !value)}
+                    title="Temporarily route keyboard input to Command Code terminal menus"
+                  >
+                    <Keyboard size={14} />
+                    Menu input
+                  </button>
+                </div>
+                <ComposerBar
+                  active
+                  prompt={composerPrompt}
+                  setPrompt={setComposerPrompt}
+                  onSubmit={submitComposer}
+                  onFocus={() => setTerminalInputEnabled(false)}
+                  showPlanSuggestion={showPlanSuggestion}
+                  onPlanMode={usePlanMode}
+                  projectLabel={projectLabel}
+                  modelLabel={model || 'Default'}
+                  permissionLabel={permissionLabel(permissionMode, trust)}
+                  riskyPermission={riskyPermission}
+                  onProject={() => setOpenPopover(openPopover === 'project' ? null : 'project')}
+                  onPermission={() => setOpenPopover(openPopover === 'permission' ? null : 'permission')}
+                  onModel={() => setOpenPopover(openPopover === 'model' ? null : 'model')}
+                  onSlash={() => setOpenPopover(openPopover === 'slash' ? null : 'slash')}
+                />
+              </div>
             </section>
-
-            <div className="session-composer">
-              <ComposerBar
-                active
-                prompt={composerPrompt}
-                setPrompt={setComposerPrompt}
-                onSubmit={submitComposer}
-                projectLabel={projectLabel}
-                runtimeMode={runtimeMode}
-                modelLabel={model || 'Default'}
-                permissionLabel={permissionLabel(permissionMode, trust)}
-                riskyPermission={riskyPermission}
-                onProject={() => setOpenPopover(openPopover === 'project' ? null : 'project')}
-                onMode={() => setOpenPopover(openPopover === 'mode' ? null : 'mode')}
-                onPermission={() => setOpenPopover(openPopover === 'permission' ? null : 'permission')}
-                onRuntime={() => setOpenPopover(openPopover === 'runtime' ? null : 'runtime')}
-                onSlash={() => setOpenPopover(openPopover === 'slash' ? null : 'slash')}
-              />
-            </div>
-          </section>
+            <RightInspectorPanel
+              mode={rightInspector}
+              transport={transport}
+              cwd={cwd}
+              commandExecutable={commandExecutable}
+              filePath={viewingFile}
+              transcript={selectedTranscript || projectSessions[0] || (activeTab ? {
+                id: activeTab.id,
+                timestamp: new Date().toISOString(),
+                transcriptPath: activeTab.transcriptPath,
+                sizeBytes: 0,
+                title: activeTab.label,
+                cwd,
+                source: 'global'
+              } : undefined)}
+              onClose={() => setRightInspector('none')}
+              onSelectFile={(path) => { setViewingFile(path); setRightInspector('file'); addWorkEvent('Opened file', displayPath(path)) }}
+              onOpenFiles={() => setRightInspector('files')}
+              onOpenTranscript={() => setRightInspector('transcript')}
+              onOpenDocs={() => setRightInspector('docs')}
+              onOpenAdvanced={() => setRightInspector('advanced')}
+              onRevealTranscript={() => activeTab?.transcriptPath && transport.revealTranscript(activeTab.transcriptPath)}
+              onOpenSettings={() => { setRailCollapsed(false); setOpenPopover(null); setSettingsOpen(true); setSettingsSection('profile') }}
+              onResizeStart={startInspectorResize}
+            />
+          </div>
         )}
 
         {openPopover === 'project' && (
-          <div className="native-popover project-popover">
+          <div ref={popoverRef} className="native-popover project-popover">
             <div className="popover-title">Project</div>
             <button className="popover-row" onClick={chooseProject}><FolderOpen size={16} /> Choose folder...</button>
             {recentProjects.map((project) => (
@@ -670,9 +1546,8 @@ export function App(): JSX.Element {
         )}
 
         {openPopover === 'mode' && (
-          <div className="native-popover mode-popover">
-            <div className="popover-title">Mode</div>
-            <button className={`popover-row ${runtimeMode === 'mock' ? 'popover-row--active' : ''}`} onClick={() => setRuntimeMode('mock')}>Mock</button>
+          <div ref={popoverRef} className="native-popover mode-popover">
+            <div className="popover-title">Session</div>
             <button
               className={`popover-row ${runtimeMode === 'real-session' ? 'popover-row--active' : ''}`}
               disabled={realSessionDisabled}
@@ -681,75 +1556,444 @@ export function App(): JSX.Element {
             >
               Real session
             </button>
-            <button className={`popover-row ${runtimeMode === 'headless' ? 'popover-row--active' : ''}`} onClick={() => setRuntimeMode('headless')}>Headless</button>
+            <button className={`popover-row ${runtimeMode === 'mock' ? 'popover-row--active' : ''}`} onClick={() => setRuntimeMode('mock')}>Demo mode</button>
+            <div className="popover-note">Headless runs now live in the command menu as Run headless.</div>
             {realSessionDisabled && <div className="popover-note">{ptyHealth?.error || 'Real session disabled until PTY is healthy.'}</div>}
           </div>
         )}
 
         {openPopover === 'permission' && (
-          <div className="native-popover permission-popover">
-            <div className="popover-title">Permissions</div>
-            <button className={`popover-row ${permissionMode === 'standard' && !trust ? 'popover-row--active' : ''}`} onClick={() => { setPermissionMode('standard'); setTrust(false); setOpenPopover(null) }}>standard</button>
-            <button className={`popover-row ${permissionMode === 'plan' && !trust ? 'popover-row--active' : ''}`} onClick={() => { setPermissionMode('plan'); setTrust(false); setOpenPopover(null) }}>plan</button>
-            <button className={`popover-row popover-row--warn ${permissionMode === 'auto-accept' && !trust ? 'popover-row--active' : ''}`} onClick={() => { setPermissionMode('auto-accept'); setTrust(false); setOpenPopover(null) }}>auto-accept</button>
-            <button className={`popover-row popover-row--warn ${trust ? 'popover-row--active' : ''}`} onClick={() => { setPermissionMode('standard'); setTrust(true); setOpenPopover(null) }}>trust</button>
+          <div ref={popoverRef} className="native-popover permission-popover">
+            <div className="popover-title">Access</div>
+            <button className={`popover-row ${permissionMode === 'standard' && !trust ? 'popover-row--active' : ''}`} onClick={() => { setPermissionMode('standard'); setTrust(false); setOpenPopover(null) }}>
+              Standard
+              <span className="popover-row-description">Prompt before risky tool use.</span>
+            </button>
+            <button className={`popover-row popover-row--warn ${permissionMode === 'auto-accept' && !trust ? 'popover-row--active' : ''}`} onClick={() => { setPermissionMode('auto-accept'); setTrust(false); setOpenPopover(null) }}>
+              Full access
+              <span className="popover-row-description">Auto-accept Command Code tool prompts.</span>
+            </button>
+            <button className={`popover-row popover-row--warn ${trust ? 'popover-row--active' : ''}`} onClick={() => { setPermissionMode('standard'); setTrust(true); setOpenPopover(null) }}>
+              Trust project
+              <span className="popover-row-description">Pass --trust for this project.</span>
+            </button>
           </div>
         )}
 
         {openPopover === 'runtime' && (
-          <div className="native-popover runtime-popover">
+          <div ref={popoverRef} className="native-popover runtime-popover">
             <div className="popover-title">Runtime</div>
             <label className="field-label">Command binary</label>
             <input className="native-input" value={commandExecutable} onChange={(event) => setCommandExecutable(event.target.value)} />
             <div className="runtime-grid">
               <button className="ghost-button native-ghost" onClick={runCheck}>Check CLI</button>
               <button className="ghost-button native-ghost" onClick={() => transport.openExternal('https://commandcode.ai/docs/reference/cli')}>CLI docs</button>
-              <button className="ghost-button native-ghost" onClick={() => setDocsOpen(true)}>Docs</button>
+              <button className="ghost-button native-ghost" onClick={() => openRightInspector('docs')}>Docs</button>
               <button className="ghost-button native-ghost" onClick={() => setAdvancedOpen(true)}>Advanced</button>
             </div>
             <label className="checkbox-row"><input type="checkbox" checked={skipOnboarding} onChange={(event) => setSkipOnboarding(event.target.checked)} /> Skip onboarding</label>
+            <label className="checkbox-row"><input type="checkbox" checked={runtimeMode === 'mock'} onChange={(event) => setRuntimeMode(event.target.checked ? 'mock' : 'real-session')} disabled={!ptyHealth?.healthy && runtimeMode === 'mock'} /> Use Demo mode</label>
             <label className="checkbox-row"><input type="checkbox" checked={headlessYolo} onChange={(event) => setHeadlessYolo(event.target.checked)} /> Allow write tools in headless commands</label>
             <label className="field-label">Headless max turns</label>
             <input className="native-input" type="number" min={1} max={100} value={headlessMaxTurns} onChange={(event) => setHeadlessMaxTurns(Number(event.target.value) || 1)} />
-            <ModelDropdown transport={transport} model={model} setModel={setModelPersisted} commandExecutable={commandExecutable} cwd={cwd} />
+            <ModelDropdown transport={transport} model={model} setModel={setModelPersisted} commandExecutable={commandExecutable} cwd={cwd} onConfigureModels={openConfigureModels} />
             <AuthCard transport={transport} commandExecutable={commandExecutable} cwd={cwd} />
             <IdePanel transport={transport} commandExecutable={commandExecutable} cwd={cwd} />
             <HeadlessHistory jobs={headlessJobs} onClear={() => setHeadlessJobs([])} />
           </div>
         )}
 
+        {openPopover === 'model' && (
+          <div ref={popoverRef} className="native-popover model-popover">
+            <div className="popover-title">Model</div>
+            <ModelDropdown transport={transport} model={model} setModel={(value) => { setModelPersisted(value); setOpenPopover(null) }} commandExecutable={commandExecutable} cwd={cwd} onConfigureModels={openConfigureModels} />
+          </div>
+        )}
+
         {openPopover === 'slash' && (
-          <div className="native-popover slash-popover">
+          <div ref={popoverRef} className="native-popover slash-popover">
             <div className="popover-title">Commands</div>
-            {quickCommands.map((command) => (
-              <button key={command} className="popover-row" onClick={() => sendSlash(command)}>{command}</button>
+            {commandGroups.map((group) => (
+              <div key={group} className="command-group">
+                <div className="command-group-title">{group}</div>
+                {commandPaletteItems.filter((item) => item.group === group).map((item) => (
+                  <button key={item.id} className="popover-row command-row" onClick={() => void runCommand(item)}>
+                    <span className="command-row-main">
+                      <strong>{item.label}</strong>
+                      <code>{item.command}</code>
+                    </span>
+                    <span className="popover-row-description">{item.description}</span>
+                  </button>
+                ))}
+              </div>
             ))}
           </div>
         )}
 
-        {filesOpen && (
-          <div className="drawer-backdrop" onClick={() => setFilesOpen(false)}>
-            <aside className="native-drawer" onClick={(event) => event.stopPropagation()}>
-              <div className="drawer-header">
-                <div>Files</div>
-                <button className="icon-button" onClick={() => setFilesOpen(false)} title="Close files"><X size={18} /></button>
-              </div>
-              <FileBrowser transport={transport} cwd={cwd} onSelectFile={setViewingFile} />
-            </aside>
-          </div>
-        )}
-
-        <FileViewer transport={transport} filePath={viewingFile} onClose={() => setViewingFile(undefined)} />
-        <DocsSidecar visible={docsOpen} onClose={() => setDocsOpen(false)} />
         <AdvancedPanel
           transport={transport}
           commandExecutable={commandExecutable}
           cwd={cwd}
+          onResumeSession={resumeProjectSession}
           visible={advancedOpen}
           onClose={() => setAdvancedOpen(false)}
         />
+        {releaseNoteVersion && releaseNotes[releaseNoteVersion] && (
+          <ReleaseNotesModal
+            version={releaseNoteVersion}
+            note={releaseNotes[releaseNoteVersion]}
+            onClose={dismissReleaseNotes}
+            onConfigureModels={openConfigureModels}
+          />
+        )}
       </section>
     </main>
+  )
+}
+
+function TranscriptWorkspace({
+  session,
+  transport,
+  statusLine,
+  resumeFailure,
+  workEvents,
+  onResume,
+  onReveal,
+  onOpenTranscript
+}: {
+  session: DiscoveredSession
+  transport: TransportAPI
+  statusLine: string
+  resumeFailure: string
+  workEvents: WorkEvent[]
+  onResume: () => void
+  onReveal: () => void
+  onOpenTranscript: () => void
+}): JSX.Element {
+  return (
+    <section className="transcript-workspace" aria-label="Transcript">
+      <header className="transcript-header">
+        <div>
+          <div className="transcript-eyebrow">Recent context</div>
+          <h1>{session.title || session.id}</h1>
+          <div className="transcript-meta">{session.id} · {new Date(session.timestamp).toLocaleString()}</div>
+        </div>
+        <div className="transcript-actions">
+          <button className="primary-button" onClick={onResume}><RotateCcw size={16} /> Resume</button>
+          <button className="ghost-button native-ghost" onClick={onOpenTranscript}><FileText size={16} /> Open transcript</button>
+          <button className="ghost-button native-ghost" onClick={onReveal}>Reveal file</button>
+        </div>
+      </header>
+      {resumeFailure && <div className="resume-failure">{resumeFailure}</div>}
+      <div className="work-evidence-list">
+        {(workEvents.length ? workEvents : [{ id: 'empty', label: 'Context loaded', detail: statusLine || 'Ready to inspect or resume this session.' }]).map((event) => (
+          <div key={event.id} className={`work-evidence work-evidence--${event.tone || 'default'}`}>
+            <strong>{event.label}</strong>
+            <span>{event.detail}</span>
+          </div>
+        ))}
+      </div>
+      <div className="transcript-inline-preview">
+        <TranscriptPreview transport={transport} session={session} compact />
+      </div>
+    </section>
+  )
+}
+
+function WorkbenchToolRail({
+  rightInspector,
+  bottomTerminalOpen,
+  onOpenIde,
+  onOpenEnvironment,
+  onToggleTerminal,
+  onToggleInspector
+}: {
+  rightInspector: RightInspector
+  bottomTerminalOpen: boolean
+  onOpenIde: () => void
+  onOpenEnvironment: () => void
+  onToggleTerminal: () => void
+  onToggleInspector: () => void
+}): JSX.Element {
+  return (
+    <div className="workbench-tool-rail" aria-label="Workbench tools">
+      <button className={`icon-button ${rightInspector === 'ide' ? 'icon-button--active' : ''}`} onClick={onOpenIde} title="IDE and Finder">
+        <HardDrive size={17} />
+      </button>
+      <button className={`icon-button ${rightInspector === 'environment' ? 'icon-button--active' : ''}`} onClick={onOpenEnvironment} title="Environment">
+        <GitBranch size={17} />
+      </button>
+      <button className={`icon-button ${bottomTerminalOpen ? 'icon-button--active' : ''}`} onClick={onToggleTerminal} title="Bottom terminal">
+        <PanelBottom size={17} />
+      </button>
+      <button className={`icon-button ${rightInspector !== 'none' ? 'icon-button--active' : ''}`} onClick={onToggleInspector} title="Right sidebar">
+        <PanelRightOpen size={17} />
+      </button>
+    </div>
+  )
+}
+
+function EnvironmentTracker({ transport, cwd }: { transport: TransportAPI; cwd: string }): JSX.Element {
+  const [status, setStatus] = useState<GitEnvironmentStatus | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const refresh = useCallback(async (): Promise<void> => {
+    setLoading(true)
+    try {
+      setStatus(await transport.gitStatus(cwd))
+    } catch (err) {
+      setStatus({
+        ok: false,
+        cwd,
+        filesChanged: 0,
+        insertions: 0,
+        deletions: 0,
+        added: 0,
+        modified: 0,
+        deleted: 0,
+        untracked: 0,
+        files: [],
+        raw: '',
+        error: err instanceof Error ? err.message : 'Git status failed'
+      })
+    } finally {
+      setLoading(false)
+    }
+  }, [transport, cwd])
+
+  useEffect(() => {
+    void refresh()
+  }, [refresh])
+
+  if (!status) return <div className="muted">Loading environment...</div>
+
+  return (
+    <div className="environment-panel">
+      <div className="environment-panel-header">
+        <div>
+          <div className="inspector-section-label">Environment</div>
+          <div className="environment-branch"><GitBranch size={16} /> {status.branch || 'No branch'}</div>
+        </div>
+        <button className="icon-button" onClick={() => void refresh()} title="Refresh environment" disabled={loading}>
+          <RefreshCw size={16} />
+        </button>
+      </div>
+
+      {status.error && <div className="error-text">{status.error}</div>}
+
+      <div className="environment-card">
+        <div className="environment-row">
+          <span>Changes</span>
+          <strong><span className="text-green">+{status.insertions}</span> <span className="text-red">-{status.deletions}</span></strong>
+        </div>
+        <div className="environment-row">
+          <span>Local</span>
+          <strong>{status.filesChanged} files</strong>
+        </div>
+        <div className="environment-row">
+          <span>Remote</span>
+          <strong>{status.ahead || 0} ahead · {status.behind || 0} behind</strong>
+        </div>
+      </div>
+
+      <div className="environment-card">
+        <div className="environment-row"><span>Added</span><strong>{status.added}</strong></div>
+        <div className="environment-row"><span>Modified</span><strong>{status.modified}</strong></div>
+        <div className="environment-row"><span>Deleted</span><strong>{status.deleted}</strong></div>
+        <div className="environment-row"><span>Untracked</span><strong>{status.untracked}</strong></div>
+      </div>
+
+      <div className="environment-file-list">
+        <div className="inspector-section-label">Changed files</div>
+        {status.files.length === 0 ? (
+          <div className="muted">No changed files.</div>
+        ) : (
+          status.files.map((file) => (
+            <div key={`${file.status}-${file.path}`} className="environment-file-row">
+              <code>{file.status}</code>
+              <span>{file.path}</span>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  )
+}
+
+function RightInspectorPanel({
+  mode,
+  transport,
+  cwd,
+  commandExecutable,
+  filePath,
+  transcript,
+  onClose,
+  onSelectFile,
+  onOpenFiles,
+  onOpenTranscript,
+  onOpenDocs,
+  onOpenAdvanced,
+  onRevealTranscript,
+  onOpenSettings,
+  onResizeStart
+}: {
+  mode: RightInspector
+  transport: TransportAPI
+  cwd: string
+  commandExecutable: string
+  filePath?: string
+  transcript?: DiscoveredSession
+  onClose: () => void
+  onSelectFile: (path: string) => void
+  onOpenFiles: () => void
+  onOpenTranscript: () => void
+  onOpenDocs: () => void
+  onOpenAdvanced: () => void
+  onRevealTranscript: () => void
+  onOpenSettings: () => void
+  onResizeStart: (event: ReactPointerEvent<HTMLDivElement>) => void
+}): JSX.Element | null {
+  if (mode === 'none') return null
+
+  const title = mode === 'files'
+    ? 'Files'
+    : mode === 'file'
+      ? 'File'
+      : mode === 'transcript'
+        ? 'Transcript'
+        : mode === 'docs'
+          ? 'Docs'
+          : mode === 'environment'
+            ? 'Environment'
+            : mode === 'ide'
+              ? 'IDE'
+              : 'Advanced'
+
+  return (
+    <aside className="right-inspector" aria-label={title}>
+      <div className="right-inspector-resize-handle" onPointerDown={onResizeStart} title="Resize inspector" />
+      <header className="right-inspector-header">
+        <div>{title}</div>
+        <div className="right-inspector-actions">
+          <button className="icon-button" onClick={onClose} title="Close inspector"><X size={16} /></button>
+        </div>
+      </header>
+      <div className="right-inspector-body">
+        {mode === 'files' && <FileBrowser transport={transport} cwd={cwd} onSelectFile={onSelectFile} />}
+        {mode === 'file' && (
+          filePath
+            ? <FileViewer transport={transport} filePath={filePath} cwd={cwd} onClose={onOpenFiles} variant="inline" />
+            : <InspectorEmpty title="No file selected" detail="Choose a project file to preview it here." />
+        )}
+        {mode === 'transcript' && (
+          transcript
+            ? (
+              <>
+                <div className="inspector-button-row">
+                  <button className="ghost-button native-ghost" onClick={onRevealTranscript}>Reveal transcript</button>
+                </div>
+                <TranscriptPreview transport={transport} session={transcript} />
+              </>
+            )
+            : <InspectorEmpty title="No transcript selected" detail="Open a recent context or active session transcript." />
+        )}
+        {mode === 'docs' && (
+          <iframe className="right-docs-frame" src="https://commandcode.ai/docs" title="Command Code Docs" />
+        )}
+        {mode === 'environment' && <EnvironmentTracker transport={transport} cwd={cwd} />}
+        {mode === 'ide' && (
+          <div className="inspector-stack">
+            <button className="ghost-button native-ghost" onClick={() => transport.revealPath(cwd)}><FolderOpen size={16} /> Reveal project in Finder</button>
+            <IdePanel transport={transport} commandExecutable={commandExecutable} cwd={cwd} />
+          </div>
+        )}
+        {mode === 'advanced' && (
+          <div className="inspector-stack">
+            <button className="ghost-button native-ghost" onClick={onOpenSettings}><Settings size={16} /> Open settings</button>
+            <InspectorEmpty title="Advanced tools" detail="MCP, skills, memory, agents, usage, and project-state tools remain available from Settings and Advanced." />
+          </div>
+        )}
+      </div>
+    </aside>
+  )
+}
+
+function TranscriptPreview({ transport, session, compact = false }: { transport: TransportAPI; session: DiscoveredSession; compact?: boolean }): JSX.Element {
+  const [content, setContent] = useState('')
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+    transport.readTranscript(session.transcriptPath)
+      .then((result) => {
+        if (cancelled) return
+        if (result.error) {
+          setError(result.error)
+          setContent('')
+        } else {
+          setError('')
+          setContent(result.content)
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Transcript read failed')
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [transport, session.transcriptPath])
+
+  if (error) return <div className="error-text">{error}</div>
+  if (!content) return <div className="muted">Loading transcript...</div>
+
+  return (
+    <pre className={`transcript-preview ${compact ? 'transcript-preview--compact' : ''}`}>
+      {content}
+    </pre>
+  )
+}
+
+function InspectorEmpty({ title, detail }: { title: string; detail: string }): JSX.Element {
+  return (
+    <div className="inspector-empty">
+      <strong>{title}</strong>
+      <span>{detail}</span>
+    </div>
+  )
+}
+
+function ReleaseNotesModal({
+  version,
+  note,
+  onClose,
+  onConfigureModels
+}: {
+  version: string
+  note: typeof releaseNotes[string]
+  onClose: () => void
+  onConfigureModels: () => Promise<void>
+}): JSX.Element {
+  return (
+    <div className="release-modal-backdrop" role="presentation" onClick={onClose}>
+      <section className="release-modal" role="dialog" aria-modal="true" aria-labelledby="release-title" onClick={(event) => event.stopPropagation()}>
+        <button className="icon-button release-close" onClick={onClose} title="Dismiss release notes"><X size={18} /></button>
+        <div className="release-eyebrow"><Sparkles size={16} /> {note.eyebrow}</div>
+        <h2 id="release-title">{note.title}</h2>
+        <p>{note.body}</p>
+        <ul>
+          {note.bullets.map((bullet) => <li key={bullet}>{bullet}</li>)}
+        </ul>
+        <div className="release-actions">
+          {note.command && (
+            <button className="primary-button release-primary" onClick={() => void onConfigureModels()}>
+              <Route size={16} /> Open {note.command}
+            </button>
+          )}
+          <button className="ghost-button native-ghost" onClick={onClose}>Not now</button>
+        </div>
+        <div className="release-footnote">Command Code {version} is installed. These notes are stored locally after dismissal.</div>
+      </section>
+    </div>
   )
 }
 
@@ -780,6 +2024,7 @@ type SettingsWorkspaceProps = {
   appearanceTheme: AppearanceTheme
   setAppearanceTheme: (value: AppearanceTheme) => void
   runCheck: () => Promise<void>
+  openConfigureModels: () => Promise<void>
   openDocs: () => void
   openAdvanced: () => void
 }
@@ -831,6 +2076,7 @@ function SettingsWorkspace({
   appearanceTheme,
   setAppearanceTheme,
   runCheck,
+  openConfigureModels,
   openDocs,
   openAdvanced
 }: SettingsWorkspaceProps): JSX.Element {
@@ -900,7 +2146,7 @@ function SettingsWorkspace({
                 <span>PTY</span><strong>{runtimeHealth}</strong>
               </div>
               <div className="settings-permission-grid">
-                {(['standard', 'plan', 'auto-accept'] as PermissionMode[]).map((mode) => (
+                {(['standard', 'auto-accept'] as PermissionMode[]).map((mode) => (
                   <button
                     key={mode}
                     className={`popover-row ${permissionMode === mode && !trust ? 'popover-row--active' : ''} ${mode === 'auto-accept' ? 'popover-row--warn' : ''}`}
@@ -911,7 +2157,7 @@ function SettingsWorkspace({
                 ))}
                 <button className={`popover-row popover-row--warn ${trust ? 'popover-row--active' : ''}`} onClick={() => { setPermissionMode('standard'); setTrust(true) }}>trust</button>
               </div>
-              <ModelDropdown transport={transport} model={model} setModel={setModel} commandExecutable={commandExecutable} cwd={cwd} />
+              <ModelDropdown transport={transport} model={model} setModel={setModel} commandExecutable={commandExecutable} cwd={cwd} onConfigureModels={openConfigureModels} />
               <AuthCard transport={transport} commandExecutable={commandExecutable} cwd={cwd} />
               <IdePanel transport={transport} commandExecutable={commandExecutable} cwd={cwd} />
             </div>
@@ -992,15 +2238,16 @@ type ComposerBarProps = {
   prompt: string
   setPrompt: (value: string) => void
   onSubmit: () => Promise<void>
+  onFocus?: () => void
+  showPlanSuggestion: boolean
+  onPlanMode: () => Promise<void>
   projectLabel: string
-  runtimeMode: RuntimeMode
   modelLabel: string
   permissionLabel: string
   riskyPermission: boolean
   onProject: () => void
-  onMode: () => void
   onPermission: () => void
-  onRuntime: () => void
+  onModel: () => void
   onSlash: () => void
 }
 
@@ -1009,25 +2256,36 @@ function ComposerBar({
   prompt,
   setPrompt,
   onSubmit,
+  onFocus,
+  showPlanSuggestion,
+  onPlanMode,
   projectLabel,
-  runtimeMode,
   modelLabel,
   permissionLabel,
   riskyPermission,
   onProject,
-  onMode,
   onPermission,
-  onRuntime,
+  onModel,
   onSlash
 }: ComposerBarProps): JSX.Element {
   return (
     <div className={`composer-card ${active ? 'composer-card--active' : ''}`}>
+      {showPlanSuggestion && (
+        <div className="plan-suggestion">
+          <div>
+            <strong>Create a plan</strong>
+            <span>Use Command Code plan mode for this prompt.</span>
+          </div>
+          <button className="chip-button" onClick={() => void onPlanMode()}>Use plan mode</button>
+        </div>
+      )}
       <textarea
         className="composer-input"
         value={prompt}
         onChange={(event) => setPrompt(event.target.value)}
+        onFocus={onFocus}
         onKeyDown={(event) => {
-          if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+          if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault()
             void onSubmit()
           }
@@ -1040,13 +2298,9 @@ function ComposerBar({
           <button className="chip-button icon-only-chip" onClick={onSlash} title="Slash commands">
             <SlidersHorizontal size={17} />
           </button>
-          <button className="chip-button" onClick={onPermission}>
+          <button className={`chip-button ${riskyPermission ? 'chip-button--warn' : ''}`} onClick={onPermission}>
             <span className={riskyPermission ? 'warning-dot' : 'neutral-dot'} />
             {permissionLabel}
-            <ChevronDown size={14} />
-          </button>
-          <button className="chip-button" onClick={onMode}>
-            {modeLabel(runtimeMode)}
             <ChevronDown size={14} />
           </button>
         </div>
@@ -1056,7 +2310,7 @@ function ComposerBar({
             {projectLabel}
             <ChevronDown size={14} />
           </button>
-          <button className="chip-button" onClick={onRuntime}>
+          <button className="chip-button" onClick={onModel}>
             {modelLabel}
             <ChevronDown size={14} />
           </button>

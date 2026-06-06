@@ -15,6 +15,7 @@ type ModelDropdownProps = {
   setModel: (value: string) => void
   commandExecutable?: string
   cwd?: string
+  onConfigureModels?: () => Promise<void>
 }
 
 function parseModels(stdout: string): ModelEntry[] {
@@ -55,7 +56,7 @@ function parseModels(stdout: string): ModelEntry[] {
   return models
 }
 
-export function ModelDropdown({ transport, model, setModel, commandExecutable, cwd }: ModelDropdownProps): JSX.Element {
+export function ModelDropdown({ transport, model, setModel, commandExecutable, cwd, onConfigureModels }: ModelDropdownProps): JSX.Element {
   const [models, setModels] = useState<ModelEntry[]>([])
   const [loading, setLoading] = useState(false)
   const [favorites, setFavorites] = useState<string[]>(() => {
@@ -119,6 +120,15 @@ export function ModelDropdown({ transport, model, setModel, commandExecutable, c
   return (
     <div className="model-dropdown">
       <label className="field-label" htmlFor="model-select">Model</label>
+      {onConfigureModels && (
+        <div className="model-routing-card">
+          <div>
+            <strong>Task model routing</strong>
+            <span>Use /configure-models to choose models for compaction, titles, and background work.</span>
+          </div>
+          <button className="ghost-button native-ghost" onClick={() => void onConfigureModels()}>Configure</button>
+        </div>
+      )}
       <div className="inline-field">
         <select
           id="model-select"
@@ -141,6 +151,9 @@ export function ModelDropdown({ transport, model, setModel, commandExecutable, c
             {favorites.includes(model) ? '★' : '☆'}
           </button>
         )}
+      </div>
+      <div className="model-memory-line">
+        {favorites.length > 0 ? `${favorites.length} favorite model${favorites.length === 1 ? '' : 's'} saved locally.` : 'Favorite a model to pin it above the full list.'}
       </div>
     </div>
   )

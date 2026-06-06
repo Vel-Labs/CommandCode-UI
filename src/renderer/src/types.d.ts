@@ -6,6 +6,7 @@ declare global {
       chooseDirectory: () => Promise<DirectoryPickResult>
       openExternal: (url: string) => Promise<void>
       revealTranscript: (transcriptPath: string) => Promise<void>
+      revealPath: (targetPath: string) => Promise<void>
       getServerInfo: () => Promise<{ port: number; token: string }>
     }
   }

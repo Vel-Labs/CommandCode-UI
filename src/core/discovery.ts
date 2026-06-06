@@ -11,13 +11,81 @@ import type {
   AgentConfig,
   McpServer,
   SkillEntry,
-  MemoryFile
+  MemoryFile,
+  ProjectCommandCodeFile,
+  ProjectCommandCodeReference,
+  ProjectCommandCodeSection
 } from './types'
 
 const BASE_DIR = path.join(os.homedir(), '.commandcode')
 const AGENTS_DIR = path.join(os.homedir(), '.agents')
 
-export function discoverSessions(): DiscoveredSession[] {
+function projectSlug(cwd: string): string {
+  return path.resolve(cwd)
+    .replace(/^\/+/, '')
+    .replace(/[^a-zA-Z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .toLowerCase()
+}
+
+function readSessionTitle(metaPath: string): string | undefined {
+  if (!existsSync(metaPath)) return undefined
+  try {
+    const parsed = JSON.parse(readFileSync(metaPath, 'utf8')) as { title?: unknown }
+    return typeof parsed.title === 'string' && parsed.title.trim() ? parsed.title.trim() : undefined
+  } catch {
+    return undefined
+  }
+}
+
+function listFilesShallow(dir: string, maxDepth = 2): ProjectCommandCodeFile[] {
+  if (!existsSync(dir)) return []
+  try {
+    const files: ProjectCommandCodeFile[] = []
+    const walk = (currentDir: string, depth: number): void => {
+      for (const entry of readdirSync(currentDir, { withFileTypes: true })) {
+        if (entry.name.startsWith('.')) continue
+        const filePath = path.join(currentDir, entry.name)
+        if (entry.isDirectory()) {
+          if (depth < maxDepth) walk(filePath, depth + 1)
+          continue
+        }
+        if (!entry.isFile()) continue
+        const stat = statSync(filePath)
+        files.push({
+          name: path.relative(dir, filePath),
+          path: filePath,
+          sizeBytes: stat.size,
+          updatedAt: stat.mtime.toISOString()
+        })
+      }
+    }
+
+    walk(dir, 0)
+    return files.sort((a, b) => a.name.localeCompare(b.name))
+  } catch {
+    return []
+  }
+}
+
+function section(
+  key: ProjectCommandCodeSection['key'],
+  label: string,
+  description: string,
+  sectionPath: string,
+  files?: ProjectCommandCodeFile[]
+): ProjectCommandCodeSection {
+  return {
+    key,
+    label,
+    description,
+    path: sectionPath,
+    exists: existsSync(sectionPath),
+    files: files ?? listFilesShallow(sectionPath)
+  }
+}
+
+export function discoverSessions(cwd?: string): DiscoveredSession[] {
   const sessions: DiscoveredSession[] = []
 
   const dirs = [path.join(BASE_DIR, 'sessions'), path.join(BASE_DIR, 'transcripts')]
@@ -34,7 +102,8 @@ export function discoverSessions(): DiscoveredSession[] {
               id: entry,
               timestamp: stat.mtime.toISOString(),
               transcriptPath: full,
-              sizeBytes: stat.size
+              sizeBytes: stat.size,
+              source: 'global'
             })
           }
         } catch { /* skip */ }
@@ -42,8 +111,91 @@ export function discoverSessions(): DiscoveredSession[] {
     } catch { /* skip */ }
   }
 
+  if (cwd?.trim()) {
+    const projectDir = path.join(BASE_DIR, 'projects', projectSlug(cwd))
+    if (existsSync(projectDir)) {
+      try {
+        for (const entry of readdirSync(projectDir)) {
+          if (!entry.endsWith('.jsonl') || entry.endsWith('.checkpoints.jsonl')) continue
+          const full = path.join(projectDir, entry)
+          try {
+            const stat = statSync(full)
+            if (!stat.isFile()) continue
+            const id = entry.replace(/\.jsonl$/, '')
+            sessions.push({
+              id,
+              title: readSessionTitle(path.join(projectDir, `${id}.meta.json`)),
+              timestamp: stat.mtime.toISOString(),
+              transcriptPath: full,
+              sizeBytes: stat.size,
+              cwd,
+              source: 'project'
+            })
+          } catch { /* skip */ }
+        }
+      } catch { /* skip */ }
+    }
+  }
+
   sessions.sort((a, b) => b.timestamp.localeCompare(a.timestamp))
   return sessions.slice(0, 50)
+}
+
+export function projectCommandCodeReference(cwd?: string): ProjectCommandCodeReference {
+  const projectPath = path.resolve(cwd?.trim() || '.')
+  const projectCommandCodePath = path.join(projectPath, '.commandcode')
+  const userProjectContextPath = path.join(BASE_DIR, 'projects', projectSlug(projectPath))
+  const projectPreferencePath = path.join(projectCommandCodePath, 'gui-preferences.json')
+
+  const preferenceFiles = existsSync(projectPreferencePath)
+    ? listFilesShallow(projectCommandCodePath).filter((file) => file.name === 'gui-preferences.json')
+    : []
+
+  return {
+    projectPath,
+    projectCommandCodePath,
+    userProjectContextPath,
+    sections: [
+      section(
+        'commands',
+        'Project commands',
+        'Repo-local slash command prompt files owned by Command Code.',
+        path.join(projectCommandCodePath, 'commands')
+      ),
+      section(
+        'skills',
+        'Project skills',
+        'Repo-local skill definitions that can guide Command Code behavior.',
+        path.join(projectCommandCodePath, 'skills')
+      ),
+      section(
+        'taste',
+        'Taste',
+        'Project-local taste learning notes. Command Code owns the learning semantics.',
+        path.join(projectCommandCodePath, 'taste')
+      ),
+      section(
+        'memory',
+        'Memory',
+        'Optional project memory files surfaced by the GUI memory editor.',
+        path.join(projectCommandCodePath, 'memory')
+      ),
+      section(
+        'preferences',
+        'GUI preferences',
+        'Adapter-owned project preferences. These do not change Command Code runtime internals.',
+        projectPreferencePath,
+        preferenceFiles
+      ),
+      section(
+        'sessions',
+        'Chat contexts',
+        'Command Code runtime-owned project transcripts, metadata, checkpoints, and settings.',
+        userProjectContextPath,
+        listFilesShallow(userProjectContextPath)
+      )
+    ]
+  }
 }
 
 export async function usageSummary(commandExecutable?: string, cwd?: string): Promise<UsageSummary> {

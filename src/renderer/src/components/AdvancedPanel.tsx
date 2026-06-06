@@ -1,18 +1,21 @@
 import { useState, useEffect } from 'react'
 import type { JSX } from 'react'
 import type { TransportAPI } from '../../../core/transport'
+import type { DiscoveredSession, ProjectCommandCodeReference } from '../../../core/types'
 
 type AdvancedPanelProps = {
   transport: TransportAPI
   commandExecutable: string
   cwd: string
+  onResumeSession: (session: DiscoveredSession) => Promise<void>
   visible: boolean
   onClose: () => void
 }
 
-type Tab = 'sessions' | 'usage' | 'taste' | 'agents' | 'mcp' | 'skills' | 'memory'
+type Tab = 'reference' | 'sessions' | 'usage' | 'taste' | 'agents' | 'mcp' | 'skills' | 'memory'
 
 const TABS: { id: Tab; label: string }[] = [
+  { id: 'reference', label: 'Project state' },
   { id: 'sessions', label: 'Sessions' },
   { id: 'usage', label: 'Usage' },
   { id: 'taste', label: 'Taste' },
@@ -22,8 +25,8 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'memory', label: 'Memory' }
 ]
 
-export function AdvancedPanel({ transport, commandExecutable, cwd, visible, onClose }: AdvancedPanelProps): JSX.Element | null {
-  const [tab, setTab] = useState<Tab>('sessions')
+export function AdvancedPanel({ transport, commandExecutable, cwd, onResumeSession, visible, onClose }: AdvancedPanelProps): JSX.Element | null {
+  const [tab, setTab] = useState<Tab>('reference')
 
   if (!visible) return null
 
@@ -45,10 +48,11 @@ export function AdvancedPanel({ transport, commandExecutable, cwd, visible, onCl
           <button className="ghost-button advanced-close" onClick={onClose}>×</button>
         </div>
         <div className="advanced-body">
-          {tab === 'sessions' && <SessionDiscovery transport={transport} />}
+          {tab === 'reference' && <ProjectStateReference transport={transport} cwd={cwd} />}
+          {tab === 'sessions' && <SessionDiscovery transport={transport} cwd={cwd} onResumeSession={onResumeSession} />}
           {tab === 'usage' && <UsageDashboard transport={transport} commandExecutable={commandExecutable} cwd={cwd} />}
           {tab === 'taste' && <TasteBrowser transport={transport} />}
-          {tab === 'agents' && <AgentEditor transport={transport} />}
+          {tab === 'agents' && <AgentEditor transport={transport} cwd={cwd} />}
           {tab === 'mcp' && <McpPanel transport={transport} commandExecutable={commandExecutable} />}
           {tab === 'skills' && <SkillsBrowser transport={transport} />}
           {tab === 'memory' && <MemoryEditor transport={transport} cwd={cwd} />}
@@ -58,14 +62,74 @@ export function AdvancedPanel({ transport, commandExecutable, cwd, visible, onCl
   )
 }
 
-function SessionDiscovery({ transport }: { transport: TransportAPI }): JSX.Element {
-  const [sessions, setSessions] = useState<Array<{ id: string; timestamp: string; transcriptPath: string; sizeBytes: number }>>([])
+function ProjectStateReference({ transport, cwd }: { transport: TransportAPI; cwd: string }): JSX.Element {
+  const [reference, setReference] = useState<ProjectCommandCodeReference | null>(null)
   const [loading, setLoading] = useState(false)
 
   const load = async () => {
     setLoading(true)
     try {
-      const result = await transport.discoverSessions()
+      setReference((await transport.projectCommandCodeReference(cwd)).reference)
+    } catch {
+      setReference(null)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { void load() }, [cwd])
+
+  return (
+    <div className="advanced-section">
+      <div className="advanced-section-header">
+        <span>.commandcode reference</span>
+        <button className="ghost-button" onClick={() => void load()} disabled={loading}>{loading ? 'Scanning...' : 'Refresh'}</button>
+      </div>
+      <p className="reference-note">
+        Repo-local `.commandcode` files are project commands, skills, taste, memory, and GUI preferences. Chat contexts live in the user-level Command Code project store and are resumed through `cmd --resume`, not edited directly.
+      </p>
+      {reference && (
+        <>
+          <div className="reference-path-grid">
+            <div><span>Project</span><code>{reference.projectPath}</code></div>
+            <div><span>Repo state</span><code>{reference.projectCommandCodePath}</code></div>
+            <div><span>Runtime contexts</span><code>{reference.userProjectContextPath}</code></div>
+          </div>
+          {reference.sections.map((section) => (
+            <div key={section.key} className="reference-section">
+              <div className="reference-section-head">
+                <div>
+                  <strong>{section.label}</strong>
+                  <span>{section.description}</span>
+                </div>
+                <span className={`reference-badge ${section.exists ? 'reference-badge--on' : ''}`}>
+                  {section.exists ? `${section.files.length} files` : 'not present'}
+                </span>
+              </div>
+              <code className="reference-path">{section.path}</code>
+              {section.files.slice(0, 8).map((file) => (
+                <div key={file.path} className="reference-file">
+                  <span>{file.name}</span>
+                  <small>{(file.sizeBytes / 1024).toFixed(1)}KB</small>
+                </div>
+              ))}
+              {section.files.length > 8 && <div className="reference-more">+{section.files.length - 8} more</div>}
+            </div>
+          ))}
+        </>
+      )}
+    </div>
+  )
+}
+
+function SessionDiscovery({ transport, cwd, onResumeSession }: { transport: TransportAPI; cwd: string; onResumeSession: (session: DiscoveredSession) => Promise<void> }): JSX.Element {
+  const [sessions, setSessions] = useState<DiscoveredSession[]>([])
+  const [loading, setLoading] = useState(false)
+
+  const load = async () => {
+    setLoading(true)
+    try {
+      const result = await transport.discoverSessions(cwd)
       setSessions(result.sessions)
     } catch {
       setSessions([])
@@ -85,12 +149,17 @@ function SessionDiscovery({ transport }: { transport: TransportAPI }): JSX.Eleme
       {sessions.map((s) => (
         <div key={s.id} className="discovery-row">
           <div>
-            <div className="discovery-name">{s.id}</div>
-            <div className="discovery-meta">{new Date(s.timestamp).toLocaleString()} · {(s.sizeBytes / 1024).toFixed(1)}KB</div>
+            <div className="discovery-name">{s.title || s.id}</div>
+            <div className="discovery-meta">{s.source || 'global'} · {new Date(s.timestamp).toLocaleString()} · {(s.sizeBytes / 1024).toFixed(1)}KB</div>
           </div>
-          <button className="ghost-button" onClick={() => transport.revealTranscript(s.transcriptPath)}>
-            Reveal
-          </button>
+          <div className="discovery-actions">
+            <button className="ghost-button" onClick={() => void onResumeSession(s)} disabled={s.source !== 'project'}>
+              Resume
+            </button>
+            <button className="ghost-button" onClick={() => transport.revealTranscript(s.transcriptPath)}>
+              Reveal
+            </button>
+          </div>
         </div>
       ))}
     </div>
@@ -195,7 +264,7 @@ function TasteBrowser({ transport }: { transport: TransportAPI }): JSX.Element {
   )
 }
 
-function AgentEditor({ transport }: { transport: TransportAPI }): JSX.Element {
+function AgentEditor({ transport, cwd }: { transport: TransportAPI; cwd: string }): JSX.Element {
   const [agents, setAgents] = useState<Array<{
     path: string
     name: string
@@ -219,7 +288,7 @@ function AgentEditor({ transport }: { transport: TransportAPI }): JSX.Element {
 
   const save = async (agentPath: string) => {
     try {
-      await transport.saveAgent(agentPath, content)
+      await transport.saveAgent(agentPath, content, cwd)
       setEditing(undefined)
       load()
     } catch { /* show error? */ }
@@ -381,7 +450,7 @@ function MemoryEditor({ transport, cwd }: { transport: TransportAPI; cwd: string
 
   const save = async (filePath: string) => {
     try {
-      await transport.saveMemory(filePath, content)
+      await transport.saveMemory(filePath, content, cwd)
       setEditing(undefined)
       load()
     } catch { /* ignore */ }

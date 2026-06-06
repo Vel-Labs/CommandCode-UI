@@ -21,7 +21,7 @@ export function FileBrowser({ transport, cwd, onSelectFile }: FileBrowserProps):
   const loadDir = async (dir: string) => {
     setLoadingPath(dir)
     try {
-      const result = await transport.listFiles(dir)
+      const result = await transport.listFiles(dir, cwd)
       if (result.error) {
         setError(result.error)
         return

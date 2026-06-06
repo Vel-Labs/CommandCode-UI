@@ -5,10 +5,12 @@ import type { TransportAPI } from '../../../core/transport'
 type FileViewerProps = {
   transport: TransportAPI
   filePath?: string
+  cwd?: string
   onClose: () => void
+  variant?: 'overlay' | 'inline'
 }
 
-export function FileViewer({ transport, filePath, onClose }: FileViewerProps): JSX.Element | null {
+export function FileViewer({ transport, filePath, cwd, onClose, variant = 'overlay' }: FileViewerProps): JSX.Element | null {
   const [content, setContent] = useState('')
   const [ext, setExt] = useState('')
   const [error, setError] = useState('')
@@ -16,7 +18,7 @@ export function FileViewer({ transport, filePath, onClose }: FileViewerProps): J
   useEffect(() => {
     if (!filePath) return
 
-    transport.readFile(filePath).then((result) => {
+    transport.readFile(filePath, cwd).then((result) => {
       if (result.error) {
         setError(result.error)
         setContent('')
@@ -28,7 +30,7 @@ export function FileViewer({ transport, filePath, onClose }: FileViewerProps): J
     }).catch((err) => {
       setError(err instanceof Error ? err.message : 'Read failed')
     })
-  }, [filePath, transport])
+  }, [filePath, cwd, transport])
 
   if (!filePath) return null
 
@@ -40,29 +42,35 @@ export function FileViewer({ transport, filePath, onClose }: FileViewerProps): J
   const isMd = ext === '.md'
   const isAnsi = filePath.endsWith('.ansi')
 
+  const contentNode = (
+    <div className={`file-viewer ${variant === 'inline' ? 'file-viewer--inline' : ''}`}>
+      <div className="file-viewer-header">
+        <span className="file-viewer-name">{filePath.split('/').pop()}</span>
+        <span className="file-viewer-meta">{lines} lines, {sizeLabel}</span>
+        <button className="ghost-button file-viewer-close" onClick={onClose}>×</button>
+      </div>
+      <div className="file-viewer-body">
+        {error && <div className="error-text">{error}</div>}
+        {!error && isAnsi && (
+          <pre className="file-content ansi-content">{content}</pre>
+        )}
+        {!error && !isMd && !isAnsi && (
+          <pre className="file-content">{content}</pre>
+        )}
+        {!error && isMd && (
+          <div className="file-content md-content">
+            {renderMarkdownSync(content)}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+
+  if (variant === 'inline') return contentNode
+
   return (
     <div className="file-viewer-overlay">
-      <div className="file-viewer">
-        <div className="file-viewer-header">
-          <span className="file-viewer-name">{filePath.split('/').pop()}</span>
-          <span className="file-viewer-meta">{lines} lines, {sizeLabel}</span>
-          <button className="ghost-button file-viewer-close" onClick={onClose}>×</button>
-        </div>
-        <div className="file-viewer-body">
-          {error && <div className="error-text">{error}</div>}
-          {!error && isAnsi && (
-            <pre className="file-content ansi-content">{content}</pre>
-          )}
-          {!error && !isMd && !isAnsi && (
-            <pre className="file-content">{content}</pre>
-          )}
-          {!error && isMd && (
-            <div className="file-content md-content">
-              {renderMarkdownSync(content)}
-            </div>
-          )}
-        </div>
-      </div>
+      {contentNode}
     </div>
   )
 }

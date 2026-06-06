@@ -16,6 +16,7 @@ Every `cmd` flag, subcommand, and slash command relevant to the GUI. Sourced fro
 | `cmd help` | Display help information |
 | `cmd whoami` | Show current user |
 | `cmd update` | Update Command Code to the latest version |
+| `cmd update --check-only` | Check for Command Code updates without installing |
 | `cmd feedback [title]` | Share feedback or report bugs |
 | `cmd login` | Login with Command Code account |
 | `cmd logout` | Log out of Command Code |
@@ -35,14 +36,14 @@ Every `cmd` flag, subcommand, and slash command relevant to the GUI. Sourced fro
 
 | Flag | Description | GUI mapping |
 |---|---|---|
-| `-p, --print [query]` | Non-interactive mode, output and exit | Headless runner |
+| `-p, --print [query]` | Non-interactive mode, output and exit | Command palette: Run headless |
 | `-t, --trust` | Auto-trust project | Trust checkbox |
 | `-m, --model <model>` | Run on a specific model | Model input |
 | `--max-turns <n>` | Cap turns in `-p` mode | Headless max turns |
-| `--permission-mode <mode>` | `standard`, `plan`, `auto-accept` | Segmented mode control |
-| `--plan` | Start in plan mode | Plan toggle (headless) |
-| `--auto-accept` | Start in auto-accept mode | Permission mode |
-| `--yolo` | Bypass all permission prompts | Yolo checkbox (headless) |
+| `--permission-mode <mode>` | `standard`, `plan`, `auto-accept` | Access menu for `standard` and `auto-accept`; `/plan` command for plan mode |
+| `--plan` | Start in plan mode | `/plan` command or plan suggestion |
+| `--auto-accept` | Start in auto-accept mode | Access menu: Full access |
+| `--yolo` | Bypass all permission prompts | Headless runtime checkbox |
 | `--add-dir <dir>` | Add directory to workspace context | Future |
 | `--skip-onboarding` | Skip taste onboarding | Skip onboarding checkbox |
 | `--ide-setup` | Connect IDE | Future diagnostics |
@@ -61,6 +62,7 @@ Commands typed during an interactive PTY session.
 | `/plan <task>` | Enter plan mode for a task | ✅ |
 | `/design surface` | Run design-surface pass | ✅ |
 | `/model` | Switch models | ✅ |
+| `/configure-models` | Choose models for background tasks such as compaction and session titles | ✅ |
 | `/rewind` | Restore to previous checkpoint | ✅ |
 | `/skills` | Browse agent skills | ✅ |
 | `/taste` | Manage taste learning | ✅ |
@@ -131,6 +133,7 @@ What `npm run doctor` verifies:
 | Command Code binary | `cmd --version` |
 | Authentication status | `cmd status --json` |
 | Available models | `cmd --list-models` |
+| Command Code updates | `cmd update --check-only` |
 | Platform | `process.platform` |
 
 ---

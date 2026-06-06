@@ -1,17 +1,24 @@
 import type { TransportAPI, SessionDataCallback, SessionExitCallback } from '../../core/transport'
 import type {
   AgentConfig,
+  AppGuiPreferences,
+  AppGuiPreferencesResult,
   CliExecResult,
   CommandCodeCheck,
   CommandCodeStatus,
+  CommandCodeUpdateResult,
   DiscoveredSession,
   FileEntry,
+  GitEnvironmentStatus,
   HeadlessRunOptions,
   HeadlessRunResult,
   IdeStatusResult,
   McpServer,
   MemoryFile,
   ModelListResult,
+  ProjectGuiPreferences,
+  ProjectGuiPreferencesResult,
+  ProjectCommandCodeReference,
   SessionStartOptions,
   SessionStartResult,
   SkillEntry,
@@ -167,6 +174,35 @@ export function createBrowserTransport(): TransportAPI {
         body: JSON.stringify({ commandExecutable, cwd })
       }),
 
+    update: async (commandExecutable?, cwd?, checkOnly = true) =>
+      fetchJson<CommandCodeUpdateResult>('/api/update', {
+        method: 'POST',
+        body: JSON.stringify({ commandExecutable, cwd, checkOnly })
+      }),
+
+    loadAppPreferences: async () =>
+      fetchJson<AppGuiPreferencesResult>('/api/app/preferences', {
+        method: 'POST'
+      }),
+
+    saveAppPreferences: async (preferences: AppGuiPreferences) =>
+      fetchJson<AppGuiPreferencesResult>('/api/app/preferences/save', {
+        method: 'POST',
+        body: JSON.stringify({ preferences })
+      }),
+
+    loadProjectPreferences: async (cwd) =>
+      fetchJson<ProjectGuiPreferencesResult>('/api/project/preferences', {
+        method: 'POST',
+        body: JSON.stringify({ cwd })
+      }),
+
+    saveProjectPreferences: async (cwd, preferences: ProjectGuiPreferences) =>
+      fetchJson<ProjectGuiPreferencesResult>('/api/project/preferences/save', {
+        method: 'POST',
+        body: JSON.stringify({ cwd, preferences })
+      }),
+
     ptyHealth: async () =>
       fetchJson<PtyDoctorResult>('/api/pty-health'),
 
@@ -221,16 +257,26 @@ export function createBrowserTransport(): TransportAPI {
       return Promise.resolve()
     },
 
-    listFiles: async (dir) =>
-      fetchJson<{ entries: FileEntry[]; dir: string; error?: string }>('/api/files/list', {
+    revealPath: (_targetPath: string): Promise<void> => {
+      return Promise.resolve()
+    },
+
+    readTranscript: async (transcriptPath) =>
+      fetchJson<{ content: string; path: string; ext: string; error?: string }>('/api/sessions/transcript', {
         method: 'POST',
-        body: JSON.stringify({ dir })
+        body: JSON.stringify({ transcriptPath })
       }),
 
-    readFile: async (filePath) =>
+    listFiles: async (dir, cwd) =>
+      fetchJson<{ entries: FileEntry[]; dir: string; error?: string }>('/api/files/list', {
+        method: 'POST',
+        body: JSON.stringify({ dir, cwd })
+      }),
+
+    readFile: async (filePath, cwd) =>
       fetchJson<{ content: string; path: string; ext: string; error?: string }>('/api/files/read', {
         method: 'POST',
-        body: JSON.stringify({ filePath })
+        body: JSON.stringify({ filePath, cwd })
       }),
 
     ideStatus: async (commandExecutable?, cwd?) =>
@@ -239,9 +285,22 @@ export function createBrowserTransport(): TransportAPI {
         body: JSON.stringify({ commandExecutable, cwd })
       }),
 
-    discoverSessions: async () =>
+    gitStatus: async (cwd?) =>
+      fetchJson<GitEnvironmentStatus>('/api/git/status', {
+        method: 'POST',
+        body: JSON.stringify({ cwd })
+      }),
+
+    discoverSessions: async (cwd?) =>
       fetchJson<{ sessions: DiscoveredSession[] }>('/api/sessions/discover', {
-        method: 'POST'
+        method: 'POST',
+        body: JSON.stringify({ cwd })
+      }),
+
+    projectCommandCodeReference: async (cwd?) =>
+      fetchJson<{ reference: ProjectCommandCodeReference }>('/api/project/commandcode-reference', {
+        method: 'POST',
+        body: JSON.stringify({ cwd })
       }),
 
     usage: async (commandExecutable?, cwd?) =>
@@ -260,10 +319,10 @@ export function createBrowserTransport(): TransportAPI {
         method: 'POST'
       }),
 
-    saveAgent: async (agentPath, content) =>
+    saveAgent: async (agentPath, content, cwd) =>
       fetchJson<WriteFileResult>('/api/agents/save', {
         method: 'POST',
-        body: JSON.stringify({ path: agentPath, content })
+        body: JSON.stringify({ path: agentPath, content, cwd })
       }),
 
     listMcp: async (commandExecutable?) =>
@@ -289,10 +348,10 @@ export function createBrowserTransport(): TransportAPI {
         body: JSON.stringify({ cwd })
       }),
 
-    saveMemory: async (filePath, content) =>
+    saveMemory: async (filePath, content, cwd) =>
       fetchJson<WriteFileResult>('/api/memories/save', {
         method: 'POST',
-        body: JSON.stringify({ path: filePath, content })
+        body: JSON.stringify({ path: filePath, content, cwd })
       }),
 
     onSessionData: (sessionId, callback) => {

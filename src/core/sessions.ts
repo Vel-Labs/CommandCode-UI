@@ -44,9 +44,10 @@ export class CoreSessionManager extends EventEmitter<SessionEvents> {
 
   start(options: SessionStartOptions): SessionStartResult {
     const id = randomUUID()
-    const command = getCommandExecutable(options.commandExecutable)
+    const shellSession = options.terminalMode === 'shell'
+    const command = shellSession ? this.getShellExecutable() : getCommandExecutable(options.commandExecutable)
     const cwd = normalizeCwd(options.cwd)
-    const args = buildInteractiveArgs(options)
+    const args = shellSession ? this.getShellArgs() : buildInteractiveArgs(options)
     const transcriptPath = this.createTranscriptPath(id)
 
     const record: SessionRecord = {
@@ -146,6 +147,10 @@ export class CoreSessionManager extends EventEmitter<SessionEvents> {
     return undefined
   }
 
+  isActive(id: string): boolean {
+    return this.sessions.has(id)
+  }
+
   killAll(): void {
     for (const id of this.sessions.keys()) {
       this.forceKill(id)
@@ -192,6 +197,16 @@ export class CoreSessionManager extends EventEmitter<SessionEvents> {
     ].join('\r\n')
 
     this.emitData(record, banner + '\r\n> ')
+  }
+
+  private getShellExecutable(): string {
+    if (process.platform === 'win32') return process.env.ComSpec || 'cmd.exe'
+    return process.env.SHELL || '/bin/zsh'
+  }
+
+  private getShellArgs(): string[] {
+    if (process.platform === 'win32') return []
+    return ['-l']
   }
 
   private writeMock(record: SessionRecord, data: string): void {
