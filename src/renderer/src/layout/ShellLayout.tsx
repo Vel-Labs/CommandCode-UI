@@ -1,26 +1,19 @@
+import { useMemo, useState } from 'react'
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
 import type { JSX, ReactNode } from 'react'
 import {
-  Activity,
   ChevronDown,
-  CreditCard,
   Download,
   Folder,
   FolderOpen,
   Gauge,
-  HardDrive,
-  Keyboard,
-  Palette,
   PanelLeftClose,
   PanelLeftOpen,
-  Plug,
   RefreshCw,
   Search,
   Settings,
   SquarePen,
-  Terminal,
-  UserCircle,
-  Wrench
+  Terminal
 } from 'lucide-react'
 import { ToastContainer } from '../components/ToastSystem'
 import type {
@@ -32,31 +25,7 @@ import type {
   UpdateState
 } from '../appTypes'
 import type { DiscoveredSession } from '../../../core/types'
-
-type SettingsNavGroup = {
-  label: string
-  items: Array<{ id: SettingsSection; label: string; icon: JSX.Element }>
-}
-
-const settingsGroups: SettingsNavGroup[] = [
-  {
-    label: 'Personal',
-    items: [
-      { id: 'profile', label: 'Profile', icon: <UserCircle size={17} /> },
-      { id: 'general', label: 'General', icon: <Settings size={17} /> },
-      { id: 'appearance', label: 'Appearance', icon: <Palette size={17} /> },
-      { id: 'runtime', label: 'Runtime', icon: <Wrench size={17} /> },
-      { id: 'usage', label: 'Usage', icon: <CreditCard size={17} /> }
-    ]
-  },
-  {
-    label: 'Integrations',
-    items: [
-      { id: 'integrations', label: 'Integrations', icon: <Plug size={17} /> },
-      { id: 'advanced', label: 'Advanced', icon: <HardDrive size={17} /> }
-    ]
-  }
-]
+import { groupedSettings } from '../settings/settingsRegistry'
 
 export function ShellLayout({
   appearanceTheme,
@@ -135,6 +104,8 @@ export function ShellLayout({
   onUpdateClick: () => void
   updateLabel: (state: UpdateState, version?: string) => string
 }): JSX.Element {
+  const [settingsQuery, setSettingsQuery] = useState('')
+  const settingsGroups = useMemo(() => groupedSettings(settingsQuery), [settingsQuery])
   const shellStyle = {
     '--sidebar-width': `${sidebarWidth}px`,
     '--right-inspector-width': `${rightInspectorWidth}px`
@@ -163,7 +134,13 @@ export function ShellLayout({
               <button className="settings-back sidebar-settings-back" onClick={onBackFromSettings}>
                 Back to app
               </button>
-              <div className="settings-search">Search settings...</div>
+              <input
+                className="settings-search"
+                value={settingsQuery}
+                onChange={(event) => setSettingsQuery(event.target.value)}
+                placeholder="Search settings..."
+                aria-label="Search settings"
+              />
               {settingsGroups.map((group) => (
                 <div key={group.label} className="settings-nav-group">
                   <div className="settings-nav-heading">{group.label}</div>
@@ -179,6 +156,7 @@ export function ShellLayout({
                   ))}
                 </div>
               ))}
+              {settingsGroups.length === 0 && <div className="settings-empty-state">No settings match.</div>}
             </div>
           )
         ) : (

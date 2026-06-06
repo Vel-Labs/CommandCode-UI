@@ -103,6 +103,13 @@ Dead UI audit:
 
 Settings should become the natural home for configuration, not just a profile/status page.
 
+Current implementation status on 2026-06-06:
+
+- `src/renderer/src/settings/settingsRegistry.tsx` owns the searchable settings section registry and Phase 2 taxonomy.
+- `ShellLayout` renders registry-backed settings navigation and filters sections through the settings search input.
+- `SettingsWorkspace` renders read-only placeholder pages for newly registered Phase 2 sections until each section has a validated replacement path.
+- No new config write, persistence, server route, or Command Code settings mutation was added by the registry/search package.
+
 Suggested sections:
 
 - General: project defaults, command binary, startup behavior.

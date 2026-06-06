@@ -86,6 +86,20 @@ V1 Phase 1 can begin after this report, [HARDENING_GATE.md](HARDENING_GATE.md), 
 
 Scope: documentation-only scaffold. `docs/reports/V1_VALIDATION_TEMPLATE.md` defines reusable package receipts, hard-gate checks, route receipts, and commit notes for V1 work.
 
+### 2026-06-06 Phase 2 settings registry and search
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `41/41` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5193`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:62462` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; no new dependency was added for this settings package |
+
+Scope: read-only Settings Center registry/search package. Added searchable settings taxonomy and placeholder pages for new sections without config writes, persistence changes, server routes, or Command Code settings mutation.
+
 ### 2026-06-06 Phase 1 closeout
 
 | Check | Result | Receipt |

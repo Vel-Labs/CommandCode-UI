@@ -3695,16 +3695,32 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 .settings-search {
-  display: flex;
-  align-items: center;
+  display: block;
+  width: 100%;
   min-height: 34px;
   margin: 10px 0 20px;
   padding: 0 10px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 8px;
-  color: #8f8f94;
+  color: #f4f4f5;
   background: rgba(255, 255, 255, 0.04);
   font-size: 14px;
+}
+
+.settings-search::placeholder {
+  color: #8f8f94;
+}
+
+.settings-search:focus {
+  border-color: rgba(167, 139, 250, 0.52);
+  outline: none;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.settings-empty-state {
+  padding: 10px;
+  color: #a0a0a6;
+  font-size: 13px;
 }
 
 .settings-nav-group + .settings-nav-group {
@@ -4008,6 +4024,13 @@ input[type="range"]::-webkit-slider-thumb {
   gap: 8px;
   color: #a0a0a6;
   line-height: 1.45;
+}
+
+.settings-placeholder-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #f4f4f5;
 }
 
 /* Chip menus should feel attached to the composer instead of centered modals. */

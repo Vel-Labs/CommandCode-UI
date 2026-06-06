@@ -9,6 +9,7 @@ import { AuthCard } from '../components/AuthCard'
 import { HeadlessHistory } from '../components/HeadlessHistory'
 import { IdePanel } from '../components/IdePanel'
 import { ModelDropdown } from '../components/ModelDropdown'
+import { settingsItem } from '../settings/settingsRegistry'
 
 const appearanceOptions: Array<{
   id: AppearanceTheme
@@ -247,6 +248,10 @@ export function SettingsWorkspace({
             </div>
           </div>
         )}
+
+        {!['profile', 'general', 'runtime', 'appearance', 'usage', 'integrations', 'advanced'].includes(section) && (
+          <SettingsPlaceholder section={section} />
+        )}
       </main>
     </section>
   )
@@ -259,4 +264,22 @@ function modeLabel(mode: RuntimeMode): string {
 function permissionLabel(permissionMode: PermissionMode, trust: boolean): string {
   if (trust || permissionMode === 'auto-accept') return 'Full access'
   return 'Standard'
+}
+
+function SettingsPlaceholder({ section }: { section: SettingsSection }): JSX.Element {
+  const item = settingsItem(section)
+  return (
+    <div className="settings-detail-page">
+      <div className="settings-page-title">{item.label}</div>
+      <div className="settings-card settings-card--wide">
+        <div className="settings-placeholder-heading">
+          {item.icon}
+          <strong>{item.description}</strong>
+        </div>
+        <p className="settings-muted">
+          This section is registered for Phase 2 navigation and search. It is read-only in this package; no config files, Command Code settings, or GUI preferences are written from this placeholder.
+        </p>
+      </div>
+    </div>
+  )
 }
