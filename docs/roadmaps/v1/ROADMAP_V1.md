@@ -1000,6 +1000,8 @@ Goal: make sessions durable, readable, artifact-aware, and reliable under daily-
 
 Status on 2026-06-06: started. The first parser package added `src/core/transcriptParser.ts` and `tests/transcript-parser.test.ts` to normalize already-provided transcript JSONL text into typed user, assistant, tool, error, event, and unknown timeline entries. The parser preserves raw entries, records invalid JSONL lines as parse errors, ignores blank lines, and does not read, mutate, reveal, or infer state from transcript files. Validation receipts: `npm run typecheck`, `npx vitest run` -> `152/152`, and `npm run build`. Browser, Electron, PTY, headless, and real CLI smoke were not run for this package because no renderer, transport, session lifecycle, file access, command-builder, or runtime behavior changed.
 
+Second status update on 2026-06-06: added `src/core/artifactDetection.ts` and `tests/artifact-detection.test.ts` as a pure, policy-aware artifact detector. It finds common relative and absolute file-like references in already-provided text, resolves relative paths against an explicit workspace root, normalizes allowed roots through realpath checks, rejects outside-root paths and symlink escapes, keeps missing in-root candidates for later existence checks, and returns rejection reasons for future UI. Validation receipts: `npm run typecheck`, `npx vitest run` -> `157/157`, and `npm run build`. This did not add preview reads, reveal actions, renderer UI, server routes, IPC, transcript mutation, session lifecycle changes, or Command Code invocation behavior.
+
 ### Scope
 
 - Parse transcript JSONL into readable conversation/timeline entries.
@@ -1041,8 +1043,8 @@ Likely new files:
 ### Tests And Proof
 
 - Transcript parser handles JSONL user, assistant, tool, error, and unknown entries. Implemented and validated in `tests/transcript-parser.test.ts`; hook/system event entries and invalid JSONL parse errors are covered too.
-- Artifact detector finds relative and absolute paths in terminal/transcript text within allowed roots.
-- Artifact detector rejects paths outside allowed roots and symlink escapes.
+- Artifact detector finds relative and absolute paths in terminal/transcript text within allowed roots. Implemented and validated in `tests/artifact-detection.test.ts`.
+- Artifact detector rejects paths outside allowed roots and symlink escapes. Implemented and validated in `tests/artifact-detection.test.ts`.
 - Markdown preview renders `.md` files.
 - HTML preview is sandboxed or falls back safely.
 - Active sessions restore visually after tab changes, inspector resizing, and terminal input toggles.

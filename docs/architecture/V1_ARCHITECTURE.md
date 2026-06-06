@@ -265,4 +265,5 @@ Current Phase 8 status on 2026-06-06:
 - `src/core/transcriptParser.ts` is a pure parser for already-provided transcript JSONL text. It does not read files, reveal files, mutate transcript/checkpoint state, call Command Code, or infer runtime readiness from terminal output.
 - Parsed entries are normalized into user, assistant, tool, error, event, and unknown timeline kinds while preserving the raw parsed object or raw invalid JSONL line for debugging.
 - Invalid JSONL is represented as an error entry instead of dropping surrounding transcript entries.
-- Artifact detection, inspector previews, safe Markdown/HTML/ANSI rendering, file reveal/read actions, transcript timeline UI, session restoration, and response-ready state remain planned or gated.
+- `src/core/artifactDetection.ts` is a pure detector for already-provided terminal/transcript text. It accepts explicit allowed roots, resolves relative paths against an explicit workspace root, rejects outside-root paths and symlink escapes, and returns accepted/rejected candidates without reading file contents or revealing files.
+- Inspector previews, safe Markdown/HTML/ANSI rendering, file reveal/read actions, transcript timeline UI, session restoration, and response-ready state remain planned or gated.

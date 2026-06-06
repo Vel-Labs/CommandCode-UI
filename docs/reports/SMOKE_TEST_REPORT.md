@@ -1270,3 +1270,15 @@ Scope: documentation-only Phase 7 closeout. Agents, Skills, Memory, and Taste ar
 | PTY/headless/real CLI smoke | Not run | No PTY/session lifecycle, headless command-builder, runtime, or Command Code invocation behavior changed |
 
 Scope: pure transcript parser package. `src/core/transcriptParser.ts` normalizes already-provided JSONL text into typed user, assistant, tool, error, event, and unknown entries while preserving raw entries and invalid-line parse errors. `tests/transcript-parser.test.ts` covers user, assistant, tool, error, unknown, hook/system event, invalid JSONL, blank-line, and missing-id cases. This did not add file reads, transcript mutation, reveal actions, renderer IPC, server routes, config writes, CLI arguments, runtime/session lifecycle changes, artifact previews, response-ready inference, or Command Code settings mutation.
+
+### 2026-06-06 Phase 8 artifact detector
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `157/157` |
+| Build | Pass | `npm run build` |
+| Browser/Electron route | Not run | No renderer, route, settings navigation, session workbench, or inspector behavior changed |
+| PTY/headless/real CLI smoke | Not run | No PTY/session lifecycle, headless command-builder, runtime, or Command Code invocation behavior changed |
+
+Scope: pure artifact detector package. `src/core/artifactDetection.ts` detects common file-like references in already-provided text, resolves relative paths against an explicit workspace root, applies explicit allowed-root checks through realpath-normalized boundaries, rejects outside-root paths and symlink escapes, keeps missing in-root candidates for later existence checks, and returns rejection reasons. `tests/artifact-detection.test.ts` covers relative paths, absolute paths, outside-root rejection, symlink escape rejection, missing in-root candidates, and missing-workspace-root rejection. This did not add file content reads, preview rendering, reveal actions, renderer IPC, server routes, config writes, CLI arguments, transcript mutation, runtime/session lifecycle changes, response-ready inference, or Command Code settings mutation.
