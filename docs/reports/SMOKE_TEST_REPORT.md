@@ -1191,3 +1191,17 @@ Scope: documentation-only Phase 6 closeout. The closeout marks implemented MCP v
 | Browser plugin navigation | Not available | The Browser navigation tool was not exposed in this thread; route-level receipts were used instead |
 
 Scope: extracted Settings Agents, Skills, Memory, and Taste presentation into dedicated Phase 7 modules and added a shared read-only Settings card component. Existing transport calls, Agents/Memory scoped save behavior, Skills/Taste read-only behavior, destination labels, and ownership copy were preserved. This did not add renderer IPC, server routes, config writes, file access changes, runtime/session lifecycle changes, skill/taste CRUD, agent routing semantics, or Command Code settings mutation.
+
+### 2026-06-06 Phase 7 Taste readability
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Build | Pass | `npm run build`; renderer assets `index-DdFlkBOV.js` and `index-8BkyITsP.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57390`; token proof returned `302`, cookie-authenticated `/` served built assets `index-DdFlkBOV.js` and `index-8BkyITsP.css` |
+| Built asset UI proof | Pass | `rg -n "Command Code-owned|No taste categories discovered|more learnings|formatConfidence|Taste packages" out/renderer/assets/index-DdFlkBOV.js` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:62470` |
+| Browser plugin navigation | Not available | The Browser navigation tool was not exposed in this thread; route-level receipts were used instead |
+
+Scope: improved read-only Settings > Taste readability with expandable packages, path display, category confidence, learning snippets, empty-category text, and hidden-learning counts from the existing `transport.listTaste()` payload. This did not add renderer IPC, server routes, config writes, file access changes, runtime/session lifecycle changes, taste CRUD, taste confidence semantics, or Command Code settings mutation.
