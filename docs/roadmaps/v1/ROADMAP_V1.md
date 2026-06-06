@@ -217,7 +217,20 @@ Implementation requirements:
 
 Goal: make v1 feature work cheap to add without expanding the current renderer monolith.
 
-Status on 2026-06-06: started. The first behavior-preserving extraction slice moved shared renderer view types to `src/renderer/src/appTypes.ts`, transcript UI to `src/renderer/src/workspaces/TranscriptWorkspace.tsx`, and the right inspector/environment panel to `src/renderer/src/inspectors/RightInspectorPanel.tsx`. Validation receipts for that slice: `npm run typecheck`, `npm run build`, `npx vitest run`, `npm run smoke:browser`, `npm run smoke:headless`, `npm run smoke:pty`, a real interactive `POST /api/sessions` receipt with `mock=false`, Browser route receipt at `http://127.0.0.1:5186/`, and Electron dev startup receipt.
+Status on 2026-06-06: complete and validated. The renderer architecture foundation is split into presentation modules for shell layout, home, session, transcript, settings, right inspector, popovers, release notes, and command metadata. Runtime health, session lifecycle, app preference, and project preference hook extractions remain deferred behind their hard gates because they affect runtime truth, transport/session lifecycle, or shared settings persistence.
+
+Phase closeout validation receipts on 2026-06-06:
+
+- `npm run typecheck`
+- `npx vitest run` -> `41/41`
+- `npm run build`
+- `npm run smoke:browser`
+- `npm run smoke:pty`
+- `npm run smoke:headless`
+- Latest built browser route token proof at `http://127.0.0.1:5192/`
+- Latest Electron dev startup with embedded app server `http://127.0.0.1:61897`
+
+First behavior-preserving extraction slice moved shared renderer view types to `src/renderer/src/appTypes.ts`, transcript UI to `src/renderer/src/workspaces/TranscriptWorkspace.tsx`, and the right inspector/environment panel to `src/renderer/src/inspectors/RightInspectorPanel.tsx`. Validation receipts for that slice: `npm run typecheck`, `npm run build`, `npx vitest run`, `npm run smoke:browser`, `npm run smoke:headless`, `npm run smoke:pty`, a real interactive `POST /api/sessions` receipt with `mock=false`, Browser route receipt at `http://127.0.0.1:5186/`, and Electron dev startup receipt.
 
 Second behavior-preserving extraction slice moved shell chrome, sidebar navigation, settings navigation rows, sidebar resize CSS variables, and update/footer controls into `src/renderer/src/layout/ShellLayout.tsx`. `App.tsx` still owns state coordination, transport calls, runtime mode changes, project preference persistence, and session lifecycle. Validation receipts for this slice: `npm run typecheck`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5186/`, and Electron dev startup with embedded app server `http://127.0.0.1:60751`. Screenshot automation remains not run because Playwright is not installed in this project.
 

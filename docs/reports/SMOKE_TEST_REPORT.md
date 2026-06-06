@@ -77,6 +77,22 @@ V1 Phase 1 can begin after this report, [HARDENING_GATE.md](HARDENING_GATE.md), 
 
 ## V1 Incremental Receipts
 
+### 2026-06-06 Phase 1 closeout
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `41/41` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| PTY doctor | Pass | `npm run smoke:pty` -> `/bin/zsh` through `node-pty`, output `"ok"` |
+| Real headless | Pass | `npm run smoke:headless` -> `cmd --print` exit `0` |
+| Built browser route | Pass | Latest Phase 1 route receipt used `npx tsx src/cli/ccgui.ts serve --port 5192`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets |
+| Electron dev startup | Pass | Latest Phase 1 Electron receipt used `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:61897` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; no new dependency was added during Phase 1 |
+
+Scope: Phase 1 Renderer Architecture Foundation is complete. Runtime health, session lifecycle, app preference, and project preference hook extractions remain deferred behind hard gates because they affect runtime truth, transport/session lifecycle, or shared settings persistence.
+
 ### 2026-06-06 Phase 1 shell/sidebar extraction
 
 | Check | Result | Receipt |
