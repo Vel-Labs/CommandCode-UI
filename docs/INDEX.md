@@ -7,6 +7,7 @@
 | File | Description |
 |---|---|
 | [ARCHITECTURE.md](architecture/ARCHITECTURE.md) | Two-path integration model (interactive PTY vs headless spawn), state model, session lifecycle, security posture |
+| [V1_ARCHITECTURE.md](architecture/V1_ARCHITECTURE.md) | Post-hardening architecture direction for component layers, settings, workflow helpers, and local docs |
 | [CROSS_PLATFORM_STRATEGY.md](architecture/CROSS_PLATFORM_STRATEGY.md) | Why Electron is a shell, not the engine. Localhost server strategy for macOS, Linux, WSL, and native Windows. Phase-by-phase pivot plan |
 | [SECURITY.md](architecture/SECURITY.md) | Security principles: no renderer Node.js, narrow IPC, argument assembly from UI controls, risky-mode visibility, recommended hardening |
 
@@ -29,6 +30,7 @@
 | [ISSUE_MAP.md](reference/ISSUE_MAP.md) | Current upstream Command Code issues that directly influence GUI design decisions. Used as requirements, not blockers |
 | [KNOWN_LIMITATIONS.md](reference/KNOWN_LIMITATIONS.md) | Current limitations: no bundled CLI, no internal state parsing, `node-pty` rebuilds, Windows `cmd` ambiguity, headless isolation |
 | [REFERENCE_LINKS.md](reference/REFERENCE_LINKS.md) | Curated links to Command Code docs, GitHub issues, and relevant resources |
+| [command-code-docs/README.md](reference/command-code-docs/README.md) | Local implementation index for Command Code hooks, MCP, design, and tools docs |
 
 ---
 
@@ -47,3 +49,12 @@
 |---|---|
 | [ROADMAP.md](../ROADMAP.md) | Full implementation plan across 9 phases — from starter stabilization through core extraction, local server, CLI entry point, Electron-as-shell, and daily-driver features |
 | [README.md](../README.md) | Project overview, prerequisites, run/build instructions, architecture diagram, design decisions, and smoke checks |
+
+---
+
+## Roadmaps (`docs/roadmaps/`)
+
+| File | Description |
+|---|---|
+| [v1/LLM_SUGGESTION_MATRIX.md](roadmaps/v1/LLM_SUGGESTION_MATRIX.md) | Staging matrix for Codex, Deepseek-v4-Pro, Kimi2.6, Nemotron-3-ultra, operator dogfood, and community hook suggestions |
+| [v1/ROADMAP_V1.md](roadmaps/v1/ROADMAP_V1.md) | Draft post-hardening v1 roadmap sequenced from the suggestion matrix |

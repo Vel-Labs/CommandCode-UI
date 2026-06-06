@@ -6,8 +6,6 @@ import {
   Activity,
   CreditCard,
   Download,
-  BookOpen,
-  FileText,
   Folder,
   FolderOpen,
   Gauge,
@@ -23,7 +21,6 @@ import {
   Plug,
   RefreshCw,
   Route,
-  RotateCcw,
   Search,
   Send,
   Settings,
@@ -36,7 +33,7 @@ import {
   X
 } from 'lucide-react'
 import type { PermissionMode, SessionExitPayload, HeadlessRunResult } from '../../shared/types'
-import type { AppGuiPreferences, CommandCodeUpdateResult, DiscoveredSession, GitEnvironmentStatus, ProjectGuiPreferences } from '../../core/types'
+import type { AppGuiPreferences, CommandCodeUpdateResult, DiscoveredSession, ProjectGuiPreferences } from '../../core/types'
 import type { PtyDoctorResult } from '../../core/ptyDoctor'
 import type { TransportAPI } from '../../core/transport'
 import { useTransport } from './useTransport'
@@ -48,50 +45,24 @@ import { pushCommandHistory } from './components/CommandHistory'
 import { HeadlessHistory, type HeadlessJob } from './components/HeadlessHistory'
 import { ToastContainer, notify, playChime } from './components/ToastSystem'
 import { IdePanel } from './components/IdePanel'
-import { FileBrowser } from './components/FileBrowser'
-import { FileViewer } from './components/FileViewer'
 import { AdvancedPanel } from './components/AdvancedPanel'
 import { StatusPill } from './components/StatusPill'
 import { buildPtySubmitChunks } from '../../shared/ptyInput'
-
-type WorkspaceView = 'home' | 'session' | 'transcript' | 'settings'
-type RightInspector = 'none' | 'files' | 'file' | 'transcript' | 'docs' | 'advanced' | 'environment' | 'ide'
-type RuntimeMode = 'mock' | 'real-session'
-type PopoverKey = 'project' | 'mode' | 'permission' | 'runtime' | 'model' | 'slash' | null
-type SettingsSection = 'profile' | 'general' | 'runtime' | 'appearance' | 'usage' | 'integrations' | 'advanced'
-type AppearanceTheme = 'cc-spectrum' | 'terminal-minimal' | 'blueprint' | 'high-contrast'
-type CommandAction = 'insert' | 'send' | 'run-headless'
-type UpdateState = 'idle' | 'checking' | 'available' | 'current' | 'updating' | 'failed'
-type SidebarSection = 'projects' | 'recentChats' | 'activeSessions'
-
-type CommandPaletteItem = {
-  id: string
-  label: string
-  command: string
-  group: 'Session' | 'Planning' | 'Design' | 'Agents' | 'Runtime' | 'Project'
-  description: string
-  action?: CommandAction
-}
-
-type SessionTab = {
-  id: string
-  label: string
-  mock: boolean
-  model?: string
-  stopRequested: boolean
-  stopStage: 0 | 1 | 2
-  transcriptPath: string
-  projectLabel: string
-  runtimeMode: RuntimeMode
-  resumedSession?: DiscoveredSession
-}
-
-type WorkEvent = {
-  id: string
-  label: string
-  detail: string
-  tone?: 'default' | 'warn' | 'good'
-}
+import { RightInspectorPanel } from './inspectors/RightInspectorPanel'
+import { TranscriptWorkspace } from './workspaces/TranscriptWorkspace'
+import type {
+  AppearanceTheme,
+  CommandPaletteItem,
+  PopoverKey,
+  RightInspector,
+  RuntimeMode,
+  SessionTab,
+  SettingsSection,
+  SidebarSection,
+  UpdateState,
+  WorkEvent,
+  WorkspaceView
+} from './appTypes'
 
 const RECENT_KEY = 'ccgui.recent-dirs'
 const APPEARANCE_KEY = 'ccgui.appearance-theme'
@@ -1659,55 +1630,6 @@ export function App(): JSX.Element {
   )
 }
 
-function TranscriptWorkspace({
-  session,
-  transport,
-  statusLine,
-  resumeFailure,
-  workEvents,
-  onResume,
-  onReveal,
-  onOpenTranscript
-}: {
-  session: DiscoveredSession
-  transport: TransportAPI
-  statusLine: string
-  resumeFailure: string
-  workEvents: WorkEvent[]
-  onResume: () => void
-  onReveal: () => void
-  onOpenTranscript: () => void
-}): JSX.Element {
-  return (
-    <section className="transcript-workspace" aria-label="Transcript">
-      <header className="transcript-header">
-        <div>
-          <div className="transcript-eyebrow">Recent context</div>
-          <h1>{session.title || session.id}</h1>
-          <div className="transcript-meta">{session.id} · {new Date(session.timestamp).toLocaleString()}</div>
-        </div>
-        <div className="transcript-actions">
-          <button className="primary-button" onClick={onResume}><RotateCcw size={16} /> Resume</button>
-          <button className="ghost-button native-ghost" onClick={onOpenTranscript}><FileText size={16} /> Open transcript</button>
-          <button className="ghost-button native-ghost" onClick={onReveal}>Reveal file</button>
-        </div>
-      </header>
-      {resumeFailure && <div className="resume-failure">{resumeFailure}</div>}
-      <div className="work-evidence-list">
-        {(workEvents.length ? workEvents : [{ id: 'empty', label: 'Context loaded', detail: statusLine || 'Ready to inspect or resume this session.' }]).map((event) => (
-          <div key={event.id} className={`work-evidence work-evidence--${event.tone || 'default'}`}>
-            <strong>{event.label}</strong>
-            <span>{event.detail}</span>
-          </div>
-        ))}
-      </div>
-      <div className="transcript-inline-preview">
-        <TranscriptPreview transport={transport} session={session} compact />
-      </div>
-    </section>
-  )
-}
-
 function WorkbenchToolRail({
   rightInspector,
   bottomTerminalOpen,
@@ -1737,235 +1659,6 @@ function WorkbenchToolRail({
       <button className={`icon-button ${rightInspector !== 'none' ? 'icon-button--active' : ''}`} onClick={onToggleInspector} title="Right sidebar">
         <PanelRightOpen size={17} />
       </button>
-    </div>
-  )
-}
-
-function EnvironmentTracker({ transport, cwd }: { transport: TransportAPI; cwd: string }): JSX.Element {
-  const [status, setStatus] = useState<GitEnvironmentStatus | null>(null)
-  const [loading, setLoading] = useState(false)
-
-  const refresh = useCallback(async (): Promise<void> => {
-    setLoading(true)
-    try {
-      setStatus(await transport.gitStatus(cwd))
-    } catch (err) {
-      setStatus({
-        ok: false,
-        cwd,
-        filesChanged: 0,
-        insertions: 0,
-        deletions: 0,
-        added: 0,
-        modified: 0,
-        deleted: 0,
-        untracked: 0,
-        files: [],
-        raw: '',
-        error: err instanceof Error ? err.message : 'Git status failed'
-      })
-    } finally {
-      setLoading(false)
-    }
-  }, [transport, cwd])
-
-  useEffect(() => {
-    void refresh()
-  }, [refresh])
-
-  if (!status) return <div className="muted">Loading environment...</div>
-
-  return (
-    <div className="environment-panel">
-      <div className="environment-panel-header">
-        <div>
-          <div className="inspector-section-label">Environment</div>
-          <div className="environment-branch"><GitBranch size={16} /> {status.branch || 'No branch'}</div>
-        </div>
-        <button className="icon-button" onClick={() => void refresh()} title="Refresh environment" disabled={loading}>
-          <RefreshCw size={16} />
-        </button>
-      </div>
-
-      {status.error && <div className="error-text">{status.error}</div>}
-
-      <div className="environment-card">
-        <div className="environment-row">
-          <span>Changes</span>
-          <strong><span className="text-green">+{status.insertions}</span> <span className="text-red">-{status.deletions}</span></strong>
-        </div>
-        <div className="environment-row">
-          <span>Local</span>
-          <strong>{status.filesChanged} files</strong>
-        </div>
-        <div className="environment-row">
-          <span>Remote</span>
-          <strong>{status.ahead || 0} ahead · {status.behind || 0} behind</strong>
-        </div>
-      </div>
-
-      <div className="environment-card">
-        <div className="environment-row"><span>Added</span><strong>{status.added}</strong></div>
-        <div className="environment-row"><span>Modified</span><strong>{status.modified}</strong></div>
-        <div className="environment-row"><span>Deleted</span><strong>{status.deleted}</strong></div>
-        <div className="environment-row"><span>Untracked</span><strong>{status.untracked}</strong></div>
-      </div>
-
-      <div className="environment-file-list">
-        <div className="inspector-section-label">Changed files</div>
-        {status.files.length === 0 ? (
-          <div className="muted">No changed files.</div>
-        ) : (
-          status.files.map((file) => (
-            <div key={`${file.status}-${file.path}`} className="environment-file-row">
-              <code>{file.status}</code>
-              <span>{file.path}</span>
-            </div>
-          ))
-        )}
-      </div>
-    </div>
-  )
-}
-
-function RightInspectorPanel({
-  mode,
-  transport,
-  cwd,
-  commandExecutable,
-  filePath,
-  transcript,
-  onClose,
-  onSelectFile,
-  onOpenFiles,
-  onOpenTranscript,
-  onOpenDocs,
-  onOpenAdvanced,
-  onRevealTranscript,
-  onOpenSettings,
-  onResizeStart
-}: {
-  mode: RightInspector
-  transport: TransportAPI
-  cwd: string
-  commandExecutable: string
-  filePath?: string
-  transcript?: DiscoveredSession
-  onClose: () => void
-  onSelectFile: (path: string) => void
-  onOpenFiles: () => void
-  onOpenTranscript: () => void
-  onOpenDocs: () => void
-  onOpenAdvanced: () => void
-  onRevealTranscript: () => void
-  onOpenSettings: () => void
-  onResizeStart: (event: ReactPointerEvent<HTMLDivElement>) => void
-}): JSX.Element | null {
-  if (mode === 'none') return null
-
-  const title = mode === 'files'
-    ? 'Files'
-    : mode === 'file'
-      ? 'File'
-      : mode === 'transcript'
-        ? 'Transcript'
-        : mode === 'docs'
-          ? 'Docs'
-          : mode === 'environment'
-            ? 'Environment'
-            : mode === 'ide'
-              ? 'IDE'
-              : 'Advanced'
-
-  return (
-    <aside className="right-inspector" aria-label={title}>
-      <div className="right-inspector-resize-handle" onPointerDown={onResizeStart} title="Resize inspector" />
-      <header className="right-inspector-header">
-        <div>{title}</div>
-        <div className="right-inspector-actions">
-          <button className="icon-button" onClick={onClose} title="Close inspector"><X size={16} /></button>
-        </div>
-      </header>
-      <div className="right-inspector-body">
-        {mode === 'files' && <FileBrowser transport={transport} cwd={cwd} onSelectFile={onSelectFile} />}
-        {mode === 'file' && (
-          filePath
-            ? <FileViewer transport={transport} filePath={filePath} cwd={cwd} onClose={onOpenFiles} variant="inline" />
-            : <InspectorEmpty title="No file selected" detail="Choose a project file to preview it here." />
-        )}
-        {mode === 'transcript' && (
-          transcript
-            ? (
-              <>
-                <div className="inspector-button-row">
-                  <button className="ghost-button native-ghost" onClick={onRevealTranscript}>Reveal transcript</button>
-                </div>
-                <TranscriptPreview transport={transport} session={transcript} />
-              </>
-            )
-            : <InspectorEmpty title="No transcript selected" detail="Open a recent context or active session transcript." />
-        )}
-        {mode === 'docs' && (
-          <iframe className="right-docs-frame" src="https://commandcode.ai/docs" title="Command Code Docs" />
-        )}
-        {mode === 'environment' && <EnvironmentTracker transport={transport} cwd={cwd} />}
-        {mode === 'ide' && (
-          <div className="inspector-stack">
-            <button className="ghost-button native-ghost" onClick={() => transport.revealPath(cwd)}><FolderOpen size={16} /> Reveal project in Finder</button>
-            <IdePanel transport={transport} commandExecutable={commandExecutable} cwd={cwd} />
-          </div>
-        )}
-        {mode === 'advanced' && (
-          <div className="inspector-stack">
-            <button className="ghost-button native-ghost" onClick={onOpenSettings}><Settings size={16} /> Open settings</button>
-            <InspectorEmpty title="Advanced tools" detail="MCP, skills, memory, agents, usage, and project-state tools remain available from Settings and Advanced." />
-          </div>
-        )}
-      </div>
-    </aside>
-  )
-}
-
-function TranscriptPreview({ transport, session, compact = false }: { transport: TransportAPI; session: DiscoveredSession; compact?: boolean }): JSX.Element {
-  const [content, setContent] = useState('')
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    let cancelled = false
-    transport.readTranscript(session.transcriptPath)
-      .then((result) => {
-        if (cancelled) return
-        if (result.error) {
-          setError(result.error)
-          setContent('')
-        } else {
-          setError('')
-          setContent(result.content)
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Transcript read failed')
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [transport, session.transcriptPath])
-
-  if (error) return <div className="error-text">{error}</div>
-  if (!content) return <div className="muted">Loading transcript...</div>
-
-  return (
-    <pre className={`transcript-preview ${compact ? 'transcript-preview--compact' : ''}`}>
-      {content}
-    </pre>
-  )
-}
-
-function InspectorEmpty({ title, detail }: { title: string; detail: string }): JSX.Element {
-  return (
-    <div className="inspector-empty">
-      <strong>{title}</strong>
-      <span>{detail}</span>
     </div>
   )
 }
