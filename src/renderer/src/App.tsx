@@ -1255,6 +1255,7 @@ export function App(): JSX.Element {
           headlessJobs={headlessJobs}
           commandGroups={commandGroups}
           commandPaletteItems={commandPaletteItems}
+          hasActiveSession={Boolean(activeTabId)}
           chooseProject={chooseProject}
           setCwd={setCwd}
           setOpenPopover={setOpenPopover}

@@ -3127,12 +3127,26 @@ input[type="range"]::-webkit-slider-thumb {
   cursor: default;
 }
 
+.command-preview-summary {
+  color: #d4d4d8;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.command-preview-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.command-preview-badge,
 .command-recipe-preview {
   color: #d4d4d8;
   font-size: 12px;
   line-height: 1.35;
 }
 
+.command-preview-badge,
 .command-recipe-risk {
   align-self: flex-start;
   padding: 2px 6px;
@@ -3141,6 +3155,25 @@ input[type="range"]::-webkit-slider-thumb {
   color: #a0a0a6;
   font-size: 11px;
   font-weight: 650;
+}
+
+.command-preview-badge--runtime {
+  color: #fed7aa;
+  border-color: rgba(251, 146, 60, 0.35);
+  background: rgba(251, 146, 60, 0.1);
+}
+
+.command-preview-badge--command-code-owned,
+.command-preview-badge--plan-mode {
+  color: #c4b5fd;
+  border-color: rgba(139, 92, 246, 0.35);
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.command-preview-badge--intent {
+  color: #bae6fd;
+  border-color: rgba(14, 165, 233, 0.35);
+  background: rgba(14, 165, 233, 0.1);
 }
 
 .command-recipe-risk--runtime,

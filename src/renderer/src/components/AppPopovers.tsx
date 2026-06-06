@@ -10,6 +10,7 @@ import { AuthCard } from './AuthCard'
 import { HeadlessHistory } from './HeadlessHistory'
 import { IdePanel } from './IdePanel'
 import { ModelDropdown } from './ModelDropdown'
+import { getCommandExecutionPreview } from '../commandPalette/commandPreview'
 import { searchCommandPalette } from '../commandPalette/search'
 import { workflowRecipes } from '../commandPalette/workflowRecipes'
 
@@ -31,6 +32,7 @@ export function AppPopovers({
   headlessJobs,
   commandGroups,
   commandPaletteItems,
+  hasActiveSession,
   chooseProject,
   setCwd,
   setOpenPopover,
@@ -65,6 +67,7 @@ export function AppPopovers({
   headlessJobs: HeadlessJob[]
   commandGroups: CommandPaletteItem['group'][]
   commandPaletteItems: CommandPaletteItem[]
+  hasActiveSession: boolean
   chooseProject: () => Promise<void>
   setCwd: (project: string) => void
   setOpenPopover: (value: PopoverKey) => void
@@ -165,13 +168,12 @@ export function AppPopovers({
             <div key={group} className="command-group">
               <div className="command-group-title">{group}</div>
               {visibleCommands.filter((result) => result.item.group === group).map((result) => (
-                <button key={result.item.id} className="popover-row command-row" onClick={() => void runCommand(result.item)}>
-                  <span className="command-row-main">
-                    <strong>{result.item.label}</strong>
-                    <code>{result.item.command}</code>
-                  </span>
-                  <span className="popover-row-description">{result.item.description}</span>
-                </button>
+                <CommandPaletteButton
+                  key={result.item.id}
+                  item={result.item}
+                  hasActiveSession={hasActiveSession}
+                  runCommand={runCommand}
+                />
               ))}
             </div>
           ))}
@@ -194,6 +196,37 @@ export function AppPopovers({
         </div>
       )}
     </>
+  )
+}
+
+function CommandPaletteButton({
+  item,
+  hasActiveSession,
+  runCommand
+}: {
+  item: CommandPaletteItem
+  hasActiveSession: boolean
+  runCommand: (item: CommandPaletteItem) => Promise<void>
+}): JSX.Element {
+  const preview = getCommandExecutionPreview(item, { hasActiveSession })
+
+  return (
+    <button className="popover-row command-row" onClick={() => void runCommand(item)}>
+      <span className="command-row-main">
+        <strong>{item.label}</strong>
+        <code>{item.command}</code>
+      </span>
+      <span className="popover-row-description">{item.description}</span>
+      <span className="command-preview-summary">{preview.summary}</span>
+      <span className="command-preview-badges" aria-label={`Command behavior: ${preview.intent}`}>
+        <span className="command-preview-badge command-preview-badge--intent">{preview.intent}</span>
+        {preview.badges.map((badge) => (
+          <span key={badge} className={`command-preview-badge command-preview-badge--${badge}`}>
+            {badge}
+          </span>
+        ))}
+      </span>
+    </button>
   )
 }
 

@@ -987,3 +987,17 @@ Scope: added a tested `/design` command preview builder and preview-only Setting
 | Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
 
 Scope: added a tested Agent Draft preview helper with project scope, destination preview, templates, and draft frontmatter/content. This did not add write routes, broaden renderer IPC, change file access policy, add unsupported agent routing semantics, mutate Command Code settings, or change session lifecycle. Real CLI path was not retested for this renderer-only helper slice.
+
+### 2026-06-06 Phase 5 command execution preview badges
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `127/127` |
+| Build | Pass | `npm run build`; renderer assets `index-BCeYJrJ3.js` and `index-BIafH59q.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57378`; token proof returned `302`, cookie-authenticated `/` served built assets `index-BCeYJrJ3.js` and `index-BIafH59q.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:59366` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
+
+Scope: added tested display-only command execution previews for executable command palette rows. Rows now distinguish active-session sends, composer inserts, and headless runs, and mark plan-mode/runtime/Command Code-owned boundaries. This did not change `runCommand(item)` execution, prompt contents, config writes, renderer IPC, file access, CLI argument behavior, or session lifecycle. Real CLI path was not retested for this renderer-only palette metadata slice.

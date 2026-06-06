@@ -709,6 +709,8 @@ Status update 2026-06-06: Second workflow-helper package added `src/renderer/src
 
 Status update 2026-06-06: Third workflow-helper package added `src/renderer/src/workflows/agentDraft.ts` and `src/renderer/src/workflows/AgentHelper.tsx`, placing a preview-only Agent Draft helper above the existing Settings > Agents list. The helper offers reviewer, implementer, and researcher templates, shows project scope and the projected `.commandcode/agents/<slug>.md` destination, and renders draft frontmatter/content without saving. Existing project-agent edit/save behavior remains unchanged and explicit. This package did not add new write routes, broaden renderer IPC, change file access policy, add agent routing semantics, mutate Command Code settings, or change session lifecycle. Validation receipts: `npm run typecheck`, `npx vitest run` -> `122/122`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:57377/` serving assets `index-DAvzRyHn.js` and `index-C9vlN-bN.css`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:59085`. Browser screenshot automation remains not run because Playwright is not installed in this project.
 
+Status update 2026-06-06: Fourth workflow-helper package added `src/renderer/src/commandPalette/commandPreview.ts` and command-row behavior badges in `src/renderer/src/components/AppPopovers.tsx`. Executable palette rows now visibly distinguish `send-active-session`, `insert-composer`, and `headless-run`, with plan-mode, runtime, active-session/composer, and Command Code-owned model-routing badges. This is display-only metadata for the existing `runCommand(item)` path; it does not change execution, prompt contents, config writes, renderer IPC, file access, CLI arguments, or session lifecycle. Validation receipts: `npm run typecheck`, `npx vitest run` -> `127/127`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:57378/` serving assets `index-BCeYJrJ3.js` and `index-BIafH59q.css`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:59366`. Browser screenshot automation remains not run because Playwright is not installed in this project.
+
 ### Scope
 
 - Replace static command buttons with searchable command/workflow palette.
@@ -737,6 +739,7 @@ Likely new files:
 
 - `src/renderer/src/commandPalette/commandRegistry.ts`
 - `src/renderer/src/commandPalette/workflowRecipes.ts`
+- `src/renderer/src/commandPalette/commandPreview.ts`
 - `src/renderer/src/workflows/DesignHelper.tsx`
 - `src/renderer/src/workflows/AgentHelper.tsx`
 
