@@ -1258,3 +1258,15 @@ Scope: added read-only Agent raw-content previews and made opening the existing 
 | Browser/API smoke | Pass | `npm run smoke:browser` |
 
 Scope: documentation-only Phase 7 closeout. Agents, Skills, Memory, and Taste are first-class Settings routes with dedicated modules, source/destination visibility, scoped ownership labels, and Command Code ownership copy. Agents and Memory preserve the existing scoped save routes and prior isolated write click-through receipts remain the write-path evidence. Skills and Taste remain read-only. Memory templates, section-level editing, undo/revert, import/export/reset, skill activation, skill/taste CRUD, default-agent routing, and taste confidence semantics remain deferred behind persistence/write gates and upstream verification. No runtime code, renderer IPC, file access policy, config writes, CLI arguments, session lifecycle, skill/taste CRUD, agent routing behavior, or Command Code settings mutation changed in this closeout package.
+
+### 2026-06-06 Phase 8 transcript parser
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `152/152` |
+| Build | Pass | `npm run build` |
+| Browser/Electron route | Not run | No renderer, route, settings navigation, session workbench, or inspector behavior changed |
+| PTY/headless/real CLI smoke | Not run | No PTY/session lifecycle, headless command-builder, runtime, or Command Code invocation behavior changed |
+
+Scope: pure transcript parser package. `src/core/transcriptParser.ts` normalizes already-provided JSONL text into typed user, assistant, tool, error, event, and unknown entries while preserving raw entries and invalid-line parse errors. `tests/transcript-parser.test.ts` covers user, assistant, tool, error, unknown, hook/system event, invalid JSONL, blank-line, and missing-id cases. This did not add file reads, transcript mutation, reveal actions, renderer IPC, server routes, config writes, CLI arguments, runtime/session lifecycle changes, artifact previews, response-ready inference, or Command Code settings mutation.

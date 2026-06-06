@@ -257,3 +257,12 @@ V1 feature work should include:
 - Docs update when behavior or boundaries change.
 
 The app should remain easy to iterate on, but not by letting hidden coupling accumulate in the renderer.
+
+## Transcript Parsing
+
+Current Phase 8 status on 2026-06-06:
+
+- `src/core/transcriptParser.ts` is a pure parser for already-provided transcript JSONL text. It does not read files, reveal files, mutate transcript/checkpoint state, call Command Code, or infer runtime readiness from terminal output.
+- Parsed entries are normalized into user, assistant, tool, error, event, and unknown timeline kinds while preserving the raw parsed object or raw invalid JSONL line for debugging.
+- Invalid JSONL is represented as an error entry instead of dropping surrounding transcript entries.
+- Artifact detection, inspector previews, safe Markdown/HTML/ANSI rendering, file reveal/read actions, transcript timeline UI, session restoration, and response-ready state remain planned or gated.
