@@ -108,6 +108,7 @@ export function ShellLayout({
   const [settingsQuery, setSettingsQuery] = useState('')
   const [recentContextQuery, setRecentContextQuery] = useState('')
   const settingsGroups = useMemo(() => groupedSettings(settingsQuery), [settingsQuery])
+  const updateNeedsAttention = updateState === 'available' || updateState === 'failed' || updateState === 'checking' || updateState === 'updating'
   const filteredRecentContexts = useMemo(() => {
     const query = recentContextQuery.trim().toLowerCase()
     if (!query) return projectSessions
@@ -318,6 +319,7 @@ export function ShellLayout({
               disabled={updateState === 'checking' || updateState === 'updating'}
             >
               {updateState === 'checking' || updateState === 'updating' ? <RefreshCw size={18} /> : <Download size={18} />}
+              {updateNeedsAttention && <span className="update-status-dot" aria-hidden="true" />}
               {!railCollapsed && <span>{updateLabel(updateState, updateVersion)}</span>}
             </button>
           </div>

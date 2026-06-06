@@ -1114,12 +1114,14 @@ Sequential:
 
 Goal: close the gap between functional adapter and natural desktop workbench.
 
+Status update 2026-06-06: First polish package made the shell footer update indicator easier to see by adding a compact `update-status-dot` marker for checking, updating, available, and failed states. The marker remains visible in collapsed and expanded sidebars and reuses the existing `updateState` value and update click handler. This did not change update transport, release fetching, install behavior, renderer IPC, server routes, config writes, file access, session lifecycle, or Command Code invocation behavior. Validation receipts: `npm run typecheck`, `npm run build`, `npm run smoke:browser`, built route token proof at `http://127.0.0.1:57404/` serving `index-ByJxlA74.js` and `index-NYEKx49J.css`, built asset proof for `update-status-dot`, `updateNeedsAttention`, `update-row--available`, and `update-row--failed`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:50170`.
+
 ### Scope
 
 - Improve popover anchoring, responsive positioning, Escape/click-outside behavior, and attachment cues.
 - Make the right inspector behave like a native companion pane for files, docs, transcripts, hooks, MCP, and session artifacts.
 - Add restrained page transitions, panel slide-ins, loading skeletons, and resize-to-collapse.
-- Make update indicator easier to see.
+- Make update indicator easier to see. Implemented with a compact state marker for attention states in the existing footer control.
 - Wire git environment state into the workspace header.
 - Improve PTY doctor integration and failure diagnostics.
 - Add optional native workbench affordances: file search/create/rename/delete, IDE launch/config, branch switcher/diff, terminal tabs/history/profiles, and release-note fetching.

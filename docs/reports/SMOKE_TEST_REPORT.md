@@ -1448,3 +1448,16 @@ Scope: session-readiness presentation package. Tabs, active-session header chips
 | Electron screenshot | Pass | `/tmp/ccgui-phase8-electron-three-session-dogfood.png` |
 
 Scope: Phase 8 visual dogfood receipt. This validates browser and Electron shell rendering for three simultaneous Demo-mode sessions, active tabs, Live sessions metadata, readiness labels, and terminal pane presence. It did not change code, add renderer IPC, alter transport/session lifecycle, add file access, write config, dispatch notifications, or invoke real Command Code sessions.
+
+### 2026-06-06 Phase 9 update indicator polish
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Build | Pass | `npm run build`; renderer assets `index-ByJxlA74.js` and `index-NYEKx49J.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` -> `7.3b Multi-session independence: PASS` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57404`; token proof returned `302`, cookie-authenticated `/` served built assets `index-ByJxlA74.js` and `index-NYEKx49J.css` |
+| Built asset UI proof | Pass | `rg -n "update-status-dot|updateNeedsAttention|update-row--available|update-row--failed" out/renderer/assets/index-ByJxlA74.js out/renderer/assets/index-NYEKx49J.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:50170` |
+
+Scope: update-indicator display package. The shell footer now shows a compact state marker for update checking, updating, available, and failed states. This did not change update transport, release fetching, install behavior, renderer IPC, server routes, config writes, file access, session lifecycle, or Command Code invocation behavior.

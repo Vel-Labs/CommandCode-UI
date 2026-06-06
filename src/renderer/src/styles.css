@@ -2366,6 +2366,13 @@ input[type="range"]::-webkit-slider-thumb {
   text-overflow: ellipsis;
 }
 
+.update-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
 .update-row--current {
   color: #8f8f98;
 }
@@ -2375,8 +2382,24 @@ input[type="range"]::-webkit-slider-thumb {
   background: color-mix(in srgb, var(--cc-accent-warm, #f97316) 16%, transparent);
 }
 
+.update-row--available .update-status-dot {
+  background: var(--cc-accent-warm, #f97316);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--cc-accent-warm, #f97316) 64%, transparent);
+}
+
 .update-row--failed {
   color: #fecdd3;
+}
+
+.update-row--failed .update-status-dot {
+  background: #fb7185;
+  box-shadow: 0 0 10px rgba(251, 113, 133, 0.54);
+}
+
+.update-row--checking .update-status-dot,
+.update-row--updating .update-status-dot {
+  background: #60a5fa;
+  box-shadow: 0 0 10px rgba(96, 165, 250, 0.54);
 }
 
 .update-row:disabled {
