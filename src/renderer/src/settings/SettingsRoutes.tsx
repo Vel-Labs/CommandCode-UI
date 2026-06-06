@@ -29,7 +29,7 @@ import {
   KeyboardSettingsReadOnly,
   ModelsSettingsReadOnly,
   NotificationsSettings,
-  TerminalSettingsReadOnly
+  TerminalSettings
 } from './ReferenceSettings'
 import { settingsItem } from './settingsRegistry'
 
@@ -202,7 +202,7 @@ export function SettingsRoute(props: SettingsRouteProps): JSX.Element {
     case 'notifications':
       return <SettingsFrame title="Notifications"><NotificationsSettings /></SettingsFrame>
     case 'terminal':
-      return <SettingsFrame title="Terminal"><TerminalSettingsReadOnly /></SettingsFrame>
+      return <SettingsFrame title="Terminal"><TerminalSettings /></SettingsFrame>
     case 'models':
       return <SettingsFrame title="Models"><ModelsSettingsReadOnly onConfigureModels={openConfigureModels} /></SettingsFrame>
     case 'design':

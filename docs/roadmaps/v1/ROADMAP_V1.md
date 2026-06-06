@@ -364,6 +364,8 @@ Fourteenth read-only package added MCP connect/disconnect command previews to Se
 
 Fifteenth renderer-local preferences package added an editable Notifications Settings page for the existing GUI toast/audio categories and moved preference parsing/storage into `src/renderer/src/settings/notificationPreferences.ts`. These preferences persist in browser `localStorage` keys `ccgui.toast-preferences` and `ccgui.audio-preferences`; OS notifications, hook-triggered alerts, quiet mode, and per-session readiness remain planned. This package did not add server routes, renderer IPC expansion, file-backed config writes, transport/session lifecycle changes, notification readiness inference, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `52/52`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5206/`, and Electron dev startup with embedded app server `http://127.0.0.1:49423`.
 
+Sixteenth renderer-local preferences package added an editable Terminal Settings page for xterm font size, line height, scrollback, and cursor blink, and moved terminal preference parsing/storage into `src/renderer/src/settings/terminalPreferences.ts`. `TerminalPane` reads these preferences when panes mount. This package did not add server routes, renderer IPC expansion, file-backed config writes, PTY/session lifecycle changes, live terminal geometry mutation, shell selection, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `55/55`, `npm run build`, `npm run smoke:browser`, `npm run smoke:pty`, built browser route token proof at `http://127.0.0.1:5207/`, and Electron dev startup with embedded app server `http://127.0.0.1:49602`.
+
 ### Scope
 
 - Fold AdvancedPanel content into Settings as first-class sections. Read-only replacement coverage is started; AdvancedPanel removal remains gated by `docs/reports/ADVANCED_PANEL_REMOVAL_GATE.md`.
@@ -371,7 +373,7 @@ Fifteenth renderer-local preferences package added an editable Notifications Set
 - Implement real settings search or remove the placeholder until search exists.
 - Populate Integrations with actual integration management or remove the dead section. Started with the read-only Settings hub; write-capable integration management remains gated.
 - Redesign Profile into an actionable dashboard or collapse it into General. Started with read-only dashboard shortcuts to the active Settings sections.
-- Add terminal settings for font size, scrollback, bell, cursor, line height, history, and profile where supported.
+- Add terminal settings for font size, scrollback, bell, cursor, line height, history, and profile where supported. Renderer-local font size, line height, scrollback, and cursor blink controls are implemented; bell behavior, profiles, history controls, and live PTY geometry updates remain planned.
 - Add notification settings for toast/audio categories, quiet mode, per-session readiness, hook-triggered alerts, and volume. Existing GUI toast/audio category and volume controls are implemented through renderer-local preferences; OS notifications, quiet mode, hook-triggered alerts, and readiness remain planned.
 - Add keyboard shortcut reference and visible accelerator hints.
 - Add startup behavior settings: default project, window restore, startup session behavior.
@@ -410,7 +412,7 @@ Likely new files:
 - Settings search filters sections and visible rows.
 - Settings navigation reaches every formerly advanced section.
 - Renderer-local toast/audio notification preferences persist and load. OS notifications, hook-triggered alerts, quiet mode, and readiness remain planned.
-- Terminal preferences persist without breaking xterm.
+- Renderer-local terminal presentation preferences persist and load without breaking xterm. Bell behavior, profiles, history controls, and live PTY geometry updates remain planned.
 - Editable settings show destination path before write. Implemented for existing editable GUI preference controls; future write-capable sections remain gated.
 - Browser/Electron screenshots for Settings at desktop and narrow widths.
 - `npm run typecheck`

@@ -47,6 +47,12 @@ Renderer-local notification preferences are stored in browser `localStorage`:
 
 These keys only control existing GUI toast and audio presentation. They do not configure OS notifications, hook execution, Command Code readiness semantics, or Command Code `settings.json`.
 
+Renderer-local terminal preferences are stored in browser `localStorage`:
+
+- `ccgui.terminal-preferences`
+
+These keys only control xterm presentation when terminal panes mount. They do not configure PTY lifecycle, shell selection, Command Code terminal protocol, session resize behavior, or Command Code `settings.json`.
+
 ## Command Code-Owned Scope
 
 Command Code-owned configuration remains in documented Command Code paths, including:
@@ -77,7 +83,6 @@ Allowed without a new write gate:
 
 Requires a write gate before implementation:
 
-- terminal preferences
 - keyboard shortcut remapping
 - startup behavior changes
 - data deletion, cache clearing, reset, export, or import
@@ -93,6 +98,7 @@ Current executable coverage:
 - `tests/settings-registry.test.ts` covers Settings registry/search/route coverage.
 - `tests/server-security.test.ts` covers project GUI preference sanitization and project-scoped preference writes.
 - `tests/notification-preferences.test.ts` covers renderer-local notification preference defaults, corrupt storage fallback, merge behavior, volume clamping, and sanitized saves.
+- `tests/terminal-preferences.test.ts` covers renderer-local terminal preference defaults, corrupt storage fallback, value clamping, and sanitized saves.
 
 Current visible destination coverage:
 
@@ -102,11 +108,12 @@ Current visible destination coverage:
 - Runtime shows the GUI app/project preference destinations for `model` and `projectModels`.
 - Appearance shows the GUI app/project preference destinations for `appearanceTheme`.
 - Notifications shows renderer-local `localStorage` destinations for toast and audio preferences.
+- Terminal shows the renderer-local `localStorage` destination for xterm presentation preferences.
 
 Known unimplemented acceptance:
 
 - OS notifications, hook-triggered alerts, quiet mode, and per-session readiness preferences
-- terminal preferences persist without breaking xterm
+- terminal bell behavior, profiles, history controls, and live PTY geometry updates
 - editable settings destination labels for future write-capable sections
 - data controls write/delete only within approved roots
 - AdvancedPanel removal after Settings replacement paths exist

@@ -6,6 +6,7 @@ import { WebLinksAddon } from '@xterm/addon-web-links'
 import type { SessionExitPayload } from '../../../shared/types'
 import type { TransportAPI } from '../../../core/transport'
 import { looksLikeCliSelectionPrompt } from '../../../shared/terminalPrompts'
+import { loadTerminalPrefs } from '../settings/terminalPreferences'
 
 type TerminalPaneProps = {
   transport: TransportAPI
@@ -58,13 +59,14 @@ export function TerminalPane({ transport, sessionId, onExit, onExpandRequest, on
   useEffect(() => {
     if (!hostRef.current || terminalRef.current) return
 
+    const terminalPrefs = loadTerminalPrefs()
     const terminal = new Terminal({
-      cursorBlink: true,
+      cursorBlink: terminalPrefs.cursorBlink,
       convertEol: true,
       fontFamily: 'JetBrains Mono, SFMono-Regular, Menlo, Consolas, monospace',
-      fontSize: 13,
-      lineHeight: 1.25,
-      scrollback: 20_000,
+      fontSize: terminalPrefs.fontSize,
+      lineHeight: terminalPrefs.lineHeight,
+      scrollback: terminalPrefs.scrollback,
       scrollOnUserInput: false,
       disableStdin: !inputEnabledRef.current,
       theme: {

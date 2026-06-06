@@ -227,6 +227,21 @@ Scope: read-only Settings MCP command preview package. MCP Settings now shows co
 
 Scope: renderer-local Settings Notifications package. Notifications Settings now edits the existing GUI toast/audio categories and volume controls through browser `localStorage` keys `ccgui.toast-preferences` and `ccgui.audio-preferences`. No server routes, renderer IPC expansion, file-backed config writes, transport/session lifecycle changes, notification readiness inference, OS notification behavior, or Command Code settings mutation were added.
 
+### 2026-06-06 Phase 2 Settings terminal preferences
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `55/55` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| PTY smoke | Pass | `npm run smoke:pty` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5207`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets `index-CpB4j3th.js` and `index-CFKlYiiM.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:49602` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project/runtime; no new dependency was added for this settings package |
+
+Scope: renderer-local Settings Terminal package. Terminal Settings now edits xterm presentation preferences through browser `localStorage` key `ccgui.terminal-preferences`, and `TerminalPane` loads those preferences when panes mount. No server routes, renderer IPC expansion, file-backed config writes, PTY/session lifecycle changes, live terminal geometry mutation, shell selection, or Command Code settings mutation were added.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |
