@@ -1054,10 +1054,6 @@ export function App(): JSX.Element {
             setTrust={setTrust}
             skipOnboarding={skipOnboarding}
             setSkipOnboarding={setSkipOnboarding}
-            headlessYolo={headlessYolo}
-            setHeadlessYolo={setHeadlessYolo}
-            headlessMaxTurns={headlessMaxTurns}
-            setHeadlessMaxTurns={setHeadlessMaxTurns}
             headlessJobs={headlessJobs}
             clearHeadlessJobs={() => setHeadlessJobs([])}
             sessionCount={tabs.length}

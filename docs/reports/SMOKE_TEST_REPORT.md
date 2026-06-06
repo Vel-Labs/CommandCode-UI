@@ -142,6 +142,20 @@ Scope: Settings-hosted read-only reference pages for Keyboard, Notifications, Te
 
 Scope: behavior-preserving extraction of existing Profile, General, Runtime, Appearance, Usage, Integrations, and Advanced settings presentation into `src/renderer/src/settings/CoreSettings.tsx`. Existing callbacks remain owned by `App.tsx` and `SettingsWorkspace`; no config writes, persistence changes, server routes, renderer IPC expansion, runtime/session changes, or Command Code settings mutation were added.
 
+### 2026-06-06 Phase 2 settings route dispatcher extraction
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `41/41` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5197`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets `index-DeifEuJL.js` and `index-B2ORLVyZ.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:63628` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; no new dependency was added for this settings package |
+
+Scope: behavior-preserving extraction of Settings section routing, shared section frames, and placeholder fallback into `src/renderer/src/settings/SettingsRoutes.tsx`. Removed stale headless settings props from `SettingsWorkspace`; headless preferences remain owned by the existing command popover and app preference path. No config writes, persistence changes, server routes, renderer IPC expansion, runtime/session changes, or Command Code settings mutation were added.
+
 ### 2026-06-06 Phase 1 closeout
 
 | Check | Result | Receipt |

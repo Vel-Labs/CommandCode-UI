@@ -111,6 +111,7 @@ Current implementation status on 2026-06-06:
 - `src/renderer/src/settings/AdvancedReadOnlySettings.tsx` renders Settings-hosted read-only views for Project state, MCP, Agents, Skills, Memory, and Taste.
 - `src/renderer/src/settings/ReferenceSettings.tsx` renders read-only reference views for Keyboard, Notifications, Terminal, Models, Design, Hooks, and About.
 - `src/renderer/src/settings/CoreSettings.tsx` renders existing Profile, General, Runtime, Appearance, Usage, Integrations, and Advanced presentation sections while preserving their existing callbacks.
+- `src/renderer/src/settings/SettingsRoutes.tsx` owns the Settings section dispatcher, shared frame, and placeholder fallback so `SettingsWorkspace` stays a shell container.
 - No new config write, persistence, server route, or Command Code settings mutation was added by these read-only Settings Center packages.
 
 Suggested sections:

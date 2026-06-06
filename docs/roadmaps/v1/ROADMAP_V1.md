@@ -342,6 +342,8 @@ Third read-only package added reference pages for Keyboard, Notifications, Termi
 
 Fourth presentation package extracted existing Profile, General, Runtime, Appearance, Usage, Integrations, and Advanced settings pages into `src/renderer/src/settings/CoreSettings.tsx`. Existing callbacks and persistence behavior remain at the prior ownership boundary; this package did not add config writes, persistence changes, server routes, renderer IPC expansion, runtime/session changes, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `41/41`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5196/`, and Electron dev startup with embedded app server `http://127.0.0.1:63392`.
 
+Fifth presentation package extracted Settings section routing, shared section frames, and placeholder fallback into `src/renderer/src/settings/SettingsRoutes.tsx`, leaving `SettingsWorkspace` as the shell container. The same package removed stale headless settings props from `SettingsWorkspace`; headless preference behavior remains owned by the existing command popover and app preference path. This package did not add config writes, persistence changes, server routes, renderer IPC expansion, runtime/session changes, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `41/41`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5197/`, and Electron dev startup with embedded app server `http://127.0.0.1:63628`.
+
 ### Scope
 
 - Fold AdvancedPanel content into Settings as first-class sections.

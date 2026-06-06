@@ -1,0 +1,241 @@
+import type { JSX } from 'react'
+import type { PermissionMode } from '../../../shared/types'
+import type { PtyDoctorResult } from '../../../core/ptyDoctor'
+import type { TransportAPI } from '../../../core/transport'
+import type { AppearanceTheme, RuntimeMode, SettingsSection, UpdateState } from '../appTypes'
+import type { HeadlessJob } from '../components/HeadlessHistory'
+import {
+  AgentsSettingsReadOnly,
+  McpSettingsReadOnly,
+  MemorySettingsReadOnly,
+  ProjectStateSettings,
+  SkillsSettingsReadOnly,
+  TasteSettingsReadOnly
+} from './AdvancedReadOnlySettings'
+import {
+  AdvancedSettings,
+  AppearanceSettings,
+  GeneralSettings,
+  IntegrationsSettings,
+  ProfileSettings,
+  RuntimeSettings,
+  UsageSettings
+} from './CoreSettings'
+import {
+  AboutSettingsReadOnly,
+  DesignSettingsReadOnly,
+  HooksSettingsReadOnly,
+  KeyboardSettingsReadOnly,
+  ModelsSettingsReadOnly,
+  NotificationsSettingsReadOnly,
+  TerminalSettingsReadOnly
+} from './ReferenceSettings'
+import { settingsItem } from './settingsRegistry'
+
+const implementedSettingsSections: SettingsSection[] = [
+  'profile',
+  'general',
+  'runtime',
+  'appearance',
+  'usage',
+  'integrations',
+  'advanced',
+  'data',
+  'mcp',
+  'agents',
+  'skills',
+  'memory',
+  'taste',
+  'keyboard',
+  'notifications',
+  'terminal',
+  'models',
+  'design',
+  'hooks',
+  'about'
+]
+
+export type SettingsRouteProps = {
+  section: SettingsSection
+  cwd: string
+  projectLabel: string
+  commandExecutable: string
+  setCommandExecutable: (value: string) => void
+  model: string
+  setModel: (value: string) => void
+  transport: TransportAPI
+  ptyHealth: PtyDoctorResult | null
+  permissionMode: PermissionMode
+  setPermissionMode: (value: PermissionMode) => void
+  trust: boolean
+  setTrust: (value: boolean) => void
+  skipOnboarding: boolean
+  setSkipOnboarding: (value: boolean) => void
+  headlessJobs: HeadlessJob[]
+  clearHeadlessJobs: () => void
+  sessionCount: number
+  runtimeMode: RuntimeMode
+  appearanceTheme: AppearanceTheme
+  setAppearanceTheme: (value: AppearanceTheme) => void
+  updateState: UpdateState
+  updateVersion?: string
+  updateDetails: string
+  runCheck: () => Promise<void>
+  openConfigureModels: () => Promise<void>
+  openDocs: () => void
+  openAdvanced: () => void
+}
+
+export function SettingsRoute(props: SettingsRouteProps): JSX.Element {
+  const {
+    section,
+    cwd,
+    projectLabel,
+    commandExecutable,
+    setCommandExecutable,
+    model,
+    setModel,
+    transport,
+    ptyHealth,
+    permissionMode,
+    setPermissionMode,
+    trust,
+    setTrust,
+    skipOnboarding,
+    setSkipOnboarding,
+    headlessJobs,
+    clearHeadlessJobs,
+    sessionCount,
+    runtimeMode,
+    appearanceTheme,
+    setAppearanceTheme,
+    updateState,
+    updateVersion,
+    updateDetails,
+    runCheck,
+    openConfigureModels,
+    openDocs,
+    openAdvanced
+  } = props
+
+  switch (section) {
+    case 'profile':
+      return (
+        <ProfileSettings
+          cwd={cwd}
+          projectLabel={projectLabel}
+          commandExecutable={commandExecutable}
+          model={model}
+          ptyHealth={ptyHealth}
+          permissionMode={permissionMode}
+          trust={trust}
+          headlessJobs={headlessJobs}
+          sessionCount={sessionCount}
+          runtimeMode={runtimeMode}
+        />
+      )
+    case 'general':
+      return (
+        <GeneralSettings
+          commandExecutable={commandExecutable}
+          setCommandExecutable={setCommandExecutable}
+          skipOnboarding={skipOnboarding}
+          setSkipOnboarding={setSkipOnboarding}
+          runCheck={runCheck}
+        />
+      )
+    case 'runtime':
+      return (
+        <RuntimeSettings
+          cwd={cwd}
+          commandExecutable={commandExecutable}
+          model={model}
+          setModel={setModel}
+          transport={transport}
+          ptyHealth={ptyHealth}
+          permissionMode={permissionMode}
+          setPermissionMode={setPermissionMode}
+          trust={trust}
+          setTrust={setTrust}
+          runtimeMode={runtimeMode}
+          openConfigureModels={openConfigureModels}
+        />
+      )
+    case 'appearance':
+      return <AppearanceSettings appearanceTheme={appearanceTheme} setAppearanceTheme={setAppearanceTheme} />
+    case 'usage':
+      return <UsageSettings headlessJobs={headlessJobs} clearHeadlessJobs={clearHeadlessJobs} sessionCount={sessionCount} />
+    case 'integrations':
+      return <IntegrationsSettings openDocs={openDocs} transport={transport} />
+    case 'advanced':
+      return <AdvancedSettings openAdvanced={openAdvanced} />
+    case 'data':
+      return <SettingsFrame title="Data"><ProjectStateSettings transport={transport} cwd={cwd} /></SettingsFrame>
+    case 'mcp':
+      return <SettingsFrame title="MCP"><McpSettingsReadOnly transport={transport} commandExecutable={commandExecutable} /></SettingsFrame>
+    case 'agents':
+      return <SettingsFrame title="Agents"><AgentsSettingsReadOnly transport={transport} /></SettingsFrame>
+    case 'skills':
+      return <SettingsFrame title="Skills"><SkillsSettingsReadOnly transport={transport} /></SettingsFrame>
+    case 'memory':
+      return <SettingsFrame title="Memory"><MemorySettingsReadOnly transport={transport} cwd={cwd} /></SettingsFrame>
+    case 'taste':
+      return <SettingsFrame title="Taste"><TasteSettingsReadOnly transport={transport} /></SettingsFrame>
+    case 'keyboard':
+      return <SettingsFrame title="Keyboard"><KeyboardSettingsReadOnly /></SettingsFrame>
+    case 'notifications':
+      return <SettingsFrame title="Notifications"><NotificationsSettingsReadOnly /></SettingsFrame>
+    case 'terminal':
+      return <SettingsFrame title="Terminal"><TerminalSettingsReadOnly /></SettingsFrame>
+    case 'models':
+      return <SettingsFrame title="Models"><ModelsSettingsReadOnly onConfigureModels={openConfigureModels} /></SettingsFrame>
+    case 'design':
+      return <SettingsFrame title="Design"><DesignSettingsReadOnly /></SettingsFrame>
+    case 'hooks':
+      return <SettingsFrame title="Hooks"><HooksSettingsReadOnly /></SettingsFrame>
+    case 'about':
+      return (
+        <SettingsFrame title="About">
+          <AboutSettingsReadOnly
+            updateState={updateState}
+            updateVersion={updateVersion}
+            updateDetails={updateDetails}
+            commandExecutable={commandExecutable}
+          />
+        </SettingsFrame>
+      )
+    default:
+      return <SettingsPlaceholder section={section} />
+  }
+}
+
+export function isImplementedSettingsSection(section: SettingsSection): boolean {
+  return implementedSettingsSections.includes(section)
+}
+
+function SettingsFrame({ title, children }: { title: string; children: JSX.Element }): JSX.Element {
+  return (
+    <div className="settings-detail-page">
+      <div className="settings-page-title">{title}</div>
+      {children}
+    </div>
+  )
+}
+
+function SettingsPlaceholder({ section }: { section: SettingsSection }): JSX.Element {
+  const item = settingsItem(section)
+  return (
+    <div className="settings-detail-page">
+      <div className="settings-page-title">{item.label}</div>
+      <div className="settings-card settings-card--wide">
+        <div className="settings-placeholder-heading">
+          {item.icon}
+          <strong>{item.description}</strong>
+        </div>
+        <p className="settings-muted">
+          This section is registered for Phase 2 navigation and search. It is read-only in this package; no config files, Command Code settings, or GUI preferences are written from this placeholder.
+        </p>
+      </div>
+    </div>
+  )
+}
