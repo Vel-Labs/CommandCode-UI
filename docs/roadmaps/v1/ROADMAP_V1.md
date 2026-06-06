@@ -221,10 +221,12 @@ Status on 2026-06-06: started. The first behavior-preserving extraction slice mo
 
 Second behavior-preserving extraction slice moved shell chrome, sidebar navigation, settings navigation rows, sidebar resize CSS variables, and update/footer controls into `src/renderer/src/layout/ShellLayout.tsx`. `App.tsx` still owns state coordination, transport calls, runtime mode changes, project preference persistence, and session lifecycle. Validation receipts for this slice: `npm run typecheck`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5186/`, and Electron dev startup with embedded app server `http://127.0.0.1:60751`. Screenshot automation remains not run because Playwright is not installed in this project.
 
+Third behavior-preserving extraction slice moved the shared composer presentation to `src/renderer/src/components/ComposerBar.tsx` and the home workspace presentation to `src/renderer/src/workspaces/HomeWorkspace.tsx`. `App.tsx` still owns prompt state, plan-mode behavior, popover routing, and session start submission. Validation receipts for this slice: `npm run typecheck`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5187/`, and Electron dev startup with embedded app server `http://127.0.0.1:60942`. Screenshot automation remains not run because Playwright is not installed in this project.
+
 Remaining Phase 1 package order:
 
 1. Extract shell layout and sidebar without changing navigation behavior. Implemented and validated in the second extraction slice.
-2. Extract home workspace and composer presentation.
+2. Extract home workspace and composer presentation. Implemented and validated in the third extraction slice.
 3. Extract session workspace and workbench tool rail while preserving `TerminalPane` behavior.
 4. Extract settings workspace presentation without starting Phase 2 settings expansion.
 5. Extract command palette, popovers, and release notes.
