@@ -1,13 +1,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import type { JSX } from 'react'
 import type { TransportAPI } from '../../../core/transport'
-
-type ModelEntry = {
-  id: string
-  shortName: string
-  display: string
-  provider: string
-}
+import type { ModelEntry } from '../services/modelCatalog'
+import { filterModelEntries, parseModelListStdout, sortModelsWithFavorites } from '../services/modelCatalog'
 
 type ModelDropdownProps = {
   transport: TransportAPI
@@ -18,47 +13,10 @@ type ModelDropdownProps = {
   onConfigureModels?: () => Promise<void>
 }
 
-function parseModels(stdout: string): ModelEntry[] {
-  const lines = stdout.split(/\r?\n/)
-  const models: ModelEntry[] = []
-  let currentProvider = ''
-
-  for (const line of lines) {
-    const trimmed = line.trim()
-    if (!trimmed || trimmed.startsWith('Available') || trimmed.startsWith('Pass the') || trimmed.startsWith('cmd --model') || trimmed.startsWith('Docs:')) continue
-
-    // Provider header (no / in name, no description, title case)
-    if (/^[A-Z]/.test(trimmed) && !trimmed.includes('/') && !trimmed.includes(' ') && trimmed !== 'Anthropic' && trimmed !== 'OpenAI' && trimmed !== 'Google' && trimmed !== 'Open Source') {
-      // skip — handled below
-    }
-
-    if (['Anthropic', 'OpenAI', 'Google', 'Open Source'].includes(trimmed)) {
-      currentProvider = trimmed
-      continue
-    }
-
-    // Model line: "claude-sonnet-4-6                  best combo of speed..."
-    const parts = trimmed.split(/\s{2,}/)
-    const fullId = parts[0] ?? ''
-    const description = parts.slice(1).join(' ')
-    const shortName = fullId.split('/').pop() ?? fullId
-
-    if (!fullId) continue
-
-    models.push({
-      id: fullId,
-      shortName,
-      display: `${shortName}${description ? ` — ${description.slice(0, 60)}${description.length > 60 ? '…' : ''}` : ''}`,
-      provider: currentProvider || 'Other'
-    })
-  }
-
-  return models
-}
-
 export function ModelDropdown({ transport, model, setModel, commandExecutable, cwd, onConfigureModels }: ModelDropdownProps): JSX.Element {
   const [models, setModels] = useState<ModelEntry[]>([])
   const [loading, setLoading] = useState(false)
+  const [query, setQuery] = useState('')
   const [favorites, setFavorites] = useState<string[]>(() => {
     try {
       return JSON.parse(localStorage.getItem('ccgui.favorite-models') || '[]') as string[]
@@ -73,7 +31,7 @@ export function ModelDropdown({ transport, model, setModel, commandExecutable, c
     transport.listModels(commandExecutable, cwd).then((result) => {
       if (cancelled) return
       if (result.ok) {
-        setModels(parseModels(result.stdout))
+        setModels(parseModelListStdout(result.stdout))
       }
     }).catch(() => {}).finally(() => {
       if (!cancelled) setLoading(false)
@@ -92,21 +50,22 @@ export function ModelDropdown({ transport, model, setModel, commandExecutable, c
   }
 
   const sortedModels = useMemo(() => {
-    const favs = models.filter((m) => favorites.includes(m.id))
-    const rest = models.filter((m) => !favorites.includes(m.id))
-    return [...favs, ...rest]
+    return sortModelsWithFavorites(models, favorites)
   }, [models, favorites])
+
+  const visibleModels = useMemo(() => filterModelEntries(sortedModels, query), [sortedModels, query])
+  const selectedModelVisible = !model || visibleModels.some((entry) => entry.id === model)
 
   // Group by provider
   const grouped = useMemo(() => {
     const map = new Map<string, ModelEntry[]>()
-    for (const model of sortedModels) {
+    for (const model of visibleModels) {
       const group = map.get(model.provider) ?? []
       group.push(model)
       map.set(model.provider, group)
     }
     return map
-  }, [sortedModels])
+  }, [visibleModels])
 
   if (loading) {
     return (
@@ -129,6 +88,13 @@ export function ModelDropdown({ transport, model, setModel, commandExecutable, c
           <button className="ghost-button native-ghost" onClick={() => void onConfigureModels()}>Configure</button>
         </div>
       )}
+      <input
+        className="model-search-input"
+        value={query}
+        onChange={(event) => setQuery(event.target.value)}
+        placeholder="Search documented model IDs"
+        aria-label="Search models"
+      />
       <div className="inline-field">
         <select
           id="model-select"
@@ -136,6 +102,9 @@ export function ModelDropdown({ transport, model, setModel, commandExecutable, c
           onChange={(event) => setModel(event.target.value)}
         >
           <option value="">Default (no override)</option>
+          {!selectedModelVisible && (
+            <option value={model}>Current selection: {model}</option>
+          )}
           {[...grouped.entries()].map(([provider, providerModels]) => (
             <optgroup key={provider} label={provider}>
               {providerModels.map((m) => (
@@ -153,7 +122,9 @@ export function ModelDropdown({ transport, model, setModel, commandExecutable, c
         )}
       </div>
       <div className="model-memory-line">
-        {favorites.length > 0 ? `${favorites.length} favorite model${favorites.length === 1 ? '' : 's'} saved locally.` : 'Favorite a model to pin it above the full list.'}
+        {query.trim()
+          ? `${visibleModels.length} model${visibleModels.length === 1 ? '' : 's'} match "${query.trim()}".`
+          : favorites.length > 0 ? `${favorites.length} favorite model${favorites.length === 1 ? '' : 's'} saved locally.` : 'Favorite a model to pin it above the full list.'}
       </div>
     </div>
   )

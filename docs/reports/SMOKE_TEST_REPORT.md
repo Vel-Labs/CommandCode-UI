@@ -877,3 +877,17 @@ Scope: removed documented unreferenced legacy components, the unreachable `mode`
 | Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
 
 Scope: added a pure renderer session model identity resolver and used it for session header, composer chip, tab detail, and transcript metadata labels. This did not change Command Code model routing, CLI arguments, IPC routes, config writes, filesystem access, or session lifecycle. Real CLI path was not retested for this presentation-only slice.
+
+### 2026-06-06 Phase 4 model dropdown search
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `110/110` |
+| Build | Pass | `npm run build`; renderer assets `index-BZe6ioWY.js` and `index-BR1DD7ml.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57371`; token proof returned `302`, cookie-authenticated `/` served built assets `index-BZe6ioWY.js` and `index-BR1DD7ml.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:57810` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
+
+Scope: extracted documented model list parsing, favorite sorting, and search/filter matching into `src/renderer/src/services/modelCatalog.ts`, then added a search input to the existing model picker. This did not change Command Code model routing, CLI arguments, IPC routes, config writes, filesystem access, or session lifecycle. Real CLI path was not retested for this renderer-only picker slice.

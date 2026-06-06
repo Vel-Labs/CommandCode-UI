@@ -654,6 +654,23 @@ textarea:focus {
   cursor: pointer;
 }
 
+.model-search-input {
+  width: 100%;
+  color: #f4f4f5;
+  background: rgba(255,255,255,0.045);
+  border: 1px solid rgba(255,255,255,0.13);
+  border-radius: 10px;
+  outline: none;
+  padding: 10px 12px;
+  margin: 0 0 8px;
+  font-size: 13px;
+}
+
+.model-search-input:focus {
+  border-color: rgba(139,92,246,0.75);
+  box-shadow: 0 0 0 3px rgba(139,92,246,0.16);
+}
+
 .model-dropdown select:focus {
   border-color: rgba(139,92,246,0.75);
   box-shadow: 0 0 0 3px rgba(139,92,246,0.16);
