@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { mergeHookConfigs, parseHookSettingsJson, setHookCommandEnabled } from '../src/core/hooksConfig'
+import {
+  mergeHookConfigs,
+  parseHookSettingsJson,
+  removeHookCommand,
+  setHookCommandEnabled,
+  updateHookCommand
+} from '../src/core/hooksConfig'
 
 describe('hooks config parser', () => {
   it('accepts empty settings without hooks', () => {
@@ -163,6 +169,91 @@ describe('hooks config parser', () => {
     expect(setHookCommandEnabled(raw, 'Stop', 'missing command', true)).toMatchObject({
       ok: false,
       error: 'Hook command not found for Stop'
+    })
+  })
+
+  it('updates direct hook command, matcher, and timeout while preserving unrelated settings keys', () => {
+    const raw = JSON.stringify({
+      model: 'deepseek',
+      hooks: {
+        PreToolUse: [
+          { type: 'command', matcher: 'Bash', command: 'node scripts/check-shell.js', timeout: 5 }
+        ]
+      }
+    })
+
+    const result = updateHookCommand(raw, 'PreToolUse', 'node scripts/check-shell.js', {
+      command: 'node scripts/block-shell.js',
+      matcher: 'Bash|Shell',
+      timeoutSeconds: 10
+    })
+
+    expect(result.ok).toBe(true)
+    const parsed = JSON.parse(result.content || '{}') as {
+      model?: string
+      hooks: { PreToolUse: Array<{ command: string; matcher?: string; timeout?: number; timeoutSeconds?: number }> }
+    }
+    expect(parsed.model).toBe('deepseek')
+    expect(parsed.hooks.PreToolUse[0]).toMatchObject({
+      command: 'node scripts/block-shell.js',
+      matcher: 'Bash|Shell',
+      timeoutSeconds: 10
+    })
+    expect(parsed.hooks.PreToolUse[0].timeout).toBeUndefined()
+  })
+
+  it('updates grouped hook command timeout and removes empty groups after deletion', () => {
+    const raw = JSON.stringify({
+      hooks: {
+        PostToolUse: [
+          {
+            matcher: 'Write',
+            hooks: [
+              { type: 'command', command: 'node scripts/audit-write.js', timeoutSeconds: 3 }
+            ]
+          }
+        ],
+        Stop: [{ type: 'command', command: 'command-code-bonk --sound done' }]
+      }
+    })
+
+    const withoutTimeout = updateHookCommand(raw, 'PostToolUse', 'node scripts/audit-write.js', {
+      timeoutSeconds: null
+    })
+    expect(withoutTimeout.ok).toBe(true)
+    expect(JSON.parse(withoutTimeout.content || '{}').hooks.PostToolUse[0].hooks[0].timeoutSeconds).toBeUndefined()
+
+    const removed = removeHookCommand(withoutTimeout.content || '{}', 'PostToolUse', 'node scripts/audit-write.js')
+    expect(removed.ok).toBe(true)
+    const parsed = JSON.parse(removed.content || '{}') as {
+      hooks: { PostToolUse: unknown[]; Stop: unknown[] }
+    }
+    expect(parsed.hooks.PostToolUse).toEqual([])
+    expect(parsed.hooks.Stop).toHaveLength(1)
+  })
+
+  it('rejects matcher edits for grouped entries with multiple commands', () => {
+    const raw = JSON.stringify({
+      hooks: {
+        PreToolUse: [
+          {
+            matcher: 'Bash',
+            hooks: [
+              { type: 'command', command: 'node scripts/check-shell.js' },
+              { type: 'command', command: 'node scripts/audit-shell.js' }
+            ]
+          }
+        ]
+      }
+    })
+
+    const result = updateHookCommand(raw, 'PreToolUse', 'node scripts/check-shell.js', {
+      matcher: 'Read'
+    })
+
+    expect(result).toMatchObject({
+      ok: false,
+      error: 'Cannot change matcher for grouped hook with multiple commands'
     })
   })
 })

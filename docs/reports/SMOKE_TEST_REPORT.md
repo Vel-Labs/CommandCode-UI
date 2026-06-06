@@ -585,6 +585,16 @@ Scope: renderer/session wiring package for Phase 3 readiness state. Session data
 
 Scope: Settings reference copy alignment for Phase 3. Notifications now distinguishes visible unread readiness state from still-gated response-ready/input-required notification delivery, and Hooks now distinguishes implemented scoped discovery/enable-disable writes from broader hook editing and command execution. No settings persistence changes, server routes, renderer IPC, file access, hook execution, OS notifications, audio behavior, or Command Code settings mutation was added.
 
+### 2026-06-06 Phase 3 broader hook edit helper
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `86/86` |
+| Build | Pass | `npm run build` |
+
+Scope: pure hook edit-helper package for future broader hook editor previews. Added `updateHookCommand` and `removeHookCommand` coverage for direct command/matcher/timeout edits, grouped timeout removal, grouped deletion cleanup, and rejecting grouped matcher edits that would affect multiple commands. No file reads, file writes, server routes, renderer IPC, hook editor UI, hook execution, OS notifications, audio behavior, or Command Code settings mutation was added.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |

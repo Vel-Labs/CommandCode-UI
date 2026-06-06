@@ -51,6 +51,12 @@ export type HookConfigEditResult = {
   error?: string
 }
 
+export type HookCommandUpdate = {
+  command?: string
+  matcher?: string
+  timeoutSeconds?: number | null
+}
+
 export type HookConfigTogglePreviewResult = HookConfigEditResult & {
   sourceScope?: HookScope
   sourcePath?: string
@@ -147,46 +153,71 @@ export function mergeHookConfigs(user: HookConfigParseResult, project: HookConfi
 }
 
 export function setHookCommandEnabled(raw: string, event: HookEvent, command: string, enabled: boolean): HookConfigEditResult {
-  let parsed: unknown
-  try {
-    parsed = raw.trim() ? JSON.parse(raw) : {}
-  } catch (error) {
-    return { ok: false, error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` }
+  const prepared = prepareEditableHookConfig(raw, event, command)
+  if (!prepared.ok) return prepared
+
+  prepared.match.hook.enabled = enabled
+  return { ok: true, content: formatEditableHookConfig(prepared.parsed) }
+}
+
+export function updateHookCommand(raw: string, event: HookEvent, command: string, update: HookCommandUpdate): HookConfigEditResult {
+  const prepared = prepareEditableHookConfig(raw, event, command)
+  if (!prepared.ok) return prepared
+
+  if (update.command !== undefined) {
+    const nextCommand = update.command.trim()
+    if (!nextCommand) return { ok: false, error: 'Missing replacement hook command' }
+    prepared.match.hook.command = nextCommand
   }
 
-  if (!isRecord(parsed)) {
-    return { ok: false, error: 'settings.json must contain a JSON object' }
-  }
-
-  if (!isRecord(parsed.hooks)) {
-    return { ok: false, error: 'hooks must be an object keyed by hook event' }
-  }
-
-  const eventEntries = parsed.hooks[event]
-  if (!Array.isArray(eventEntries)) {
-    return { ok: false, error: `hooks.${event} must be an array` }
-  }
-
-  const targetCommand = command.trim()
-  if (!targetCommand) {
-    return { ok: false, error: 'Missing hook command' }
-  }
-
-  for (const entry of eventEntries) {
-    if (!isRecord(entry)) continue
-    if (Array.isArray(entry.hooks)) {
-      const match = entry.hooks.find((hook) => isRecord(hook) && hook.command === targetCommand)
-      if (isRecord(match)) {
-        match.enabled = enabled
-        return { ok: true, content: `${JSON.stringify(parsed, null, 2)}\n` }
+  if (update.timeoutSeconds !== undefined) {
+    if (update.timeoutSeconds === null) {
+      delete prepared.match.hook.timeout
+      delete prepared.match.hook.timeoutSeconds
+    } else {
+      if (!Number.isFinite(update.timeoutSeconds) || update.timeoutSeconds < 0) {
+        return { ok: false, error: 'Hook timeout must be a non-negative number' }
       }
-    } else if (entry.command === targetCommand) {
-      entry.enabled = enabled
-      return { ok: true, content: `${JSON.stringify(parsed, null, 2)}\n` }
+      prepared.match.hook.timeoutSeconds = update.timeoutSeconds
+      delete prepared.match.hook.timeout
     }
   }
 
-  return { ok: false, error: `Hook command not found for ${event}` }
+  if (update.matcher !== undefined) {
+    const nextMatcher = update.matcher.trim()
+    if (prepared.match.parent) {
+      if (prepared.match.siblings.length > 1) {
+        return { ok: false, error: 'Cannot change matcher for grouped hook with multiple commands' }
+      }
+      if (nextMatcher) {
+        prepared.match.parent.matcher = nextMatcher
+      } else {
+        delete prepared.match.parent.matcher
+      }
+    } else if (nextMatcher) {
+      prepared.match.hook.matcher = nextMatcher
+    } else {
+      delete prepared.match.hook.matcher
+    }
+  }
+
+  return { ok: true, content: formatEditableHookConfig(prepared.parsed) }
+}
+
+export function removeHookCommand(raw: string, event: HookEvent, command: string): HookConfigEditResult {
+  const prepared = prepareEditableHookConfig(raw, event, command)
+  if (!prepared.ok) return prepared
+
+  if (prepared.match.parent) {
+    prepared.match.siblings.splice(prepared.match.index, 1)
+    if (prepared.match.siblings.length === 0) {
+      prepared.eventEntries.splice(prepared.match.entryIndex, 1)
+    }
+  } else {
+    prepared.eventEntries.splice(prepared.match.entryIndex, 1)
+  }
+
+  return { ok: true, content: formatEditableHookConfig(prepared.parsed) }
 }
 
 function normalizeHookEntry(
@@ -245,4 +276,78 @@ function stringValue(value: unknown): string | undefined {
 
 function numberValue(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined
+}
+
+type EditableHookMatch = {
+  hook: Record<string, unknown>
+  entryIndex: number
+  index: number
+  siblings: unknown[]
+  parent?: Record<string, unknown>
+}
+
+type EditableHookConfigPrepared = {
+  ok: true
+  parsed: Record<string, unknown>
+  eventEntries: unknown[]
+  match: EditableHookMatch
+} | {
+  ok: false
+  error: string
+}
+
+function prepareEditableHookConfig(raw: string, event: HookEvent, command: string): EditableHookConfigPrepared {
+  let parsed: unknown
+  try {
+    parsed = raw.trim() ? JSON.parse(raw) : {}
+  } catch (error) {
+    return { ok: false, error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` }
+  }
+
+  if (!isRecord(parsed)) {
+    return { ok: false, error: 'settings.json must contain a JSON object' }
+  }
+
+  if (!isRecord(parsed.hooks)) {
+    return { ok: false, error: 'hooks must be an object keyed by hook event' }
+  }
+
+  const eventEntries = parsed.hooks[event]
+  if (!Array.isArray(eventEntries)) {
+    return { ok: false, error: `hooks.${event} must be an array` }
+  }
+
+  const targetCommand = command.trim()
+  if (!targetCommand) {
+    return { ok: false, error: 'Missing hook command' }
+  }
+
+  for (const [entryIndex, entry] of eventEntries.entries()) {
+    if (!isRecord(entry)) continue
+    if (Array.isArray(entry.hooks)) {
+      for (const [index, hook] of entry.hooks.entries()) {
+        if (isRecord(hook) && hook.command === targetCommand) {
+          return {
+            ok: true,
+            parsed,
+            eventEntries,
+            match: { hook, parent: entry, siblings: entry.hooks, entryIndex, index }
+          }
+        }
+      }
+    } else if (entry.command === targetCommand) {
+      return {
+        ok: true,
+        parsed,
+        eventEntries,
+        match: { hook: entry, siblings: eventEntries, entryIndex, index: entryIndex }
+      }
+    }
+  }
+
+  return { ok: false, error: `Hook command not found for ${event}` }
+}
+
+function formatEditableHookConfig(parsed: Record<string, unknown>): string {
+  return `${JSON.stringify(parsed, null, 2)}\n`
 }

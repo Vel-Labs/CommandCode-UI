@@ -510,6 +510,8 @@ Ninth session wiring package added live-versus-replay metadata to session data c
 
 Tenth Settings reference alignment package updated Notifications and Hooks reference copy to match current implementation boundaries: unread readiness state is visible in tabs, response-ready/input-required notification delivery remains gated, scoped hook discovery and enable/disable writes are implemented, and broader hook editing/command execution remains gated. This package did not add settings persistence changes, server routes, renderer IPC, file access, hook execution, OS notifications, audio behavior, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npm run build`, and `npm run smoke:browser`.
 
+Eleventh pure edit-helper package added `updateHookCommand` and `removeHookCommand` to `src/core/hooksConfig.ts` for future broader hook editor previews. The helpers can update direct command, matcher, and timeout fields, remove timeout fields, delete direct or grouped hook commands, clean up empty grouped hook entries, and reject matcher edits for grouped entries with multiple commands because that would affect unrelated hooks. This package did not add file reads, file writes, server routes, renderer IPC, hook editor UI, hook execution, OS notifications, audio behavior, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `86/86`, and `npm run build`.
+
 ### Scope
 
 - Add Settings > Hooks.
@@ -518,7 +520,7 @@ Tenth Settings reference alignment package updated Notifications and Hooks refer
 - Show hook event, matcher, command, timeout, blocking behavior, execution order, enabled state, and source scope. Implemented for read-only parsed discovery rows.
 - Validate hook JSON before writing.
 - Preserve project-over-user precedence.
-- Add enable/disable controls per hook. Implemented for scoped previewed toggles with backup writes; broader hook editing remains gated.
+- Add enable/disable controls per hook. Implemented for scoped previewed toggles with backup writes; broader hook editing has pure helper scaffolding only and remains gated for UI/routes/writes.
 - Add hook logs/output viewer where logs are available.
 - Add a test payload runner so users can validate hook behavior before real sessions. Dry-run sample payload preview is implemented; command execution remains gated.
 - Add examples for dangerous shell blocking, sensitive read warnings, write auditing, and Stop-hook finish notifications.
