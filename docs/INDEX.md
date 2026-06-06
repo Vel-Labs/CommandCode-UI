@@ -32,6 +32,7 @@
 | [REFERENCE_LINKS.md](reference/REFERENCE_LINKS.md) | Curated links to Command Code docs, GitHub issues, and relevant resources |
 | [command-code-docs/README.md](reference/command-code-docs/README.md) | Local implementation index for Command Code hooks, MCP, design, and tools docs |
 | [command-code-docs/design.md](reference/command-code-docs/design.md) | Local `/design` command implications for preview helpers, visual context boundaries, and GUI validation |
+| [command-code-docs/gui-implications.md](reference/command-code-docs/gui-implications.md) | Cross-cutting GUI adapter rules for runtime ownership, gated surfaces, and validation receipts |
 | [command-code-docs/hooks.md](reference/command-code-docs/hooks.md) | Local hooks reference for settings scopes, dry-run behavior, diagnostics, and non-implemented execution boundaries |
 | [command-code-docs/mcp.md](reference/command-code-docs/mcp.md) | Local MCP reference for command shapes, scopes, redacted previews, and gated mutation boundaries |
 | [command-code-docs/models.md](reference/command-code-docs/models.md) | Local model selection and `/configure-models` implications for GUI display and routing boundaries |

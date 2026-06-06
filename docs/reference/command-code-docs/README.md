@@ -155,6 +155,6 @@ Suggested next local docs:
 - `mcp.md` (started)
 - `design.md` (started)
 - `tools.md` (started)
-- `gui-implications.md`
+- `gui-implications.md` (started)
 
 Each page should cite the official source URL and focus on what this GUI needs to know to build safe, discoverable workflows.

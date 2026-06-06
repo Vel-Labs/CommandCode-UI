@@ -1625,3 +1625,13 @@ Scope: Phase 9 closeout docs. Phase 9 is marked complete for the current V1 cont
 | README | Pass | `rg -n "WORKBENCH_POLISH_GATE|Settings page with profile|Contributors|npm run smoke:browser" README.md` |
 
 Scope: documentation-only Phase 10 index package. This added contributor guidance, focused local Command Code design/tools pages, refreshed the docs index, updated the test plan, and aligned the README with the current Settings, validation, and workbench gate surfaces. It did not change runtime code, renderer IPC, server routes, transport calls, file access, config writes, session lifecycle, CSS tokens, or Command Code invocation behavior.
+
+### 2026-06-06 Phase 10 GUI implications docs
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Local docs index | Pass | `rg -n "gui-implications.md|started" docs/reference/command-code-docs/README.md docs/INDEX.md` |
+| GUI implications content | Pass | `rg -n "Runtime Ownership Rules|Implemented GUI Surfaces|Gated Or Deferred Surfaces|Validation Implications|WORKBENCH_POLISH_GATE" docs/reference/command-code-docs/gui-implications.md` |
+
+Scope: documentation-only local GUI implications page. This completed the focused Command Code docs set for the current V1 scope and did not change runtime code, renderer IPC, server routes, transport calls, file access, config writes, session lifecycle, CSS tokens, or Command Code invocation behavior.
