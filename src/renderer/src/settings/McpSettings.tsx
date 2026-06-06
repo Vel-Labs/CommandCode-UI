@@ -1,15 +1,72 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { JSX, ReactNode } from 'react'
-import { buildMcpActionPreview, buildMcpGatedCommandPreview } from '../../../core/mcpCommands'
+import { buildMcpActionPreview, buildMcpAddCommandPreview, buildMcpGatedCommandPreview } from '../../../core/mcpCommands'
+import type { McpScope, McpTransport } from '../../../core/mcpCommands'
 import { mcpPolicyReferences, mcpScopeReferences } from '../../../core/mcpReference'
 import type { TransportAPI } from '../../../core/transport'
 import type { McpServer } from '../../../core/types'
+
+type McpAddPreviewMode = 'http' | 'stdio' | 'json'
 
 export function McpSettings({ transport, commandExecutable }: { transport: TransportAPI; commandExecutable: string }): JSX.Element {
   const [servers, setServers] = useState<McpServer[]>([])
   const [loading, setLoading] = useState(false)
   const [actionResult, setActionResult] = useState('')
   const [listDiagnostics, setListDiagnostics] = useState('')
+  const [addMode, setAddMode] = useState<McpAddPreviewMode>('http')
+  const [addScope, setAddScope] = useState<McpScope>('local')
+  const [addServerName, setAddServerName] = useState('')
+  const [addUrl, setAddUrl] = useState('')
+  const [addEnvKey, setAddEnvKey] = useState('')
+  const [addEnvValue, setAddEnvValue] = useState('')
+  const [addEnvSecret, setAddEnvSecret] = useState(true)
+  const [addHeaderKey, setAddHeaderKey] = useState('')
+  const [addHeaderValue, setAddHeaderValue] = useState('')
+  const [addHeaderSecret, setAddHeaderSecret] = useState(true)
+  const [addJson, setAddJson] = useState('{"type":"http","url":"https://example.test/mcp"}')
+  const [addClientSecret, setAddClientSecret] = useState('')
+
+  const addPreview = useMemo(() => {
+    const serverName = addServerName.trim()
+    if (!serverName) return 'Enter a server name to preview the Command Code MCP command.'
+
+    if (addMode === 'json') {
+      return buildMcpAddCommandPreview(commandExecutable, {
+        kind: 'add-json',
+        serverName,
+        scope: addScope,
+        json: addJson.trim() || '{}',
+        clientSecret: addClientSecret
+      })
+    }
+
+    const transportKind: McpTransport = addMode
+    return buildMcpAddCommandPreview(commandExecutable, {
+      kind: 'add',
+      serverName,
+      transport: transportKind,
+      scope: addScope,
+      url: addMode === 'http' ? addUrl.trim() : undefined,
+      env: addEnvKey.trim() ? [{ key: addEnvKey.trim(), value: addEnvValue, secret: addEnvSecret }] : undefined,
+      headers: addMode === 'http' && addHeaderKey.trim()
+        ? [{ key: addHeaderKey.trim(), value: addHeaderValue, secret: addHeaderSecret }]
+        : undefined
+    })
+  }, [
+    addClientSecret,
+    addEnvKey,
+    addEnvSecret,
+    addEnvValue,
+    addHeaderKey,
+    addHeaderSecret,
+    addHeaderValue,
+    addJson,
+    addMode,
+    addScope,
+    addServerName,
+    addUrl,
+    commandExecutable
+  ])
 
   const load = async (): Promise<void> => {
     setLoading(true)
@@ -58,6 +115,122 @@ export function McpSettings({ transport, commandExecutable }: { transport: Trans
             <span>{policy.description}</span>
           </div>
         ))}
+      </div>
+      <div className="settings-readonly-row">
+        <strong>Add server preview</strong>
+        <span>Preview-only. No MCP config is read or written, and secrets are redacted from the displayed command.</span>
+        <label className="settings-control-row">
+          <span>Flow</span>
+          <select value={addMode} onChange={(event) => setAddMode(event.target.value as McpAddPreviewMode)}>
+            <option value="http">HTTP add</option>
+            <option value="stdio">stdio add</option>
+            <option value="json">JSON config add</option>
+          </select>
+        </label>
+        <label className="settings-control-row">
+          <span>Scope</span>
+          <select value={addScope} onChange={(event) => setAddScope(event.target.value as McpScope)}>
+            <option value="local">local</option>
+            <option value="project">project</option>
+            <option value="user">user</option>
+          </select>
+        </label>
+        <label className="settings-control-row">
+          <span>Server name</span>
+          <input
+            className="native-input"
+            value={addServerName}
+            onChange={(event) => setAddServerName(event.target.value)}
+            placeholder="github"
+          />
+        </label>
+        {addMode === 'http' && (
+          <>
+            <label className="settings-control-row">
+              <span>URL</span>
+              <input
+                className="native-input"
+                value={addUrl}
+                onChange={(event) => setAddUrl(event.target.value)}
+                placeholder="https://example.test/mcp"
+              />
+            </label>
+            <div className="settings-control-row">
+              <span>Header</span>
+              <input
+                className="native-input"
+                value={addHeaderKey}
+                onChange={(event) => setAddHeaderKey(event.target.value)}
+                placeholder="Authorization"
+              />
+              <label className="checkbox-row"><input type="checkbox" checked={addHeaderSecret} onChange={(event) => setAddHeaderSecret(event.target.checked)} /> Secret</label>
+            </div>
+            <label className="settings-control-row">
+              <span>Header value</span>
+              <input
+                className="native-input"
+                type={addHeaderSecret ? 'password' : 'text'}
+                value={addHeaderValue}
+                onChange={(event) => setAddHeaderValue(event.target.value)}
+                placeholder="Bearer token"
+              />
+            </label>
+          </>
+        )}
+        {addMode === 'stdio' && (
+          <>
+            <div className="settings-control-row">
+              <span>Env key</span>
+              <input
+                className="native-input"
+                value={addEnvKey}
+                onChange={(event) => setAddEnvKey(event.target.value)}
+                placeholder="GITHUB_TOKEN"
+              />
+              <label className="checkbox-row"><input type="checkbox" checked={addEnvSecret} onChange={(event) => setAddEnvSecret(event.target.checked)} /> Secret</label>
+            </div>
+            <label className="settings-control-row">
+              <span>Env value</span>
+              <input
+                className="native-input"
+                type={addEnvSecret ? 'password' : 'text'}
+                value={addEnvValue}
+                onChange={(event) => setAddEnvValue(event.target.value)}
+                placeholder="token"
+              />
+            </label>
+          </>
+        )}
+        {addMode === 'json' && (
+          <>
+            <label className="settings-control-row settings-control-row--stacked">
+              <span>JSON</span>
+              <textarea
+                className="native-input"
+                value={addJson}
+                onChange={(event) => setAddJson(event.target.value)}
+              />
+            </label>
+            <label className="settings-control-row">
+              <span>Client secret</span>
+              <input
+                className="native-input"
+                type="password"
+                value={addClientSecret}
+                onChange={(event) => setAddClientSecret(event.target.value)}
+                placeholder="Optional OAuth client secret"
+              />
+            </label>
+          </>
+        )}
+        <div className="settings-command-preview">
+          <span>Add preview</span>
+          <code>{addPreview}</code>
+        </div>
+        <div className="settings-command-preview">
+          <span>Execution</span>
+          <code>Not available in this package</code>
+        </div>
       </div>
       {actionResult && <p className="settings-muted">{actionResult}</p>}
       {listDiagnostics && <p className="settings-muted settings-muted--warn">{listDiagnostics}</p>}

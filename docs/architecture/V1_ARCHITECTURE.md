@@ -173,9 +173,10 @@ Phase 6 has started with a pure command-builder package:
 - Settings > MCP renders read-only scope/path and policy tiles before server actions so operators can see the relevant config ownership and secret boundary before future writes.
 - Settings > MCP renders parsed `mcp__server__tool` names when the existing list output includes them. No additional tool-inspection command is run.
 - Settings > MCP shows preview-only gated commands for details, remove, auth status, and auth clear. Those previews are not executable from the GUI yet.
+- Settings > MCP shows a preview-only Add server section for HTTP, stdio, and JSON config flows using the shared redacted add/add-json builders. It has no apply button and does not call a transport route.
 - `/api/mcp/list` returns read-only list diagnostics (`ok`, `stdout`, `stderr`, `error`) alongside `servers`, and Settings > MCP surfaces failures instead of treating failed list commands as empty state.
 - `src/renderer/src/settings/McpSettings.tsx` owns Settings > MCP presentation; `AdvancedReadOnlySettings.tsx` no longer owns the MCP route content.
-- MCP add has pure redacted preview builders only; Settings UI, execution, config reads/writes, and secret persistence remain planned or gated. MCP remove, auth, server edit, connection test, diagnostics, and log viewing also remain planned or gated. No MCP secrets are stored in GUI preferences.
+- MCP add has redacted preview UI only; execution, config reads/writes, and secret persistence remain planned or gated. MCP remove, auth, server edit, connection test, diagnostics, and log viewing also remain planned or gated. No MCP secrets are stored in GUI preferences.
 
 Suggested sections:
 

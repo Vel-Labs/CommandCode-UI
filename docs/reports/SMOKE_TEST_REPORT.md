@@ -1139,3 +1139,17 @@ Scope: extracted Settings > MCP presentation into a dedicated `McpSettings.tsx` 
 | Build | Pass | `npm run build`; renderer assets `index-v30dRzNV.js` and `index-8BkyITsP.css` |
 
 Scope: added tested pure preview builders for documented `cmd mcp add` and `cmd mcp add-json` argument shapes, including scoped HTTP, stdio, env, header, JSON config, and redacted client-secret previews. This did not add Settings UI, execution buttons, MCP add mutation, config reads or writes, renderer IPC, secret storage, runtime mutation, or Command Code settings mutation. Real external MCP add/add-json mutation was not tested because this package only builds redacted previews.
+
+### 2026-06-06 Phase 6 MCP add preview UI
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Build | Pass | `npm run build`; renderer assets `index-CX2HZXGu.js` and `index-8BkyITsP.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57388`; token proof returned `302`, cookie-authenticated `/` served built assets `index-CX2HZXGu.js` and `index-8BkyITsP.css` |
+| Built asset UI proof | Pass | `rg -n "Add server preview|JSON config add|Not available in this package|redacted" out/renderer/assets/index-CX2HZXGu.js` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:61837` |
+| Browser plugin navigation | Not available | The Browser navigation tool was not exposed in this thread; route-level receipts were used instead |
+
+Scope: added a preview-only Add server section to Settings > MCP for HTTP, stdio, and JSON config flows. The section uses the pure add/add-json preview builders and redacts secret-like values, but it has no apply button and does not call transport routes. This did not add MCP add mutation, config reads or writes, renderer IPC, secret storage, runtime mutation, or Command Code settings mutation. Real external MCP add/add-json mutation was not tested.
