@@ -1029,3 +1029,17 @@ Scope: added explicit Settings section metadata for `open-settings` workflow rec
 | Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
 
 Scope: extended palette search to return Settings sections from the existing registry for non-empty queries and render those matches as explicit Settings rows. Empty palette state still shows commands and workflow recipes only. This did not add runtime execution, prompt rewriting, config writes, renderer IPC, file access, CLI argument changes, Command Code settings mutation, or session lifecycle behavior. Real CLI path was not retested for this renderer-only search slice.
+
+### 2026-06-06 Phase 5 project and docs search results
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `132/132` |
+| Build | Pass | `npm run build`; renderer assets `index-C1WCSshw.js` and `index-BYxtwXbi.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57381`; token proof returned `302`, cookie-authenticated `/` served built assets `index-C1WCSshw.js` and `index-BYxtwXbi.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:59988` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
+
+Scope: extended palette search to return recent project paths and local docs topics for non-empty queries. Project rows select existing recent projects, and docs rows open the existing docs inspector. This did not add runtime execution, prompt rewriting, config writes, renderer IPC, file access, CLI argument changes, Command Code settings mutation, or session lifecycle behavior. Session-result search remains planned behind a session lifecycle gate. Real CLI path was not retested for this renderer-only search slice.

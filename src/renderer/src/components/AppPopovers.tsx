@@ -11,6 +11,7 @@ import { HeadlessHistory } from './HeadlessHistory'
 import { IdePanel } from './IdePanel'
 import { ModelDropdown } from './ModelDropdown'
 import { getCommandExecutionPreview } from '../commandPalette/commandPreview'
+import { commandPaletteDocs } from '../commandPalette/docs'
 import { searchCommandPalette } from '../commandPalette/search'
 import type { WorkflowRecipe } from '../commandPalette/workflowRecipes'
 import { workflowRecipes } from '../commandPalette/workflowRecipes'
@@ -91,12 +92,14 @@ export function AppPopovers({
 }): JSX.Element | null {
   const [paletteQuery, setPaletteQuery] = useState('')
   const paletteResults = useMemo(
-    () => searchCommandPalette(commandPaletteItems, workflowRecipes, paletteQuery, settingsRegistry),
-    [commandPaletteItems, paletteQuery]
+    () => searchCommandPalette(commandPaletteItems, workflowRecipes, paletteQuery, settingsRegistry, recentProjects, commandPaletteDocs),
+    [commandPaletteItems, paletteQuery, recentProjects]
   )
   const visibleCommands = paletteResults.filter((result) => result.kind === 'command')
   const visibleRecipes = paletteResults.filter((result) => result.kind === 'recipe')
   const visibleSettings = paletteResults.filter((result) => result.kind === 'settings')
+  const visibleProjects = paletteResults.filter((result) => result.kind === 'project')
+  const visibleDocs = paletteResults.filter((result) => result.kind === 'docs')
 
   return (
     <>
@@ -202,6 +205,43 @@ export function AppPopovers({
                   <span className="command-row-main">
                     <strong>{result.item.label}</strong>
                     <code>Settings</code>
+                  </span>
+                  <span className="popover-row-description">{result.item.description}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {visibleProjects.length > 0 && (
+            <div className="command-group command-group--projects">
+              <div className="command-group-title">Recent projects</div>
+              {visibleProjects.map((result) => (
+                <button
+                  key={result.item.path}
+                  className="popover-row command-row command-row--actionable"
+                  onClick={() => { setCwd(result.item.path); setOpenPopover(null) }}
+                  title={result.item.path}
+                >
+                  <span className="command-row-main">
+                    <strong>{result.item.label}</strong>
+                    <code>Project</code>
+                  </span>
+                  <span className="popover-row-description">{result.item.path}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {visibleDocs.length > 0 && (
+            <div className="command-group command-group--docs">
+              <div className="command-group-title">Docs</div>
+              {visibleDocs.map((result) => (
+                <button
+                  key={result.item.id}
+                  className="popover-row command-row command-row--actionable"
+                  onClick={() => { openDocs(); setOpenPopover(null) }}
+                >
+                  <span className="command-row-main">
+                    <strong>{result.item.title}</strong>
+                    <code>Docs</code>
                   </span>
                   <span className="popover-row-description">{result.item.description}</span>
                 </button>

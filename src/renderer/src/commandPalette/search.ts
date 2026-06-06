@@ -1,17 +1,28 @@
 import type { CommandPaletteItem } from '../appTypes'
 import type { SettingsRegistryItem } from '../settings/settingsRegistry'
+import type { PaletteDocItem } from './docs'
 import type { WorkflowRecipe } from './workflowRecipes'
+
+export type PaletteProjectItem = {
+  id: string
+  path: string
+  label: string
+}
 
 export type PaletteSearchResult =
   | { kind: 'command'; item: CommandPaletteItem; score: number }
   | { kind: 'recipe'; item: WorkflowRecipe; score: number }
   | { kind: 'settings'; item: SettingsRegistryItem; score: number }
+  | { kind: 'project'; item: PaletteProjectItem; score: number }
+  | { kind: 'docs'; item: PaletteDocItem; score: number }
 
 export function searchCommandPalette(
   commands: CommandPaletteItem[],
   recipes: WorkflowRecipe[],
   query: string,
-  settings: SettingsRegistryItem[] = []
+  settings: SettingsRegistryItem[] = [],
+  projectPaths: string[] = [],
+  docs: PaletteDocItem[] = []
 ): PaletteSearchResult[] {
   const normalizedQuery = normalize(query)
   const results: PaletteSearchResult[] = []
@@ -31,9 +42,25 @@ export function searchCommandPalette(
       const score = scoreText(normalizedQuery, [item.label, item.description, item.group, item.searchText, item.id])
       if (score > 0) results.push({ kind: 'settings', item, score })
     }
+
+    for (const path of projectPaths) {
+      const item = projectItemForPath(path)
+      const score = scoreText(normalizedQuery, [item.label, item.path])
+      if (score > 0) results.push({ kind: 'project', item, score })
+    }
+
+    for (const item of docs) {
+      const score = scoreText(normalizedQuery, [item.title, item.description, item.id, item.keywords.join(' ')])
+      if (score > 0) results.push({ kind: 'docs', item, score })
+    }
   }
 
   return results.sort((a, b) => b.score - a.score || labelFor(a).localeCompare(labelFor(b)))
+}
+
+export function projectItemForPath(path: string): PaletteProjectItem {
+  const label = path.split('/').filter(Boolean).at(-1) || path || 'No project selected'
+  return { id: path, path, label }
 }
 
 function scoreText(query: string, values: string[]): number {
@@ -54,6 +81,8 @@ function scoreText(query: string, values: string[]): number {
 function labelFor(result: PaletteSearchResult): string {
   if (result.kind === 'command') return result.item.label
   if (result.kind === 'settings') return result.item.label
+  if (result.kind === 'project') return result.item.label
+  if (result.kind === 'docs') return result.item.title
   return result.item.title
 }
 
