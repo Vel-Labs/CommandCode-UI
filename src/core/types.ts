@@ -78,6 +78,7 @@ export type AppGuiPreferences = {
   model?: string
   projectModels?: Record<string, string>
   appearanceTheme?: 'cc-spectrum' | 'terminal-minimal' | 'blueprint' | 'high-contrast'
+  startupProjectBehavior?: 'restore-last' | 'empty'
   releaseNotesSeen?: string[]
   sidebarWidth?: number
   rightInspectorWidth?: number

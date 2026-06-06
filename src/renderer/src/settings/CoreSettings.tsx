@@ -145,12 +145,16 @@ export function GeneralSettings({
   setCommandExecutable,
   skipOnboarding,
   setSkipOnboarding,
+  startupProjectBehavior,
+  setStartupProjectBehavior,
   runCheck
 }: {
   commandExecutable: string
   setCommandExecutable: (value: string) => void
   skipOnboarding: boolean
   setSkipOnboarding: (value: boolean) => void
+  startupProjectBehavior: 'restore-last' | 'empty'
+  setStartupProjectBehavior: (value: 'restore-last' | 'empty') => void
   runCheck: () => Promise<void>
 }): JSX.Element {
   return (
@@ -170,6 +174,17 @@ export function GeneralSettings({
           path="<project>/.commandcode/gui-preferences.json"
           fields="skipOnboarding"
         />
+        <label className="field-label">Startup project</label>
+        <select className="native-input" value={startupProjectBehavior} onChange={(event) => setStartupProjectBehavior(event.target.value === 'empty' ? 'empty' : 'restore-last')}>
+          <option value="restore-last">Restore last selected project</option>
+          <option value="empty">Open without a selected project</option>
+        </select>
+        <SettingsDestinationNote
+          scope="GUI app preference"
+          path="~/.commandcode/gui-preferences.json"
+          fields="startupProjectBehavior"
+        />
+        <p className="settings-muted">This only controls project selection on app preference hydration. It does not auto-start or resume Command Code sessions.</p>
         <button className="ghost-button native-ghost settings-inline-action" onClick={() => void runCheck()}>Check CLI</button>
       </div>
     </div>

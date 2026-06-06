@@ -268,6 +268,20 @@ Scope: presentation-only Settings About package. About now renders bundled relea
 
 Scope: presentation-only Settings Keyboard package. Keyboard now shows grouped shortcut references and Command Code command examples, and existing New Session, Send, and Menu Input controls expose accelerator hints. No shortcut remapping, persistence fields, server routes, renderer IPC expansion, runtime/session lifecycle changes, or Command Code settings mutation were added.
 
+### 2026-06-06 Phase 2 Settings startup project preference
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `56/56` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5210`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets `index-DHiO5Oye.js` and `index-DzGfjRxt.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:50069` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project/runtime; no new dependency was added for this settings package |
+
+Scope: app-preference Settings General package. General now writes sanitized `startupProjectBehavior` to `~/.commandcode/gui-preferences.json` and app preference hydration uses it to restore the last selected project or open without a selected project. No automatic session start/resume, window restore, renderer IPC expansion, Command Code settings mutation, or runtime/session lifecycle changes were added.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |

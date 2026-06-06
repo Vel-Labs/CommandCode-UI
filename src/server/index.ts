@@ -396,6 +396,9 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
     if (raw.appearanceTheme === 'cc-spectrum' || raw.appearanceTheme === 'terminal-minimal' || raw.appearanceTheme === 'blueprint' || raw.appearanceTheme === 'high-contrast') {
       next.appearanceTheme = raw.appearanceTheme
     }
+    if (raw.startupProjectBehavior === 'restore-last' || raw.startupProjectBehavior === 'empty') {
+      next.startupProjectBehavior = raw.startupProjectBehavior
+    }
     const releaseNotesSeen = sanitizeStringArray(raw.releaseNotesSeen, 50)
     if (releaseNotesSeen) next.releaseNotesSeen = releaseNotesSeen
     if (typeof raw.sidebarWidth === 'number' && Number.isFinite(raw.sidebarWidth)) {

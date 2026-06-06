@@ -165,7 +165,7 @@ This is project-scoped GUI state only. It does not change Command Code runtime s
 
 Reads app-level GUI preferences from `~/.commandcode/gui-preferences.json`.
 
-This stores shell-level state that must survive Electron dev-server port changes: the last selected project, recent projects, command binary, default model, model favorites by project, appearance theme, dismissed release notes, and resizable shell widths.
+This stores shell-level state that must survive Electron dev-server port changes: the last selected project, recent projects, command binary, default model, model favorites by project, appearance theme, startup project behavior, dismissed release notes, and resizable shell widths.
 
 **Response:**
 ```json
@@ -179,6 +179,7 @@ This stores shell-level state that must survive Electron dev-server port changes
     "commandExecutable": "cmd",
     "model": "deepseek/deepseek-v4-pro",
     "appearanceTheme": "cc-spectrum",
+    "startupProjectBehavior": "restore-last",
     "sidebarWidth": 292,
     "rightInspectorWidth": 420
   }
@@ -202,6 +203,7 @@ Writes sanitized app-level GUI preferences to `~/.commandcode/gui-preferences.js
       "/path/to/project": "deepseek/deepseek-v4-pro"
     },
     "appearanceTheme": "cc-spectrum",
+    "startupProjectBehavior": "restore-last",
     "releaseNotesSeen": ["0.32.3"],
     "sidebarWidth": 292,
     "rightInspectorWidth": 420

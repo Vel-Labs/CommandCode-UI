@@ -79,6 +79,8 @@ export type SettingsRouteProps = {
   runtimeMode: RuntimeMode
   appearanceTheme: AppearanceTheme
   setAppearanceTheme: (value: AppearanceTheme) => void
+  startupProjectBehavior: 'restore-last' | 'empty'
+  setStartupProjectBehavior: (value: 'restore-last' | 'empty') => void
   updateState: UpdateState
   updateVersion?: string
   updateDetails: string
@@ -112,6 +114,8 @@ export function SettingsRoute(props: SettingsRouteProps): JSX.Element {
     runtimeMode,
     appearanceTheme,
     setAppearanceTheme,
+    startupProjectBehavior,
+    setStartupProjectBehavior,
     updateState,
     updateVersion,
     updateDetails,
@@ -146,6 +150,8 @@ export function SettingsRoute(props: SettingsRouteProps): JSX.Element {
           setCommandExecutable={setCommandExecutable}
           skipOnboarding={skipOnboarding}
           setSkipOnboarding={setSkipOnboarding}
+          startupProjectBehavior={startupProjectBehavior}
+          setStartupProjectBehavior={setStartupProjectBehavior}
           runCheck={runCheck}
         />
       )

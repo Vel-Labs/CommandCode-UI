@@ -28,6 +28,8 @@ export function SettingsWorkspace({
   runtimeMode,
   appearanceTheme,
   setAppearanceTheme,
+  startupProjectBehavior,
+  setStartupProjectBehavior,
   updateState,
   updateVersion,
   updateDetails,
@@ -58,6 +60,8 @@ export function SettingsWorkspace({
   runtimeMode: RuntimeMode
   appearanceTheme: AppearanceTheme
   setAppearanceTheme: (value: AppearanceTheme) => void
+  startupProjectBehavior: 'restore-last' | 'empty'
+  setStartupProjectBehavior: (value: 'restore-last' | 'empty') => void
   updateState: UpdateState
   updateVersion?: string
   updateDetails: string
@@ -92,6 +96,8 @@ export function SettingsWorkspace({
           runtimeMode={runtimeMode}
           appearanceTheme={appearanceTheme}
           setAppearanceTheme={setAppearanceTheme}
+          startupProjectBehavior={startupProjectBehavior}
+          setStartupProjectBehavior={setStartupProjectBehavior}
           updateState={updateState}
           updateVersion={updateVersion}
           updateDetails={updateDetails}

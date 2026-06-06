@@ -241,3 +241,36 @@ describe('project GUI preference boundaries', () => {
     expect(persisted).toEqual(saved.preferences)
   })
 })
+
+describe('app GUI preference boundaries', () => {
+  it('sanitizes app GUI startup preferences before writing', async () => {
+    const app = await startServer()
+
+    const saved = await apiPost<{
+      ok: boolean
+      preferences: {
+        version: number
+        cwd?: string
+        startupProjectBehavior?: string
+        extra?: string
+        updatedAt?: string
+      }
+    }>(app, '/api/app/preferences/save', {
+      preferences: {
+        version: 99,
+        cwd: '/tmp/project',
+        startupProjectBehavior: 'empty',
+        extra: 'drop-me'
+      }
+    })
+
+    expect(saved.ok).toBe(true)
+    expect(saved.preferences).toMatchObject({
+      version: 1,
+      cwd: '/tmp/project',
+      startupProjectBehavior: 'empty'
+    })
+    expect(saved.preferences.extra).toBeUndefined()
+    expect(saved.preferences.updatedAt).toBeTruthy()
+  })
+})

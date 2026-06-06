@@ -24,6 +24,7 @@ Current app preference fields:
 - `model`
 - `projectModels`
 - `appearanceTheme`
+- `startupProjectBehavior`
 - `releaseNotesSeen`
 - `sidebarWidth`
 - `rightInspectorWidth`
@@ -84,7 +85,7 @@ Allowed without a new write gate:
 Requires a write gate before implementation:
 
 - keyboard shortcut remapping
-- startup behavior changes
+- additional startup behavior changes, including window restore and automatic session start/resume
 - data deletion, cache clearing, reset, export, or import
 - hook editor writes
 - MCP add/remove/auth actions
@@ -103,6 +104,7 @@ Current executable coverage:
 Current visible destination coverage:
 
 - General shows the GUI app preference destination for `commandExecutable`.
+- General shows the GUI app preference destination for `startupProjectBehavior`.
 - General shows the GUI project preference destination for `skipOnboarding`.
 - Runtime shows the GUI project preference destination for `permissionMode` and `trust`.
 - Runtime shows the GUI app/project preference destinations for `model` and `projectModels`.
@@ -114,6 +116,7 @@ Known unimplemented acceptance:
 
 - OS notifications, hook-triggered alerts, quiet mode, and per-session readiness preferences
 - terminal bell behavior, profiles, history controls, and live PTY geometry updates
+- window restore and automatic session start/resume behavior
 - editable settings destination labels for future write-capable sections
 - data controls write/delete only within approved roots
 - AdvancedPanel removal after Settings replacement paths exist

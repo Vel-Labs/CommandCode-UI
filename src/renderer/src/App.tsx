@@ -204,6 +204,7 @@ export function App(): JSX.Element {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [settingsSection, setSettingsSection] = useState<SettingsSection>('profile')
   const [appearanceTheme, setAppearanceThemeState] = useState<AppearanceTheme>(loadAppearanceTheme)
+  const [startupProjectBehavior, setStartupProjectBehavior] = useState<AppGuiPreferences['startupProjectBehavior']>('restore-last')
   const [ptyHealth, setPtyHealth] = useState<PtyDoctorResult | null>(null)
   const [updateState, setUpdateState] = useState<UpdateState>('idle')
   const [updateVersion, setUpdateVersion] = useState<string | undefined>()
@@ -285,7 +286,12 @@ export function App(): JSX.Element {
       .then((result) => {
         if (cancelled || !result.ok || !result.preferences) return
         const prefs = result.preferences
-        if (typeof prefs.cwd === 'string') {
+        const nextStartupProjectBehavior = prefs.startupProjectBehavior === 'empty' ? 'empty' : 'restore-last'
+        setStartupProjectBehavior(nextStartupProjectBehavior)
+        if (nextStartupProjectBehavior === 'empty') {
+          setCwdState('')
+          localStorage.removeItem('ccgui.cwd')
+        } else if (typeof prefs.cwd === 'string') {
           setCwdState(prefs.cwd)
           localStorage.setItem('ccgui.cwd', prefs.cwd)
         }
@@ -464,6 +470,7 @@ export function App(): JSX.Element {
       model,
       projectModels: loadProjectModels(),
       appearanceTheme,
+      startupProjectBehavior,
       releaseNotesSeen: loadSeenReleaseNotes(),
       sidebarWidth,
       rightInspectorWidth,
@@ -477,7 +484,7 @@ export function App(): JSX.Element {
     return () => {
       if (appPreferenceSaveTimer.current) window.clearTimeout(appPreferenceSaveTimer.current)
     }
-  }, [transport, cwd, recentProjects, commandExecutable, model, appearanceTheme, sidebarWidth, rightInspectorWidth])
+  }, [transport, cwd, recentProjects, commandExecutable, model, appearanceTheme, startupProjectBehavior, sidebarWidth, rightInspectorWidth])
 
   const setCwd = (value: string): void => {
     setCwdState(value)
@@ -889,6 +896,7 @@ export function App(): JSX.Element {
       model,
       projectModels: loadProjectModels(),
       appearanceTheme,
+      startupProjectBehavior,
       releaseNotesSeen: loadSeenReleaseNotes(),
       sidebarWidth,
       rightInspectorWidth,
@@ -1060,6 +1068,8 @@ export function App(): JSX.Element {
             runtimeMode={runtimeMode}
             appearanceTheme={appearanceTheme}
             setAppearanceTheme={setAppearanceTheme}
+            startupProjectBehavior={startupProjectBehavior || 'restore-last'}
+            setStartupProjectBehavior={setStartupProjectBehavior}
             updateState={updateState}
             updateVersion={updateVersion}
             updateDetails={updateDetails}
