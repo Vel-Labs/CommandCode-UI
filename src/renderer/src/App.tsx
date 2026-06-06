@@ -1078,6 +1078,7 @@ export function App(): JSX.Element {
             openDocs={() => openRightInspector('docs')}
             openAdvanced={() => setAdvancedOpen(true)}
             openSection={setSettingsSection}
+            onResumeSession={resumeProjectSession}
           />
         ) : workspaceView === 'home' ? (
           <HomeWorkspace

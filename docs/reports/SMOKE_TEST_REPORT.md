@@ -295,6 +295,22 @@ Scope: app-preference Settings General package. General now writes sanitized `st
 
 Scope: read-only Settings Data controls gate package. Data now names transcript deletion, cache clearing, preference reset, export, and import as blocked or planned actions and records the required route/path-validation boundary in `docs/reports/DATA_CONTROLS_GATE.md`. No file delete/write/export/import routes, renderer IPC expansion, Command Code settings mutation, or runtime/session lifecycle changes were added.
 
+### 2026-06-06 Phase 2 Settings session actions
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| PTY smoke | Pass | `npm run smoke:pty` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5212`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets `index-BWgdSGol.js` and `index-3LQJOXlJ.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:50338` |
+| Real Settings resume click-through | Not run | Existing `resumeProjectSession` path was wired into Settings, but no discovered project transcript was resumed through the Settings button in this package |
+| Settings reveal click-through | Not run | Existing `transport.revealTranscript` path was wired into Settings, but no transcript was revealed through the Settings button in this package |
+| Browser screenshot automation | Not run | Playwright is not installed in this project/runtime; no new dependency was added for this settings package |
+
+Scope: Settings Sessions action package. Sessions now exposes project-session Resume and transcript Reveal actions using existing App/transport paths. No new renderer IPC, server routes, transcript scraping, terminal-output inference, or Command Code settings mutation were added.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |

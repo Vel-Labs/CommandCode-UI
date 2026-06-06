@@ -70,7 +70,15 @@ function DataGateRow({ action, status, detail }: { action: string; status: strin
   )
 }
 
-export function SessionsSettingsReadOnly({ transport, cwd }: { transport: TransportAPI; cwd: string }): JSX.Element {
+export function SessionsSettingsReadOnly({
+  transport,
+  cwd,
+  onResumeSession
+}: {
+  transport: TransportAPI
+  cwd: string
+  onResumeSession: (session: DiscoveredSession) => Promise<void>
+}): JSX.Element {
   const [sessions, setSessions] = useState<DiscoveredSession[]>([])
   const [loading, setLoading] = useState(false)
 
@@ -89,12 +97,16 @@ export function SessionsSettingsReadOnly({ transport, cwd }: { transport: Transp
 
   return (
     <SettingsReadOnlyCard title={`Discovered sessions (${sessions.length})`} loading={loading} onRefresh={load}>
-      <p className="settings-muted">Read-only session discovery. Resume and reveal actions remain in Advanced until session lifecycle and file-access replacement paths are validated.</p>
+      <p className="settings-muted">Session discovery uses Command Code transcript stores. Resume starts a new Command Code session with the selected project transcript; Reveal opens the transcript path through the existing adapter file-access bridge.</p>
       {sessions.map((session) => (
         <div key={session.id} className="settings-readonly-row">
           <strong>{session.title || session.id}</strong>
           <span>{session.source || 'global'} - {formatSessionTime(session.timestamp)} - {(session.sizeBytes / 1024).toFixed(1)}KB</span>
           <code className="settings-readonly-path">{session.transcriptPath}</code>
+          <div className="settings-inline-actions">
+            <button className="ghost-button native-ghost settings-inline-action" onClick={() => void onResumeSession(session)} disabled={session.source !== 'project'}>Resume</button>
+            <button className="ghost-button native-ghost settings-inline-action" onClick={() => void transport.revealTranscript(session.transcriptPath)}>Reveal</button>
+          </div>
         </div>
       ))}
       {!sessions.length && !loading && <p className="settings-muted">No sessions discovered for the current project context.</p>}

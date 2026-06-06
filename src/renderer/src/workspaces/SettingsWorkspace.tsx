@@ -2,6 +2,7 @@ import type { JSX } from 'react'
 import type { PermissionMode } from '../../../shared/types'
 import type { PtyDoctorResult } from '../../../core/ptyDoctor'
 import type { TransportAPI } from '../../../core/transport'
+import type { DiscoveredSession } from '../../../core/types'
 import type { AppearanceTheme, RuntimeMode, SettingsSection, UpdateState } from '../appTypes'
 import type { HeadlessJob } from '../components/HeadlessHistory'
 import { SettingsRoute } from '../settings/SettingsRoutes'
@@ -37,7 +38,8 @@ export function SettingsWorkspace({
   openConfigureModels,
   openDocs,
   openAdvanced,
-  openSection
+  openSection,
+  onResumeSession
 }: {
   section: SettingsSection
   cwd: string
@@ -70,6 +72,7 @@ export function SettingsWorkspace({
   openDocs: () => void
   openAdvanced: () => void
   openSection: (section: SettingsSection) => void
+  onResumeSession: (session: DiscoveredSession) => Promise<void>
 }): JSX.Element {
   return (
     <section className="settings-workspace" aria-label="Settings">
@@ -106,6 +109,7 @@ export function SettingsWorkspace({
           openDocs={openDocs}
           openAdvanced={openAdvanced}
           openSection={openSection}
+          onResumeSession={onResumeSession}
         />
       </main>
     </section>

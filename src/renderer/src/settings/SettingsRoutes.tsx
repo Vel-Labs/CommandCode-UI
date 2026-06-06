@@ -2,6 +2,7 @@ import type { JSX } from 'react'
 import type { PermissionMode } from '../../../shared/types'
 import type { PtyDoctorResult } from '../../../core/ptyDoctor'
 import type { TransportAPI } from '../../../core/transport'
+import type { DiscoveredSession } from '../../../core/types'
 import type { AppearanceTheme, RuntimeMode, SettingsSection, UpdateState } from '../appTypes'
 import type { HeadlessJob } from '../components/HeadlessHistory'
 import {
@@ -89,6 +90,7 @@ export type SettingsRouteProps = {
   openDocs: () => void
   openAdvanced: () => void
   openSection: (section: SettingsSection) => void
+  onResumeSession: (session: DiscoveredSession) => Promise<void>
 }
 
 export function SettingsRoute(props: SettingsRouteProps): JSX.Element {
@@ -123,7 +125,8 @@ export function SettingsRoute(props: SettingsRouteProps): JSX.Element {
     openConfigureModels,
     openDocs,
     openAdvanced,
-    openSection
+    openSection,
+    onResumeSession
   } = props
 
   switch (section) {
@@ -192,7 +195,7 @@ export function SettingsRoute(props: SettingsRouteProps): JSX.Element {
     case 'data':
       return <SettingsFrame title="Data"><ProjectStateSettings transport={transport} cwd={cwd} /></SettingsFrame>
     case 'sessions':
-      return <SettingsFrame title="Sessions"><SessionsSettingsReadOnly transport={transport} cwd={cwd} /></SettingsFrame>
+      return <SettingsFrame title="Sessions"><SessionsSettingsReadOnly transport={transport} cwd={cwd} onResumeSession={onResumeSession} /></SettingsFrame>
     case 'mcp':
       return <SettingsFrame title="MCP"><McpSettingsReadOnly transport={transport} commandExecutable={commandExecutable} /></SettingsFrame>
     case 'agents':
