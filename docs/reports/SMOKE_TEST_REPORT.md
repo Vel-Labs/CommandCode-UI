@@ -607,6 +607,19 @@ Scope: pure hook edit-helper package for future broader hook editor previews. Ad
 
 Scope: scoped preview-only route package for future broader hook editor work. Added `/api/hooks/preview-edit` and `transport.previewHookEdit(...)` for command, matcher, timeout, and delete previews using the same derived user/project settings paths and 1 MB read limit as hook discovery/toggle preview. No file writes, apply route, renderer UI controls, renderer IPC, hook execution, OS notifications, audio behavior, or Command Code settings mutation was added.
 
+### 2026-06-06 Phase 3 broader hook edit preview UI
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `89/89` |
+| Build | Pass | `npm run build`; assets `index-nnITahme.js` and `index-Df7RZjIk.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser`; mock session created/exited, auth checks passed |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5230`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets `index-nnITahme.js` and `index-Df7RZjIk.css` |
+| Electron dev startup | Pass | `npm run dev`; renderer `http://localhost:5175/`, embedded app server `http://127.0.0.1:55426` |
+
+Scope: preview-only Settings UI package for broader hook edits. Settings > Hooks now lets the operator open a discovered hook in an edit preview panel, adjust command/matcher/timeout draft fields, preview update JSON, or preview delete JSON through `transport.previewHookEdit(...)`. No apply button, file write, hook execution, renderer IPC, OS notification, audio behavior, or Command Code settings mutation was added. The real Command Code interactive path was not exercised because this package does not start or control Command Code.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |

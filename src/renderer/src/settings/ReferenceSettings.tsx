@@ -3,7 +3,14 @@ import type { JSX, ReactNode } from 'react'
 import type { UpdateState } from '../appTypes'
 import { commandPaletteItems, releaseNotes } from '../commandPalette'
 import type { TransportAPI } from '../../../core/transport'
-import type { HookConfigDiscoveryResult, HookConfigToggleApplyResult, HookConfigTogglePreviewResult, ParsedHookCommand } from '../../../core/hooksConfig'
+import type {
+  HookCommandUpdate,
+  HookConfigDiscoveryResult,
+  HookConfigEditPreviewResult,
+  HookConfigToggleApplyResult,
+  HookConfigTogglePreviewResult,
+  ParsedHookCommand
+} from '../../../core/hooksConfig'
 import { buildHookPayloadPreview } from '../../../core/hooksPayload'
 import type { HookPayloadPreview } from '../../../core/hooksPayload'
 import {
@@ -224,6 +231,10 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
   const [applyResult, setApplyResult] = useState<HookConfigToggleApplyResult | null>(null)
   const [applying, setApplying] = useState(false)
   const [payloadPreview, setPayloadPreview] = useState<HookPayloadPreview | null>(null)
+  const [editingHook, setEditingHook] = useState<ParsedHookCommand | null>(null)
+  const [editDraft, setEditDraft] = useState({ command: '', matcher: '', timeoutSeconds: '' })
+  const [editPreview, setEditPreview] = useState<HookConfigEditPreviewResult | null>(null)
+  const [editPreviewing, setEditPreviewing] = useState(false)
   const examples = [
     { label: 'Block risky shell', event: 'PreToolUse', matcher: 'Bash', command: 'node .commandcode/hooks/block-risky-shell.js' },
     { label: 'Sensitive read warning', event: 'PreToolUse', matcher: 'Read', command: 'node .commandcode/hooks/warn-sensitive-read.js' },
@@ -283,6 +294,45 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
       matcher: hook.matcher
     }))
   }, [cwd])
+
+  const openEditPreview = useCallback((hook: ParsedHookCommand) => {
+    setEditingHook(hook)
+    setEditDraft({
+      command: hook.command,
+      matcher: hook.matcher || '',
+      timeoutSeconds: hook.timeoutSeconds === undefined ? '' : String(hook.timeoutSeconds)
+    })
+    setEditPreview(null)
+  }, [])
+
+  const previewHookEdit = useCallback((action: 'update' | 'remove') => {
+    if (!editingHook) return
+    const update: HookCommandUpdate = {}
+    const nextCommand = editDraft.command.trim()
+    const nextMatcher = editDraft.matcher.trim()
+    const currentMatcher = editingHook.matcher || ''
+    const currentTimeout = editingHook.timeoutSeconds === undefined ? '' : String(editingHook.timeoutSeconds)
+    const nextTimeout = editDraft.timeoutSeconds.trim()
+
+    if (nextCommand !== editingHook.command) update.command = nextCommand
+    if (nextMatcher !== currentMatcher) update.matcher = nextMatcher
+    if (nextTimeout !== currentTimeout) {
+      update.timeoutSeconds = nextTimeout ? Number(nextTimeout) : null
+    }
+
+    setEditPreviewing(true)
+    transport.previewHookEdit({
+      cwd,
+      sourceScope: editingHook.sourceScope,
+      event: editingHook.event,
+      command: editingHook.command,
+      action,
+      update: action === 'update' ? update : undefined
+    })
+      .then(setEditPreview)
+      .catch((err) => setEditPreview({ ok: false, error: err instanceof Error ? err.message : String(err) }))
+      .finally(() => setEditPreviewing(false))
+  }, [cwd, editDraft, editingHook, transport])
 
   const applyPreview = useCallback(() => {
     if (!preview?.ok || !preview.sourceScope || !preview.event || !preview.command || typeof preview.enabled !== 'boolean') return
@@ -354,9 +404,73 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
                 >
                   Sample payload
                 </button>
+                <button
+                  className="ghost-button native-ghost settings-inline-action"
+                  onClick={() => openEditPreview(hook)}
+                >
+                  Edit preview
+                </button>
               </span>
             </div>
           ))}
+        </div>
+      )}
+      {editingHook && (
+        <div className="settings-command-grid">
+          <div className="settings-command-row">
+            <strong>Broader edit preview</strong>
+            <code>{editingHook.sourcePath}</code>
+            <span>{editingHook.event} / {editingHook.matcher || 'all tools'} / no file will be written</span>
+          </div>
+          <label className="settings-control-row">
+            <span>Command</span>
+            <input
+              className="native-input"
+              value={editDraft.command}
+              onChange={(event) => setEditDraft((draft) => ({ ...draft, command: event.target.value }))}
+            />
+          </label>
+          <label className="settings-control-row">
+            <span>Matcher</span>
+            <input
+              className="native-input"
+              value={editDraft.matcher}
+              onChange={(event) => setEditDraft((draft) => ({ ...draft, matcher: event.target.value }))}
+            />
+          </label>
+          <label className="settings-control-row">
+            <span>Timeout seconds</span>
+            <input
+              className="native-input"
+              type="number"
+              min={0}
+              step={1}
+              value={editDraft.timeoutSeconds}
+              onChange={(event) => setEditDraft((draft) => ({ ...draft, timeoutSeconds: event.target.value }))}
+            />
+          </label>
+          <div className="settings-actions-row">
+            <button className="ghost-button native-ghost" onClick={() => previewHookEdit('update')} disabled={editPreviewing}>
+              {editPreviewing ? 'Previewing' : 'Preview edit'}
+            </button>
+            <button className="ghost-button native-ghost" onClick={() => previewHookEdit('remove')} disabled={editPreviewing}>
+              Preview delete
+            </button>
+            <button className="ghost-button native-ghost" onClick={() => { setEditingHook(null); setEditPreview(null) }}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+      {editPreview && (
+        <div className="settings-command-grid">
+          <div className="settings-command-row">
+            <strong>{editPreview.ok ? 'Edit preview only' : 'Edit preview failed'}</strong>
+            <code>{editPreview.sourcePath || editPreview.error || 'No source path'}</code>
+            <span>{editPreview.ok ? `${editPreview.action} / no file was written` : 'no file was written'}</span>
+          </div>
+          {editPreview.content && <pre className="advanced-raw">{editPreview.content}</pre>}
+          {editPreview.error && <p className="settings-muted">{editPreview.error}</p>}
         </div>
       )}
       {payloadPreview && (
@@ -415,7 +529,7 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
           </div>
         ))}
       </div>
-      <p className="settings-muted">Scoped hook discovery and enable/disable writes are available. Broader hook editing, command execution, OS notifications, quiet mode, and response-ready delivery remain gated by `docs/reports/HOOKS_NOTIFICATIONS_GATE.md`.</p>
+      <p className="settings-muted">Scoped hook discovery, enable/disable writes, and broader edit previews are available. Broader writes, command execution, OS notifications, quiet mode, and response-ready delivery remain gated by `docs/reports/HOOKS_NOTIFICATIONS_GATE.md`.</p>
     </SettingsReferenceCard>
   )
 }

@@ -514,6 +514,8 @@ Eleventh pure edit-helper package added `updateHookCommand` and `removeHookComma
 
 Twelfth scoped preview route package added `/api/hooks/preview-edit` and `transport.previewHookEdit(...)` for future broader hook editor previews. The route accepts only derived project/user settings scopes, keeps the 1 MB read cap, returns formatted JSON previews for command/matcher/timeout/delete edits, and does not write files. This package did not add an apply route, renderer UI controls, renderer IPC, hook execution, OS notifications, audio behavior, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `89/89`, `npm run build`, `npm run smoke:browser`, built route proof at `http://127.0.0.1:5229/` against `/tmp/ccgui-hooks-edit-9c9gpd` showing `preview=true/update/project`, edited command/matcher/timeout, and `unchanged=true`.
 
+Thirteenth preview UI package added broader edit/delete preview controls to Settings > Hooks. Operators can select a discovered hook, adjust command/matcher/timeout draft fields, preview update JSON, or preview delete JSON through `transport.previewHookEdit(...)`; no apply button or broader write behavior was added. This package did not add file writes, hook execution, renderer IPC, OS notifications, audio behavior, or Command Code settings mutation. The real Command Code interactive path was not exercised because this package does not start or control Command Code. Validation receipts: `npm run typecheck`, `npx vitest run` -> `89/89`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5230/` with assets `index-nnITahme.js` and `index-Df7RZjIk.css`, and Electron dev startup with renderer `http://localhost:5175/` plus embedded app server `http://127.0.0.1:55426`.
+
 ### Scope
 
 - Add Settings > Hooks.
@@ -522,7 +524,7 @@ Twelfth scoped preview route package added `/api/hooks/preview-edit` and `transp
 - Show hook event, matcher, command, timeout, blocking behavior, execution order, enabled state, and source scope. Implemented for read-only parsed discovery rows.
 - Validate hook JSON before writing.
 - Preserve project-over-user precedence.
-- Add enable/disable controls per hook. Implemented for scoped previewed toggles with backup writes; broader hook editing has scoped preview routes only and remains gated for UI/write behavior.
+- Add enable/disable controls per hook. Implemented for scoped previewed toggles with backup writes; broader hook editing is implemented as scoped preview-only UI/routes and remains gated for write behavior.
 - Add hook logs/output viewer where logs are available.
 - Add a test payload runner so users can validate hook behavior before real sessions. Dry-run sample payload preview is implemented; command execution remains gated.
 - Add examples for dangerous shell blocking, sensitive read warnings, write auditing, and Stop-hook finish notifications.
