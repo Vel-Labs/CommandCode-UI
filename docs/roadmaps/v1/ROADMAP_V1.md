@@ -366,6 +366,8 @@ Fifteenth renderer-local preferences package added an editable Notifications Set
 
 Sixteenth renderer-local preferences package added an editable Terminal Settings page for xterm font size, line height, scrollback, and cursor blink, and moved terminal preference parsing/storage into `src/renderer/src/settings/terminalPreferences.ts`. `TerminalPane` reads these preferences when panes mount. This package did not add server routes, renderer IPC expansion, file-backed config writes, PTY/session lifecycle changes, live terminal geometry mutation, shell selection, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `55/55`, `npm run build`, `npm run smoke:browser`, `npm run smoke:pty`, built browser route token proof at `http://127.0.0.1:5207/`, and Electron dev startup with embedded app server `http://127.0.0.1:49602`.
 
+Seventeenth presentation package added bundled release-note history to Settings About using the existing `releaseNotes` metadata in `src/renderer/src/commandPalette.ts`. This package did not run update checks, change release-note dismissal state, add persistence fields, add server routes, expand renderer IPC, change runtime/session lifecycle, or mutate Command Code settings. Validation receipts: `npm run typecheck`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5208/`, and Electron dev startup with embedded app server `http://127.0.0.1:49748`.
+
 ### Scope
 
 - Fold AdvancedPanel content into Settings as first-class sections. Read-only replacement coverage is started; AdvancedPanel removal remains gated by `docs/reports/ADVANCED_PANEL_REMOVAL_GATE.md`.
@@ -378,7 +380,7 @@ Sixteenth renderer-local preferences package added an editable Terminal Settings
 - Add keyboard shortcut reference and visible accelerator hints.
 - Add startup behavior settings: default project, window restore, startup session behavior.
 - Add data controls: transcript deletion, cache clearing, preference reset, export/import.
-- Add About/version/release-history/update visibility.
+- Add About/version/release-history/update visibility. About now shows update state plus bundled release-note history; update checks remain user-triggered by existing controls.
 - Add loading states and undo/revert affordances for editable settings where appropriate. Existing editable Settings controls now show destination labels; future write-capable sections remain gated by `docs/reports/SETTINGS_PERSISTENCE_GATE.md`.
 
 ### Likely Impacted Files

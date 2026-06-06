@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { JSX, ReactNode } from 'react'
 import type { UpdateState } from '../appTypes'
+import { releaseNotes } from '../commandPalette'
 import {
   NOTIFICATION_PREFERENCES_CHANGED_EVENT,
   defaultAudioPrefs,
@@ -226,7 +227,16 @@ export function AboutSettingsReadOnly({
       <ReferenceRow label="Command binary" value={commandExecutable || 'cmd'} />
       <ReferenceRow label="Update status" value={updateLabel(updateState, updateVersion)} />
       {updateDetails && <pre className="settings-about-details">{updateDetails}</pre>}
-      <p className="settings-muted">Release history and contributor docs are local documentation surfaces. This page does not run update checks or mutate installed Command Code state.</p>
+      <div className="settings-release-list">
+        {Object.entries(releaseNotes).map(([version, note]) => (
+          <article key={version} className="settings-release-item">
+            <span>{version}</span>
+            <strong>{note.title}</strong>
+            <p>{note.body}</p>
+          </article>
+        ))}
+      </div>
+      <p className="settings-muted">Release history is local metadata already bundled with the GUI. This page does not run update checks or mutate installed Command Code state.</p>
     </SettingsReferenceCard>
   )
 }

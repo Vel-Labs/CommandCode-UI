@@ -121,6 +121,7 @@ Current implementation status on 2026-06-06:
 - MCP now shows read-only connect/disconnect command previews in Settings while execution remains in Advanced.
 - Notifications now edits the existing renderer-local toast/audio preference keys (`ccgui.toast-preferences`, `ccgui.audio-preferences`) through `src/renderer/src/settings/notificationPreferences.ts`; OS notifications, hook alerts, quiet mode, and session readiness remain planned.
 - Terminal now edits renderer-local xterm presentation preferences (`ccgui.terminal-preferences`) through `src/renderer/src/settings/terminalPreferences.ts`; PTY lifecycle, shell selection, live resize behavior, profiles, and bell behavior remain planned.
+- About now renders bundled release-note history from `src/renderer/src/commandPalette.ts` without running update checks or changing release-note dismissal state.
 - No server route, renderer IPC expansion, Command Code settings mutation, or runtime/session lifecycle change was added by these Settings Center packages.
 - `docs/reports/SETTINGS_PERSISTENCE_GATE.md` defines the Phase 2 ownership boundary for GUI-owned preferences versus Command Code-owned `settings.json` before additional editable sections add writes.
 - `docs/reports/ADVANCED_PANEL_REMOVAL_GATE.md` defines which AdvancedPanel behavior has Settings replacement coverage and which advanced-only actions still block modal removal.

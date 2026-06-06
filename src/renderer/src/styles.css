@@ -4281,6 +4281,37 @@ input[type="range"]::-webkit-slider-thumb {
   white-space: pre-wrap;
 }
 
+.settings-release-list {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.settings-release-item {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.14);
+}
+
+.settings-release-item span {
+  color: #a0a0a6;
+  font-size: 11px;
+}
+
+.settings-release-item strong {
+  color: #f4f4f5;
+}
+
+.settings-release-item p {
+  margin: 0;
+  color: #c9c9d1;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 /* Chip menus should feel attached to the composer instead of centered modals. */
 .slash-popover {
   left: 56px;

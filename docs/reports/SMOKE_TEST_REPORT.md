@@ -242,6 +242,19 @@ Scope: renderer-local Settings Notifications package. Notifications Settings now
 
 Scope: renderer-local Settings Terminal package. Terminal Settings now edits xterm presentation preferences through browser `localStorage` key `ccgui.terminal-preferences`, and `TerminalPane` loads those preferences when panes mount. No server routes, renderer IPC expansion, file-backed config writes, PTY/session lifecycle changes, live terminal geometry mutation, shell selection, or Command Code settings mutation were added.
 
+### 2026-06-06 Phase 2 Settings About release history
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5208`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets `index-BasEfPfb.js` and `index-BVW7j6TR.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:49748` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project/runtime; no new dependency was added for this settings package |
+
+Scope: presentation-only Settings About package. About now renders bundled release-note history from existing `releaseNotes` metadata. No update checks, release-note dismissal state changes, persistence fields, server routes, renderer IPC expansion, runtime/session lifecycle changes, or Command Code settings mutation were added.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |
