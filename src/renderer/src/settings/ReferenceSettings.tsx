@@ -4,6 +4,8 @@ import type { UpdateState } from '../appTypes'
 import { commandPaletteItems, releaseNotes } from '../commandPalette'
 import type { TransportAPI } from '../../../core/transport'
 import type { HookConfigDiscoveryResult, HookConfigToggleApplyResult, HookConfigTogglePreviewResult, ParsedHookCommand } from '../../../core/hooksConfig'
+import { buildHookPayloadPreview } from '../../../core/hooksPayload'
+import type { HookPayloadPreview } from '../../../core/hooksPayload'
 import {
   NOTIFICATION_PREFERENCES_CHANGED_EVENT,
   defaultAudioPrefs,
@@ -221,6 +223,7 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
   const [previewingKey, setPreviewingKey] = useState('')
   const [applyResult, setApplyResult] = useState<HookConfigToggleApplyResult | null>(null)
   const [applying, setApplying] = useState(false)
+  const [payloadPreview, setPayloadPreview] = useState<HookPayloadPreview | null>(null)
   const examples = [
     { label: 'Block risky shell', event: 'PreToolUse', matcher: 'Bash', command: 'node .commandcode/hooks/block-risky-shell.js' },
     { label: 'Sensitive read warning', event: 'PreToolUse', matcher: 'Read', command: 'node .commandcode/hooks/warn-sensitive-read.js' },
@@ -271,6 +274,15 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
       .catch((err) => setPreview({ ok: false, error: err instanceof Error ? err.message : String(err) }))
       .finally(() => setPreviewingKey(''))
   }, [cwd, transport])
+
+  const previewPayload = useCallback((hook: ParsedHookCommand) => {
+    setPayloadPreview(buildHookPayloadPreview({
+      event: hook.event,
+      cwd,
+      command: hook.command,
+      matcher: hook.matcher
+    }))
+  }, [cwd])
 
   const applyPreview = useCallback(() => {
     if (!preview?.ok || !preview.sourceScope || !preview.event || !preview.command || typeof preview.enabled !== 'boolean') return
@@ -336,9 +348,25 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
                     ? 'Previewing'
                     : `Preview ${hook.enabled ? 'disable' : 'enable'}`}
                 </button>
+                <button
+                  className="ghost-button native-ghost settings-inline-action"
+                  onClick={() => previewPayload(hook)}
+                >
+                  Sample payload
+                </button>
               </span>
             </div>
           ))}
+        </div>
+      )}
+      {payloadPreview && (
+        <div className="settings-command-grid">
+          <div className="settings-command-row">
+            <strong>Dry-run payload</strong>
+            <code>{payloadPreview.description}</code>
+            <span>no hook executed</span>
+          </div>
+          <pre className="advanced-raw">{payloadPreview.payloadJson}</pre>
         </div>
       )}
       {preview && (

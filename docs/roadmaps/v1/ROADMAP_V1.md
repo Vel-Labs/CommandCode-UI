@@ -502,6 +502,8 @@ Fifth preview-only package added scoped `/api/hooks/preview-toggle`, `transport.
 
 Sixth write package added scoped `/api/hooks/apply-toggle`, `transport.applyHookToggle(...)`, and Settings > Hooks `Apply preview` flow. The route recomputes the same scoped preview server-side, writes a sibling `.ccgui.bak` backup, then writes the formatted JSON to only the derived selected-project or user `settings.json` path. Settings confirms before applying, shows the backup path, and refreshes discovered hooks after success. This package added hook config writes only for previewed enable/disable toggles; it did not add arbitrary file reads/writes, renderer IPC, hook execution, test-payload execution, session readiness, OS notifications, or broader Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `73/73`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5226/` with assets `index-DVf_6sqB.js` and `index-D4dE-QgW.css`, authenticated `/api/hooks/apply-toggle` proof against temp project `/tmp/ccgui-hooks-apply-etrDYF` showing `apply=true/project/false/deepseek` and `backup=true/true`, and Electron dev startup with renderer `http://localhost:5175/` plus embedded app server `http://127.0.0.1:53817`.
 
+Seventh dry-run package added `src/core/hooksPayload.ts` and Settings > Hooks `Sample payload` controls. The helper builds explicitly marked `ccgui_dry_run` JSON samples for `PreToolUse`, `PostToolUse`, and `Stop` using documented common fields such as event name, session id, transcript path, cwd, and permission mode. Settings displays the sample payload in a read-only panel for discovered hook commands. This package did not execute hooks, start sessions, infer real runtime payload state, add file access, add renderer IPC, mutate Command Code settings, or add notification readiness. Validation receipts: `npm run typecheck`, `npx vitest run` -> `76/76`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5227/` with assets `index-4gIYdAEq.js` and `index-D4dE-QgW.css`, and Electron dev startup with renderer `http://localhost:5175/` plus embedded app server `http://127.0.0.1:54048`.
+
 ### Scope
 
 - Add Settings > Hooks.
@@ -512,7 +514,7 @@ Sixth write package added scoped `/api/hooks/apply-toggle`, `transport.applyHook
 - Preserve project-over-user precedence.
 - Add enable/disable controls per hook. Implemented for scoped previewed toggles with backup writes; broader hook editing remains gated.
 - Add hook logs/output viewer where logs are available.
-- Add a test payload runner so users can validate hook behavior before real sessions.
+- Add a test payload runner so users can validate hook behavior before real sessions. Dry-run sample payload preview is implemented; command execution remains gated.
 - Add examples for dangerous shell blocking, sensitive read warnings, write auditing, and Stop-hook finish notifications.
 - Document and support a community-style Stop-hook notification/audio recipe compatible with `vipulgupta2048/command-code-bonk`.
 - Replace terminal data-length notification heuristics with explicit session lifecycle state.

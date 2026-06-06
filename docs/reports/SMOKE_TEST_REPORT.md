@@ -536,6 +536,19 @@ Scope: preview-only Settings > Hooks package. Added scoped `/api/hooks/preview-t
 
 Scope: scoped config-write package for Settings > Hooks enable/disable toggles. Added `/api/hooks/apply-toggle`, `transport.applyHookToggle(...)`, confirmation-gated Settings `Apply preview`, backup-path reporting, and hook rediscovery after successful apply. The route recomputes the preview server-side, writes a sibling `.ccgui.bak` backup, and then writes formatted JSON only to the derived selected-project or user `settings.json` path. No arbitrary file reads/writes, renderer IPC, hook execution, test payload execution, session readiness, OS notifications, or broader Command Code settings mutation were added.
 
+### 2026-06-06 Phase 3 Hooks dry-run payload preview
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `76/76` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser`; mock headless and mock interactive session paths passed |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5227`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets `index-4gIYdAEq.js` and `index-D4dE-QgW.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:54048` |
+
+Scope: dry-run payload preview package for Settings > Hooks. Added `src/core/hooksPayload.ts` and Settings `Sample payload` controls that render explicitly marked `ccgui_dry_run` JSON samples for discovered hook commands. No hook execution, session start, real runtime payload inference, file access, renderer IPC, Command Code settings mutation, or notification readiness behavior was added.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |

@@ -18,13 +18,14 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 - `setHookCommandEnabled` can toggle a matching direct or grouped command hook's `enabled` field in raw `settings.json` content while preserving unrelated settings keys for future preview/write flows.
 - `/api/hooks/preview-toggle` and Settings > Hooks `Preview enable/disable` controls return formatted JSON for a scoped hook toggle without writing the source file.
 - `/api/hooks/apply-toggle` and Settings > Hooks `Apply preview` write only previewed enable/disable toggles to derived user/project `settings.json` paths after writing a sibling `.ccgui.bak` backup.
+- `src/core/hooksPayload.ts` and Settings > Hooks `Sample payload` controls build explicitly marked dry-run JSON samples without executing hook commands or starting sessions.
 
 ## Not Implemented
 
 - Broader hook creation, deletion, command editing, matcher editing, timeout editing, and import/export are not implemented.
 - No arbitrary hook config path is accepted from the renderer.
 - No renderer IPC or broad file access permission was added.
-- No hook execution or test-payload runner was added.
+- No hook command execution or real-session test-payload runner was added.
 - No OS notifications, hook-triggered alerts, quiet mode, response-ready state, input-required state, or session readiness model was added.
 
 ## Required Before Hook Writes
@@ -48,11 +49,12 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 ## Validation Receipts
 
 - `npm run typecheck`
-- `npx vitest run` -> `73/73`
+- `npx vitest run` -> `76/76`
 - `npm run build`
 - `npm run smoke:browser`
 - Built browser route token proof at `http://127.0.0.1:5224/`
 - Authenticated `/api/hooks/configs` proof against isolated temp project
 - Authenticated `/api/hooks/preview-toggle` proof against isolated temp project with unchanged source file
 - Authenticated `/api/hooks/apply-toggle` proof against isolated temp project with sibling backup
-- Electron dev startup with embedded server `http://127.0.0.1:53817`
+- Built browser route token proof at `http://127.0.0.1:5227/`
+- Electron dev startup with embedded server `http://127.0.0.1:54048`
