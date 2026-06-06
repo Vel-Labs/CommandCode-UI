@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { JSX, ReactNode } from 'react'
+import { buildMcpActionPreview } from '../../../core/mcpCommands'
 import type { TransportAPI } from '../../../core/transport'
 import type { AgentConfig, DiscoveredSession, ProjectCommandCodeReference } from '../../../core/types'
 import { AgentHelper } from '../workflows/AgentHelper'
@@ -155,11 +156,11 @@ export function McpSettingsReadOnly({ transport, commandExecutable }: { transpor
           <span>{server.status}{server.toolCount != null ? ` · ${server.toolCount} tools` : ''}</span>
           <div className="settings-command-preview">
             <span>Connect preview</span>
-            <code>{mcpCommandPreview(commandExecutable, 'connect', server.name)}</code>
+            <code>{buildMcpActionPreview(commandExecutable, 'connect', server.name)}</code>
           </div>
           <div className="settings-command-preview">
             <span>Disconnect preview</span>
-            <code>{mcpCommandPreview(commandExecutable, 'disconnect', server.name)}</code>
+            <code>{buildMcpActionPreview(commandExecutable, 'disconnect', server.name)}</code>
           </div>
           <div className="settings-inline-actions">
             <button className="ghost-button native-ghost settings-inline-action" onClick={() => void runMcpAction('connect', server.name)} disabled={server.status === 'connected'}>Connect</button>
@@ -419,13 +420,4 @@ function formatSessionTime(value: string): string {
   const time = new Date(value)
   if (Number.isNaN(time.getTime())) return value
   return time.toLocaleString()
-}
-
-function mcpCommandPreview(commandExecutable: string, action: 'connect' | 'disconnect', serverName: string): string {
-  return [commandExecutable || 'cmd', 'mcp', action, serverName].map(shellWord).join(' ')
-}
-
-function shellWord(value: string): string {
-  if (/^[A-Za-z0-9_./:@-]+$/.test(value)) return value
-  return `'${value.replace(/'/g, "'\\''")}'`
 }

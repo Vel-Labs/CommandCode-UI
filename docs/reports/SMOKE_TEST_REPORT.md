@@ -1043,3 +1043,17 @@ Scope: extended palette search to return Settings sections from the existing reg
 | Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
 
 Scope: extended palette search to return recent project paths and local docs topics for non-empty queries. Project rows select existing recent projects, and docs rows open the existing docs inspector. This did not add runtime execution, prompt rewriting, config writes, renderer IPC, file access, CLI argument changes, Command Code settings mutation, or session lifecycle behavior. Session-result search remains planned behind a session lifecycle gate. Real CLI path was not retested for this renderer-only search slice.
+
+### 2026-06-06 Phase 6 MCP command builders
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `135/135` |
+| Build | Pass | `npm run build`; renderer assets `index-ClVCWnWo.js` and `index-BYxtwXbi.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57382`; token proof returned `302`, cookie-authenticated `/` served built assets `index-ClVCWnWo.js` and `index-BYxtwXbi.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:60273` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
+
+Scope: added tested pure MCP command builders and reused them for existing Settings > MCP previews plus the existing `mcpAction` execution path. This did not add MCP add/remove/auth flows, config writes, renderer IPC, secret storage, or Command Code settings mutation. Real external MCP mutation was not retested for this builder-alignment slice.

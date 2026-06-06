@@ -2,6 +2,7 @@ import { existsSync, readdirSync, readFileSync, writeFileSync, statSync } from '
 import path from 'node:path'
 import os from 'node:os'
 import { runProcess } from './cli'
+import { buildMcpActionArgs, type McpAction } from './mcpCommands'
 import type {
   CliExecResult,
   DiscoveredSession,
@@ -418,9 +419,8 @@ export async function listMcp(commandExecutable?: string): Promise<McpServer[]> 
   return servers
 }
 
-export async function mcpAction(commandExecutable: string | undefined, action: 'connect' | 'disconnect', serverName: string): Promise<CliExecResult> {
-  const subcommand = action === 'connect' ? 'connect' : 'disconnect'
-  return runCli(commandExecutable, undefined, ['mcp', subcommand, serverName], 60_000)
+export async function mcpAction(commandExecutable: string | undefined, action: McpAction, serverName: string): Promise<CliExecResult> {
+  return runCli(commandExecutable, undefined, buildMcpActionArgs(action, serverName), 60_000)
 }
 
 export function listSkills(): SkillEntry[] {

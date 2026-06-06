@@ -797,6 +797,8 @@ Sequential:
 
 Goal: make MCP visible and operable from the GUI without hiding secrets or inventing runtime behavior.
 
+Status update 2026-06-06: First MCP foundation package added `src/core/mcpCommands.ts` with tested pure builders for `cmd mcp connect|disconnect <server>` argument arrays and display previews. `src/core/discovery.ts` now uses the same builder for the existing MCP action path, and Settings > MCP uses the shared preview builder instead of a renderer-local formatter. This package did not add new MCP actions, add/remove/auth flows, config writes, renderer IPC, secret storage, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `135/135`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:57382/` serving assets `index-ClVCWnWo.js` and `index-BYxtwXbi.css`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:60273`. Browser screenshot automation remains not run because Playwright is not installed in this project.
+
 ### Scope
 
 - Move MCP into Settings/Integrations as a first-class workflow.

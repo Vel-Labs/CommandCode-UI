@@ -161,6 +161,15 @@ Phase 3 has started with a pure parser/gate package:
 - Hook execution remains Command Code-owned. The GUI parser and toggle writer only prepare scoped Settings display, validation, diagnostics, and explicit config edits.
 - Settings > Hooks currently supports scoped discovery, enable/disable toggles, broader command/matcher/timeout/delete edit previews and backup writes, dry-run sample payload previews, dry-run test results, and scoped read-only hook log viewing. It shows Command Code-owned `settings.json` destinations, project/user scopes, project-before-user precedence, parser gate status, discovered source status, parsed hook commands, preview/apply output, dry-run payload JSON, dry-run `would run`/`would skip` status, log diagnostics, execution ownership, and example recipes without executing hooks.
 
+## MCP And Integrations
+
+Phase 6 has started with a pure command-builder package:
+
+- `src/core/mcpCommands.ts` owns tested `cmd mcp connect|disconnect <server>` argument construction and display previews.
+- `src/core/discovery.ts` uses the same builder for the existing MCP action path.
+- Settings > MCP uses the shared preview builder, so visible previews and executed arguments stay aligned.
+- MCP add, remove, auth, server edit, connection test, diagnostics, and log viewing remain planned or gated. No MCP secrets are stored in GUI preferences.
+
 Suggested sections:
 
 - General: project defaults, command binary, startup behavior.
