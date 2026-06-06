@@ -3,7 +3,7 @@ import type { JSX, ReactNode } from 'react'
 import type { UpdateState } from '../appTypes'
 import { commandPaletteItems, releaseNotes } from '../commandPalette'
 import type { TransportAPI } from '../../../core/transport'
-import type { HookConfigDiscoveryResult } from '../../../core/hooksConfig'
+import type { HookConfigDiscoveryResult, HookConfigTogglePreviewResult, ParsedHookCommand } from '../../../core/hooksConfig'
 import {
   NOTIFICATION_PREFERENCES_CHANGED_EVENT,
   defaultAudioPrefs,
@@ -217,6 +217,8 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
   const [discovery, setDiscovery] = useState<HookConfigDiscoveryResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [preview, setPreview] = useState<HookConfigTogglePreviewResult | null>(null)
+  const [previewingKey, setPreviewingKey] = useState('')
   const examples = [
     { label: 'Block risky shell', event: 'PreToolUse', matcher: 'Bash', command: 'node .commandcode/hooks/block-risky-shell.js' },
     { label: 'Sensitive read warning', event: 'PreToolUse', matcher: 'Read', command: 'node .commandcode/hooks/warn-sensitive-read.js' },
@@ -241,6 +243,21 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
     return () => {
       cancelled = true
     }
+  }, [cwd, transport])
+
+  const previewToggle = useCallback((hook: ParsedHookCommand) => {
+    const key = `${hook.sourceScope}:${hook.sourcePath}:${hook.order}:${hook.command}`
+    setPreviewingKey(key)
+    transport.previewHookToggle({
+      cwd,
+      sourceScope: hook.sourceScope,
+      event: hook.event,
+      command: hook.command,
+      enabled: !hook.enabled
+    })
+      .then(setPreview)
+      .catch((err) => setPreview({ ok: false, error: err instanceof Error ? err.message : String(err) }))
+      .finally(() => setPreviewingKey(''))
   }, [cwd, transport])
 
   return (
@@ -277,9 +294,30 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
             <div key={`${hook.sourcePath}:${hook.order}:${hook.command}`} className="settings-command-row">
               <strong>{hook.event}{hook.canBlock ? ' / blocking-capable' : ''}</strong>
               <code>{hook.command}</code>
-              <span>{hook.sourceScope} / {hook.matcher || 'all tools'} / {hook.enabled ? 'enabled' : 'disabled'}</span>
+              <span>
+                {hook.sourceScope} / {hook.matcher || 'all tools'} / {hook.enabled ? 'enabled' : 'disabled'}
+                <button
+                  className="ghost-button native-ghost settings-inline-action"
+                  onClick={() => previewToggle(hook)}
+                >
+                  {previewingKey === `${hook.sourceScope}:${hook.sourcePath}:${hook.order}:${hook.command}`
+                    ? 'Previewing'
+                    : `Preview ${hook.enabled ? 'disable' : 'enable'}`}
+                </button>
+              </span>
             </div>
           ))}
+        </div>
+      )}
+      {preview && (
+        <div className="settings-command-grid">
+          <div className="settings-command-row">
+            <strong>{preview.ok ? 'Preview only' : 'Preview failed'}</strong>
+            <code>{preview.sourcePath || preview.error || 'No source path'}</code>
+            <span>{preview.ok ? `${preview.event} / ${preview.enabled ? 'enable' : 'disable'}` : 'no file was written'}</span>
+          </div>
+          {preview.content && <pre className="advanced-raw">{preview.content}</pre>}
+          {preview.error && <p className="settings-muted">{preview.error}</p>}
         </div>
       )}
       {discovery && discovery.hooks.length === 0 && !loading && (

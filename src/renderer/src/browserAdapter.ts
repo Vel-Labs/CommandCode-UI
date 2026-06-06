@@ -27,7 +27,7 @@ import type {
   WriteFileResult,
 } from '../../core/types'
 import type { PtyDoctorResult } from '../../core/ptyDoctor'
-import type { HookConfigDiscoveryResult } from '../../core/hooksConfig'
+import type { HookConfigDiscoveryResult, HookConfigTogglePreviewResult } from '../../core/hooksConfig'
 
 let cachedToken = ''
 let serverUrl = ''
@@ -360,6 +360,12 @@ export function createBrowserTransport(): TransportAPI {
       fetchJson<HookConfigDiscoveryResult>('/api/hooks/configs', {
         method: 'POST',
         body: JSON.stringify({ cwd })
+      }),
+
+    previewHookToggle: async (options) =>
+      fetchJson<HookConfigTogglePreviewResult>('/api/hooks/preview-toggle', {
+        method: 'POST',
+        body: JSON.stringify(options)
       }),
 
     onSessionData: (sessionId, callback) => {

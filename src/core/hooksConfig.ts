@@ -51,6 +51,14 @@ export type HookConfigEditResult = {
   error?: string
 }
 
+export type HookConfigTogglePreviewResult = HookConfigEditResult & {
+  sourceScope?: HookScope
+  sourcePath?: string
+  event?: HookEvent
+  command?: string
+  enabled?: boolean
+}
+
 export function parseHookSettingsJson(raw: string, sourceScope: HookScope, sourcePath: string): HookConfigParseResult {
   const warnings: string[] = []
   const errors: string[] = []

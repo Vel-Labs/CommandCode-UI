@@ -16,6 +16,7 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 - `/api/hooks/configs` reads exactly the documented user and selected-project settings paths and returns parsed source status for Settings > Hooks.
 - Settings > Hooks displays discovered project/user source status, parsed command rows, warnings, and errors without edit controls.
 - `setHookCommandEnabled` can toggle a matching direct or grouped command hook's `enabled` field in raw `settings.json` content while preserving unrelated settings keys for future preview/write flows.
+- `/api/hooks/preview-toggle` and Settings > Hooks `Preview enable/disable` controls return formatted JSON for a scoped hook toggle without writing the source file.
 
 ## Not Implemented
 
@@ -45,9 +46,10 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 ## Validation Receipts
 
 - `npm run typecheck`
-- `npx vitest run` -> `69/69`
+- `npx vitest run` -> `71/71`
 - `npm run build`
 - `npm run smoke:browser`
 - Built browser route token proof at `http://127.0.0.1:5224/`
 - Authenticated `/api/hooks/configs` proof against isolated temp project
+- Authenticated `/api/hooks/preview-toggle` proof against isolated temp project with unchanged source file
 - Electron dev startup with embedded server `http://127.0.0.1:53191`

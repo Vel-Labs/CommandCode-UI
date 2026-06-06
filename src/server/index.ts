@@ -33,6 +33,7 @@ import {
 import {
   mergeHookConfigs,
   parseHookSettingsJson,
+  setHookCommandEnabled,
   type HookConfigSourceResult,
   type HookScope
 } from '../core/hooksConfig'
@@ -405,6 +406,16 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
         err instanceof Error ? err.message : 'Failed to read hook config'
       )
     }
+  }
+
+  function hookConfigPathForScope(sourceScope: HookScope, cwd?: string): { sourcePath?: string; error?: string } {
+    if (sourceScope === 'user') {
+      return { sourcePath: path.join(os.homedir(), '.commandcode', 'settings.json') }
+    }
+
+    const workspace = resolveWorkspaceRoot(cwd)
+    if (!workspace.root) return { error: workspace.error || 'Access denied — project root is required' }
+    return { sourcePath: path.join(workspace.root, '.commandcode', 'settings.json') }
   }
 
   function sanitizeStringArray(input: unknown, maxItems: number): string[] | undefined {
@@ -874,17 +885,60 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
 
   addRoute('POST', '/api/hooks/configs', async ({ body }) => {
     const { cwd } = body as { cwd?: string }
-    const userSource = readHookConfigSource('user', path.join(os.homedir(), '.commandcode', 'settings.json'))
-    const workspace = resolveWorkspaceRoot(cwd)
-    const projectSource = workspace.root
-      ? readHookConfigSource('project', path.join(workspace.root, '.commandcode', 'settings.json'))
-      : emptyHookConfigSource('project', '<project>/.commandcode/settings.json', workspace.error || 'Access denied — project root is required')
+    const userPath = hookConfigPathForScope('user')
+    const projectPath = hookConfigPathForScope('project', cwd)
+    const userSource = readHookConfigSource('user', userPath.sourcePath || path.join(os.homedir(), '.commandcode', 'settings.json'))
+    const projectSource = projectPath.sourcePath
+      ? readHookConfigSource('project', projectPath.sourcePath)
+      : emptyHookConfigSource('project', '<project>/.commandcode/settings.json', projectPath.error || 'Access denied — project root is required')
     const merged = mergeHookConfigs(userSource, projectSource)
     return {
       sources: [projectSource, userSource],
       hooks: merged.hooks,
       warnings: merged.warnings,
       errors: merged.errors
+    }
+  })
+
+  addRoute('POST', '/api/hooks/preview-toggle', async ({ body }) => {
+    const { cwd, sourceScope, event, command, enabled } = body as {
+      cwd?: string
+      sourceScope?: string
+      event?: string
+      command?: string
+      enabled?: boolean
+    }
+    if (sourceScope !== 'project' && sourceScope !== 'user') {
+      return { ok: false, error: 'sourceScope must be project or user' }
+    }
+    if (!event || !command || typeof enabled !== 'boolean') {
+      return { ok: false, error: 'Missing event, command, or enabled value' }
+    }
+
+    const source = hookConfigPathForScope(sourceScope, cwd)
+    if (!source.sourcePath) return { ok: false, error: source.error || 'Access denied — project root is required' }
+    if (!existsSync(source.sourcePath)) return { ok: false, sourceScope, sourcePath: source.sourcePath, error: 'Hook config file not found' }
+
+    try {
+      const stat = statSync(source.sourcePath)
+      if (stat.isDirectory()) return { ok: false, sourceScope, sourcePath: source.sourcePath, error: 'Hook config path is a directory' }
+      if (stat.size > MAX_FILE_READ_BYTES) return { ok: false, sourceScope, sourcePath: source.sourcePath, error: 'Hook config exceeds 1MB read limit' }
+
+      return {
+        ...setHookCommandEnabled(readFileSync(source.sourcePath, 'utf8'), event, command, enabled),
+        sourceScope,
+        sourcePath: source.sourcePath,
+        event,
+        command,
+        enabled
+      }
+    } catch (err) {
+      return {
+        ok: false,
+        sourceScope,
+        sourcePath: source.sourcePath,
+        error: err instanceof Error ? err.message : 'Failed to preview hook config change'
+      }
     }
   })
 

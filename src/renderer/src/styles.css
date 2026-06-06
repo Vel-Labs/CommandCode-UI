@@ -4181,6 +4181,10 @@ input[type="range"]::-webkit-slider-thumb {
   text-align: right;
 }
 
+.settings-command-row .settings-inline-action {
+  margin-left: 8px;
+}
+
 .settings-command-preview {
   display: grid;
   grid-template-columns: 132px minmax(0, 1fr);

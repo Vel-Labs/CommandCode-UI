@@ -508,6 +508,20 @@ Scope: read-only hook config discovery package. Added scoped `/api/hooks/configs
 
 Scope: pure helper package for future hook enable/disable previews. `setHookCommandEnabled` toggles a matching direct or grouped command hook's `enabled` field in raw `settings.json` content while preserving unrelated settings keys and returning formatted JSON. No file reads, file writes, server routes, renderer IPC, hook execution, test payload execution, session readiness, OS notifications, or Command Code settings mutation were added.
 
+### 2026-06-06 Phase 3 Hooks toggle preview
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `71/71` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser`; mock headless and mock interactive session paths passed |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5225`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets `index-3INgc3cq.js` and `index-D4dE-QgW.css` |
+| Hook toggle preview endpoint | Pass | Authenticated `/api/hooks/preview-toggle` against temp project `/tmp/ccgui-hooks-preview-hvNHyC` returned `preview=true/project/false/deepseek`; source file check returned `unchanged=true`; fixture was removed after verification |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:53584` |
+
+Scope: preview-only Settings > Hooks package. Added scoped `/api/hooks/preview-toggle`, `transport.previewHookToggle(...)`, and Settings `Preview enable/disable` controls with a read-only formatted JSON panel. The route derives only selected project/user settings paths and returns preview content without writing the source file. No hook writes, arbitrary file reads, renderer IPC, hook execution, test payload execution, session readiness, OS notifications, or Command Code settings mutation were added.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |

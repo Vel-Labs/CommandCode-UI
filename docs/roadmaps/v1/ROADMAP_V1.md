@@ -498,6 +498,8 @@ Third read-only discovery package added a scoped `/api/hooks/configs` route and 
 
 Fourth pure edit-helper package added `setHookCommandEnabled` to `src/core/hooksConfig.ts`. The helper toggles a matching direct or grouped command hook's `enabled` field in raw `settings.json` content while preserving unrelated settings keys and returning formatted JSON for future preview/write flows. It does not read files, write files, add routes, add renderer IPC, execute hooks, or mutate Command Code settings. Validation receipts: `npm run typecheck`, `npx vitest run` -> `69/69`, and `npm run build`.
 
+Fifth preview-only package added scoped `/api/hooks/preview-toggle`, `transport.previewHookToggle(...)`, and Settings > Hooks `Preview enable/disable` controls. The route derives the selected project or user `settings.json` path, validates scope/event/command/enabled input, uses the bounded read path and `setHookCommandEnabled`, and returns formatted preview JSON without writing the source file. Settings displays the preview content in a read-only panel. This package did not add hook writes, arbitrary file reads, renderer IPC, hook execution, test-payload execution, session readiness, OS notifications, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `71/71`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5225/` with assets `index-3INgc3cq.js` and `index-D4dE-QgW.css`, authenticated `/api/hooks/preview-toggle` proof against temp project `/tmp/ccgui-hooks-preview-hvNHyC` showing `preview=true/project/false/deepseek` plus `unchanged=true`, and Electron dev startup with renderer `http://localhost:5175/` plus embedded app server `http://127.0.0.1:53584`.
+
 ### Scope
 
 - Add Settings > Hooks.
@@ -506,7 +508,7 @@ Fourth pure edit-helper package added `setHookCommandEnabled` to `src/core/hooks
 - Show hook event, matcher, command, timeout, blocking behavior, execution order, enabled state, and source scope. Implemented for read-only parsed discovery rows.
 - Validate hook JSON before writing.
 - Preserve project-over-user precedence.
-- Add enable/disable controls per hook. Pure edit helper is implemented and validated; UI controls and file writes remain gated.
+- Add enable/disable controls per hook. Preview-only controls are implemented and validated; file writes remain gated.
 - Add hook logs/output viewer where logs are available.
 - Add a test payload runner so users can validate hook behavior before real sessions.
 - Add examples for dangerous shell blocking, sensitive read warnings, write auditing, and Stop-hook finish notifications.

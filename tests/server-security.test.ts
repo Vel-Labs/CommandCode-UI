@@ -242,6 +242,58 @@ describe('server filesystem boundaries', () => {
     expect(projectSource?.errors[0]).toContain('Access denied')
     expect(discovered.hooks.every((hook) => typeof hook === 'object')).toBe(true)
   })
+
+  it('previews hook enabled changes without writing settings files', async () => {
+    const app = await startServer()
+    const project = tempProject()
+    const settingsPath = path.join(project, '.commandcode', 'settings.json')
+    const original = JSON.stringify({
+      model: 'deepseek',
+      hooks: {
+        Stop: [{ type: 'command', command: 'echo project-stop' }]
+      }
+    }, null, 2) + '\n'
+
+    mkdirSync(path.dirname(settingsPath), { recursive: true })
+    writeFileSync(settingsPath, original, 'utf8')
+
+    const preview = await apiPost<{
+      ok: boolean
+      content?: string
+      sourceScope?: string
+      sourcePath?: string
+      error?: string
+    }>(app, '/api/hooks/preview-toggle', {
+      cwd: project,
+      sourceScope: 'project',
+      event: 'Stop',
+      command: 'echo project-stop',
+      enabled: false
+    })
+
+    expect(preview.ok).toBe(true)
+    expect(preview.sourceScope).toBe('project')
+    expect(preview.sourcePath).toBe(path.join(realpathSync(project), '.commandcode', 'settings.json'))
+    expect(JSON.parse(preview.content || '{}')).toMatchObject({
+      model: 'deepseek',
+      hooks: { Stop: [{ command: 'echo project-stop', enabled: false }] }
+    })
+    expect(readFileSync(settingsPath, 'utf8')).toBe(original)
+  })
+
+  it('fails hook toggle preview closed without a valid project root', async () => {
+    const app = await startServer()
+
+    const preview = await apiPost<{ ok: boolean; error?: string }>(app, '/api/hooks/preview-toggle', {
+      sourceScope: 'project',
+      event: 'Stop',
+      command: 'echo project-stop',
+      enabled: false
+    })
+
+    expect(preview.ok).toBe(false)
+    expect(preview.error).toContain('Access denied')
+  })
 })
 
 describe('project GUI preference boundaries', () => {
