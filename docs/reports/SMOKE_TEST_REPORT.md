@@ -1476,3 +1476,19 @@ Scope: update-indicator display package. The shell footer now shows a compact st
 | Built Electron screenshot | Pass | Playwright Electron launcher rendered `.runtime-popover` with attachment rule; screenshot `/tmp/ccgui-phase9-popovers-electron.png` |
 
 Scope: CSS-only popover polish package. Native popovers now have desktop attachment cues, contained scrolling, safer text wrapping, and a narrow-screen override after skin-specific placement rules. This did not change popover state, Escape/outside-click logic, renderer IPC, server routes, transport, config writes, file access, session lifecycle, or Command Code invocation behavior.
+
+### 2026-06-06 Phase 9 git header badge
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `166/166` |
+| Build | Pass | `npm run build`; renderer assets `index-hy4yD3ZL.js` and `index-DoGa60Tt.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` -> `7.3b Multi-session independence: PASS` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57406`; token proof returned `302`, cookie-authenticated `/` served built assets `index-hy4yD3ZL.js` and `index-DoGa60Tt.css` |
+| Built asset UI proof | Pass | `rg -n "git-environment-badge|gitEnvironmentDisplay|GitEnvironmentBadge|git checking|git unavailable" out/renderer/assets/index-hy4yD3ZL.js out/renderer/assets/index-DoGa60Tt.css` |
+| Browser UI git state | Pass | Browser adapter project chooser selected this repo without mutating app preferences; home badge rendered `main`, session header rendered `main7 files · 1 ahead`, tooltip `Git main: 7 files, 1 ahead` |
+| Browser screenshots | Pass | `/tmp/ccgui-phase9-git-badge-home.png`, `/tmp/ccgui-phase9-git-badge-session.png` |
+| Built Electron screenshot | Pass | `/tmp/ccgui-phase9-git-badge-electron.png`; no-project state rendered `git unavailable` without driving the native folder picker or mutating app preferences |
+
+Scope: read-only git header display package. Home and active-session headers now show a compact git badge from the existing `transport.gitStatus(cwd)` route. This did not add git mutations, branch switching, diff actions, renderer IPC, server routes, file access capability, config writes, session lifecycle changes, or Command Code invocation behavior.

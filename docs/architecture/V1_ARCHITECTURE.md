@@ -276,4 +276,11 @@ Current Phase 8 status on 2026-06-06:
 - `SessionWorkspace` keeps one mounted `TerminalPane` per live session. Inactive panes remain hidden and subscribed to their own output, while only the active pane accepts input and emits resize calls. This preserves terminal buffers across tab switches and inspector/layout changes without terminal-output scraping.
 - `FileViewer` treats `.html` and `.htm` as source-only previews with explicit safety copy. The GUI does not execute HTML in artifact previews.
 - Right-inspector file previews carry a source label. Transcript artifact chips label previews as artifacts from the selected session/transcript, while file-browser selections label previews as project files.
-- File reveal actions from artifact chips, manual three-session dogfood, and deeper response-ready state remain planned or gated.
+- Browser and Electron three-session Demo-mode dogfood passed on 2026-06-06. File reveal actions from artifact chips, rendered untrusted HTML, and notification dispatch remain planned or gated.
+
+## Native Workbench Polish
+
+Current Phase 9 status on 2026-06-06:
+
+- `src/renderer/src/components/GitEnvironmentBadge.tsx` and `src/renderer/src/services/gitEnvironmentDisplay.ts` surface the existing read-only `transport.gitStatus(cwd)` result in home/session headers. The badge displays branch, local change count, and ahead/behind detail when a project is selected, or an explicit unavailable state when no git repo is loaded.
+- The git badge does not add git mutations, branch switching, diff actions, new renderer IPC, server routes, or filesystem capability. The existing environment inspector remains the detailed git surface.

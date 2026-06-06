@@ -1,9 +1,11 @@
 import type { JSX } from 'react'
 import { GitBranch, HardDrive, Keyboard, PanelBottom, PanelRightOpen, X } from 'lucide-react'
 import type { SessionExitPayload } from '../../../shared/types'
+import type { GitEnvironmentStatus } from '../../../core/types'
 import type { TransportAPI } from '../../../core/transport'
 import type { RightInspector, SessionTab } from '../appTypes'
 import { ComposerBar } from '../components/ComposerBar'
+import { GitEnvironmentBadge } from '../components/GitEnvironmentBadge'
 import { StatusPill } from '../components/StatusPill'
 import { TabBar } from '../components/TabBar'
 import { TerminalPane } from '../components/TerminalPane'
@@ -26,6 +28,8 @@ export function SessionWorkspace({
   permissionLabel,
   riskyPermission,
   permissionTone,
+  gitStatus,
+  gitStatusLoading,
   onSelectTab,
   onKillTab,
   onExit,
@@ -64,6 +68,8 @@ export function SessionWorkspace({
   permissionLabel: string
   riskyPermission: boolean
   permissionTone: 'default' | 'warn' | 'purple'
+  gitStatus: GitEnvironmentStatus | null
+  gitStatusLoading: boolean
   onSelectTab: (id: string) => void
   onKillTab: (id: string) => Promise<void>
   onExit: (payload: SessionExitPayload) => void
@@ -101,6 +107,7 @@ export function SessionWorkspace({
             {activeReadiness && <StatusPill label={activeReadiness.label} tone={activeReadiness.tone} />}
             {activeTab?.readiness.unread && activeReadiness?.label !== 'unread output' && <StatusPill label="unread" tone="purple" />}
             <StatusPill label={permissionLabel} tone={permissionTone} />
+            <GitEnvironmentBadge status={gitStatus} loading={gitStatusLoading} />
           </div>
         </div>
         <WorkbenchToolRail

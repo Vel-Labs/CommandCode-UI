@@ -399,6 +399,58 @@ textarea:focus {
   background: rgba(76,29,149,0.25);
 }
 
+.git-environment-badge {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  max-width: min(280px, 100%);
+  gap: 6px;
+  padding: 6px 9px;
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 999px;
+  color: #d4d4d8;
+  background: rgba(255,255,255,0.045);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.git-environment-branch,
+.git-environment-detail {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.git-environment-branch {
+  color: #f4f4f5;
+  font-weight: 650;
+}
+
+.git-environment-detail {
+  color: #a1a1aa;
+}
+
+.git-environment-badge--good {
+  border-color: rgba(163,230,53,0.3);
+  background: rgba(77,124,15,0.16);
+}
+
+.git-environment-badge--warn {
+  border-color: rgba(251,191,36,0.34);
+  background: rgba(146,64,14,0.18);
+}
+
+.git-environment-badge--bad {
+  border-color: rgba(251,113,133,0.34);
+  background: rgba(159,18,57,0.18);
+}
+
+.git-environment-badge--purple {
+  border-color: rgba(139,92,246,0.42);
+  background: rgba(76,29,149,0.22);
+}
+
 .workspace {
   position: relative;
   display: grid;

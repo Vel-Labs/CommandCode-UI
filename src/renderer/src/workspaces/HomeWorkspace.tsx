@@ -1,6 +1,8 @@
 import type { JSX } from 'react'
+import type { GitEnvironmentStatus } from '../../../core/types'
 import type { RuntimeMode } from '../appTypes'
 import { ComposerBar } from '../components/ComposerBar'
+import { GitEnvironmentBadge } from '../components/GitEnvironmentBadge'
 
 export function HomeWorkspace({
   prompt,
@@ -18,7 +20,9 @@ export function HomeWorkspace({
   onSlash,
   runtimeMode,
   ptyHealthLabel,
-  statusLine
+  statusLine,
+  gitStatus,
+  gitStatusLoading
 }: {
   prompt: string
   setPrompt: (value: string) => void
@@ -36,6 +40,8 @@ export function HomeWorkspace({
   runtimeMode: RuntimeMode
   ptyHealthLabel: string
   statusLine: string
+  gitStatus: GitEnvironmentStatus | null
+  gitStatusLoading: boolean
 }): JSX.Element {
   return (
     <section className="home-workspace" aria-label="New session">
@@ -62,6 +68,7 @@ export function HomeWorkspace({
           <span>{ptyHealthLabel}</span>
           <span>{model || 'default model'}</span>
           <span>{statusLine || 'idle'}</span>
+          <GitEnvironmentBadge status={gitStatus} loading={gitStatusLoading} compact />
         </div>
       </div>
     </section>

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
 import type { JSX } from 'react'
 import type { PermissionMode, SessionExitPayload, HeadlessRunResult } from '../../shared/types'
-import type { AppGuiPreferences, CommandCodeUpdateResult, DiscoveredSession, ProjectGuiPreferences } from '../../core/types'
+import type { AppGuiPreferences, CommandCodeUpdateResult, DiscoveredSession, GitEnvironmentStatus, ProjectGuiPreferences } from '../../core/types'
 import type { PtyDoctorResult } from '../../core/ptyDoctor'
 import type { TransportAPI } from '../../core/transport'
 import { useTransport } from './useTransport'
@@ -213,6 +213,8 @@ export function App(): JSX.Element {
   const [updateState, setUpdateState] = useState<UpdateState>('idle')
   const [updateVersion, setUpdateVersion] = useState<string | undefined>()
   const [updateDetails, setUpdateDetails] = useState('')
+  const [gitStatus, setGitStatus] = useState<GitEnvironmentStatus | null>(null)
+  const [gitStatusLoading, setGitStatusLoading] = useState(false)
   const [releaseNoteVersion, setReleaseNoteVersion] = useState<string | undefined>()
   const jobCounter = useRef(1)
   const startupUpdateCheckStarted = useRef(false)
@@ -220,6 +222,7 @@ export function App(): JSX.Element {
   const appPreferenceSaveTimer = useRef<number | undefined>(undefined)
   const hydratedProjectRef = useRef<string | undefined>(undefined)
   const projectPreferenceSaveTimer = useRef<number | undefined>(undefined)
+  const gitStatusRequest = useRef(0)
 
   const useMock = runtimeMode === 'mock'
   const activeTab = tabs.find((t) => t.id === activeTabId)
@@ -237,6 +240,46 @@ export function App(): JSX.Element {
     setPtyHealth(result)
     return result
   }, [transport])
+
+  const refreshGitStatus = useCallback(async (): Promise<void> => {
+    const requestId = gitStatusRequest.current + 1
+    gitStatusRequest.current = requestId
+
+    if (!cwd.trim()) {
+      setGitStatus(null)
+      setGitStatusLoading(false)
+      return
+    }
+
+    setGitStatusLoading(true)
+    try {
+      const result = await transport.gitStatus(cwd)
+      if (gitStatusRequest.current === requestId) {
+        setGitStatus(result)
+      }
+    } catch (err) {
+      if (gitStatusRequest.current === requestId) {
+        setGitStatus({
+          ok: false,
+          cwd,
+          filesChanged: 0,
+          insertions: 0,
+          deletions: 0,
+          added: 0,
+          modified: 0,
+          deleted: 0,
+          untracked: 0,
+          files: [],
+          raw: '',
+          error: err instanceof Error ? err.message : 'Git status failed'
+        })
+      }
+    } finally {
+      if (gitStatusRequest.current === requestId) {
+        setGitStatusLoading(false)
+      }
+    }
+  }, [transport, cwd])
 
   useEffect(() => {
     let cancelled = false
@@ -261,6 +304,10 @@ export function App(): JSX.Element {
       cancelled = true
     }
   }, [refreshPtyHealth])
+
+  useEffect(() => {
+    void refreshGitStatus()
+  }, [refreshGitStatus])
 
   const checkForUpdates = useCallback(async (): Promise<void> => {
     setUpdateState('checking')
@@ -1134,6 +1181,8 @@ export function App(): JSX.Element {
             runtimeMode={runtimeMode}
             ptyHealthLabel={ptyHealthLabel(ptyHealth)}
             statusLine={statusLine}
+            gitStatus={gitStatus}
+            gitStatusLoading={gitStatusLoading}
           />
         ) : workspaceView === 'transcript' && selectedTranscript ? (
           <div className={`workbench-shell ${rightInspector !== 'none' ? 'workbench-shell--with-inspector' : ''}`}>
@@ -1185,6 +1234,8 @@ export function App(): JSX.Element {
               permissionLabel={permissionLabel(permissionMode, trust)}
               riskyPermission={riskyPermission}
               permissionTone={riskyPermission ? 'warn' : permissionMode === 'plan' ? 'purple' : 'default'}
+              gitStatus={gitStatus}
+              gitStatusLoading={gitStatusLoading}
               onSelectTab={setActiveTabId}
               onKillTab={killTab}
               onExit={onExit}

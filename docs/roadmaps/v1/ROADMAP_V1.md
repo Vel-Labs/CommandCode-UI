@@ -1118,13 +1118,15 @@ Status update 2026-06-06: First polish package made the shell footer update indi
 
 Status update 2026-06-06: Second polish package improved native popover attachment and responsive positioning. Popovers now get a subtle attachment notch on desktop, contained scrolling, safer text wrapping, and a late narrow-screen override that keeps project, permission, slash, runtime, and model popovers inside the viewport. This is CSS-only polish and does not change popover state, Escape/outside-click logic, renderer IPC, server routes, transport, config writes, file access, session lifecycle, or Command Code invocation behavior. Validation receipts: `npm run typecheck`, `npm run build`, `npm run smoke:browser`, built route token proof at `http://127.0.0.1:57405/` serving `index-Bz57oaG8.js` and `index-BigcAntF.css`, built asset proof for `native-popover::before`, `overflow-wrap`, `overscroll-behavior`, and the `max-width: 720px` override, Playwright desktop/narrow browser layout receipts for five popovers with Escape dismissal, screenshots `/tmp/ccgui-phase9-popovers-desktop.png` and `/tmp/ccgui-phase9-popovers-narrow.png`, and built Electron screenshot `/tmp/ccgui-phase9-popovers-electron.png`.
 
+Status update 2026-06-06: Third polish package wired existing read-only git environment state into home and active-session headers with `GitEnvironmentBadge` and tested display formatting. The badge shows branch, local change count, and ahead/behind detail from the existing `transport.gitStatus(cwd)` route, or an explicit unavailable state when no git project is selected. This does not add git mutations, branch switching, diff actions, renderer IPC, server routes, file access capability, config writes, session lifecycle changes, or Command Code invocation behavior. Validation receipts: `npm run typecheck`, `npx vitest run` -> `166/166`, `npm run build`, `npm run smoke:browser`, built route token proof at `http://127.0.0.1:57406/` serving `index-hy4yD3ZL.js` and `index-DoGa60Tt.css`, built asset proof for `GitEnvironmentBadge`, `gitEnvironmentDisplay`, and `git-environment-badge`, browser UI receipts showing `main` / `7 files · 1 ahead` in home and session headers with screenshots `/tmp/ccgui-phase9-git-badge-home.png` and `/tmp/ccgui-phase9-git-badge-session.png`, and built Electron screenshot `/tmp/ccgui-phase9-git-badge-electron.png` showing the clear unavailable state when no project is selected.
+
 ### Scope
 
 - Improve popover anchoring, responsive positioning, Escape/click-outside behavior, and attachment cues. Attachment cues and responsive viewport containment are implemented for current native popovers; existing Escape/outside-click dismissal remains in `useDismissiblePopover` and was revalidated with Playwright.
 - Make the right inspector behave like a native companion pane for files, docs, transcripts, hooks, MCP, and session artifacts.
 - Add restrained page transitions, panel slide-ins, loading skeletons, and resize-to-collapse.
 - Make update indicator easier to see. Implemented with a compact state marker for attention states in the existing footer control.
-- Wire git environment state into the workspace header.
+- Wire git environment state into the workspace header. Implemented as a read-only badge in home and active-session headers using the existing git status route; git actions remain out of scope.
 - Improve PTY doctor integration and failure diagnostics.
 - Add optional native workbench affordances: file search/create/rename/delete, IDE launch/config, branch switcher/diff, terminal tabs/history/profiles, and release-note fetching.
 - Add fine-grained theme controls such as accent color, grid opacity, terminal font size, and app density.
@@ -1149,7 +1151,7 @@ Status update 2026-06-06: Second polish package improved native popover attachme
 - Escape and outside-click dismissal work independently per popover. Escape dismissal was revalidated for project, permission, slash, runtime, and model popovers; outside-click logic remains in `useDismissiblePopover` and still needs a dedicated automated receipt.
 - Sidebar/panel resize-to-collapse works and persists preference.
 - Motion does not cause layout overlap or unreadable text.
-- Git status displays actual project state or a clear unavailable state.
+- Git status displays actual project state or a clear unavailable state. Browser UI receipts show actual `main` state for this repo; Electron screenshot shows the no-project unavailable state without mutating app preferences.
 - Optional file/IDE/git actions are scoped and reversible.
 - Browser/Electron screenshots across desktop and narrow widths.
 - `npm run typecheck`
