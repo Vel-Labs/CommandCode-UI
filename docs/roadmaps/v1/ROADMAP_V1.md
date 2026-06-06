@@ -1208,6 +1208,8 @@ Sequential:
 
 Goal: make v1 changes safe to maintain by a growing community.
 
+Status on 2026-06-06: complete and validated for the current V1 contract. The reusable V1 validation template, smoke report receipts, refreshed test plan, docs index, contributor implementation guide, focused local Command Code docs, architecture alignment, and phase closeout validation are in place. Browser, mock, real headless, PTY, build, TypeScript, and unit-test receipts are current; Electron UI receipts are retained in the relevant UI package entries and were not rerun for this docs-only closeout package.
+
 Early scaffold status on 2026-06-06: started. `docs/reports/V1_VALIDATION_TEMPLATE.md` now provides the reusable package validation receipt template for V1 work. `tests/settings-registry.test.ts` adds executable coverage for the Settings Center registry, search filtering, group order, and route coverage without adding runtime behavior.
 
 Status update 2026-06-06: MCP reference docs package added `docs/reference/command-code-docs/mcp.md` and linked it from the local Command Code docs index. The page records current installed `cmd mcp` help evidence for add, add-json, remove, and auth command shapes; names implemented Settings > MCP surfaces; and keeps add/remove/auth-clear mutation, config editing, diagnostics, and secret persistence behind explicit gates. This package did not change runtime code, renderer IPC, file access, config writes, CLI arguments, or session lifecycle. Validation receipts: `npm run typecheck`, `cmd mcp --help`, `cmd mcp add --help`, `cmd mcp add-json --help`, `cmd mcp remove --help`, `cmd mcp auth --help`, `rg --files docs/reference/command-code-docs`, and `rg -n "add-json|client-secret|Open Gates|Current GUI status" docs/reference/command-code-docs/mcp.md docs/reference/command-code-docs/README.md`.
@@ -1215,6 +1217,8 @@ Status update 2026-06-06: MCP reference docs package added `docs/reference/comma
 Status update 2026-06-06: Docs index package added `docs/contributors/V1_IMPLEMENTATION_GUIDE.md`, promoted local `design.md` and `tools.md` Command Code reference pages, refreshed `docs/INDEX.md`, updated `docs/reports/TEST_PLAN.md`, and aligned `README.md` with the current Settings, validation, and workbench gate surfaces so new gate reports, local docs, contributor workflow, and current validation commands are discoverable. This package is documentation-only and does not change runtime code, renderer IPC, server routes, transport calls, file access, config writes, session lifecycle, CSS tokens, or Command Code invocation behavior. Validation receipts: `npm run typecheck`, local docs index checks for `V1_IMPLEMENTATION_GUIDE`, `WORKBENCH_POLISH_GATE`, `command-code-docs/design.md`, and `command-code-docs/tools.md`, README checks for workbench gates and contributor docs, and test-plan checks for current automated commands and gated coverage.
 
 Status update 2026-06-06: GUI implications docs package added `docs/reference/command-code-docs/gui-implications.md` and linked it from the local docs index. The page summarizes runtime ownership rules, implemented GUI surfaces, gated/deferred surfaces, and validation implications across hooks, MCP, models, design, tools, and workbench gates. This package is documentation-only and does not change runtime code, renderer IPC, server routes, transport calls, file access, config writes, session lifecycle, CSS tokens, or Command Code invocation behavior. Validation receipts: `npm run typecheck`, local docs checks for `gui-implications.md`, runtime ownership rules, gated surfaces, and validation implications.
+
+Status update 2026-06-06: Phase 10 closeout validation passed with `npm run typecheck`, `npx vitest run` -> `172/172`, `npm run build`, `npm run smoke:browser`, `npm run smoke:headless`, and `npm run smoke:pty`. `ROADMAP.md` now points at the closed V1 contract and named post-V1 gates. This closeout is documentation/status only and does not change runtime code, renderer IPC, server routes, transport calls, file access, config writes, session lifecycle, CSS tokens, or Command Code invocation behavior. Real headless smoke exercised `cmd --print` with plan permission mode and exited `0`; PTY smoke reported `/bin/zsh`, `Healthy: true`, and output `"ok"`.
 
 ### Scope
 
@@ -1281,11 +1285,11 @@ Sequential:
 
 ### Acceptance
 
-- TypeScript passes.
-- Mock mode works.
-- Real CLI paths are smoke-tested or explicitly marked untested.
-- Docs do not claim behavior that is only planned or discussion-only.
-- Contributors can read the architecture docs, roadmap, and validation template and understand where to work next.
+- TypeScript passes. Closeout receipt: `npm run typecheck`.
+- Mock mode works. Closeout receipt: `npm run smoke:browser` mock headless and mock session paths passed.
+- Real CLI paths are smoke-tested or explicitly marked untested. Closeout receipts: `npm run smoke:headless` exited `0`; `npm run smoke:pty` passed. Electron UI receipts are retained from the relevant UI packages and were not rerun for this docs-only closeout package.
+- Docs do not claim behavior that is only planned or discussion-only. Gated/deferred behavior remains named in `DATA_CONTROLS_GATE.md`, `HOOKS_NOTIFICATIONS_GATE.md`, `SETTINGS_PERSISTENCE_GATE.md`, and `WORKBENCH_POLISH_GATE.md`.
+- Contributors can read the architecture docs, roadmap, validation template, test plan, docs index, and `docs/contributors/V1_IMPLEMENTATION_GUIDE.md` to understand where to work next.
 
 ## Phase 11: Post-V1 Plugin And Capability Incubation
 

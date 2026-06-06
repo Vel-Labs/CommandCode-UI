@@ -1635,3 +1635,19 @@ Scope: documentation-only Phase 10 index package. This added contributor guidanc
 | GUI implications content | Pass | `rg -n "Runtime Ownership Rules|Implemented GUI Surfaces|Gated Or Deferred Surfaces|Validation Implications|WORKBENCH_POLISH_GATE" docs/reference/command-code-docs/gui-implications.md` |
 
 Scope: documentation-only local GUI implications page. This completed the focused Command Code docs set for the current V1 scope and did not change runtime code, renderer IPC, server routes, transport calls, file access, config writes, session lifecycle, CSS tokens, or Command Code invocation behavior.
+
+### 2026-06-06 Phase 10 closeout
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `172/172` |
+| Build | Pass | `npm run build`; renderer assets `index-CDcTfQLF.js` and `index-D6JSp2Ur.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` -> mock headless `PASS`, real headless started, mock session create/exit passed, multi-session independence `PASS`, auth checks passed |
+| Real headless smoke | Pass | `npm run smoke:headless`; `cmd --print Say hello... --max-turns 3 --permission-mode plan --trust --skip-onboarding`, exit `0` |
+| PTY smoke | Pass | `npm run smoke:pty`; node-pty available, shell `/bin/zsh`, healthy `true`, output `"ok"` |
+| Doctor | Pass | `npm run doctor`; Command Code `v0.32.3`, auth `ok`, 27 models available, PTY health `ok`, `5 passed, 0 failed` |
+| Roadmap closeout | Pass | Phase 10 status and acceptance updated in `docs/roadmaps/v1/ROADMAP_V1.md` |
+| Root roadmap | Pass | `ROADMAP.md` now points at the closed V1 contract and remaining post-V1 gates |
+
+Scope: Phase 10 closeout. Validation, docs, root roadmap status, and contributor enablement are complete for the current V1 contract. This closeout did not change runtime code, renderer IPC, server routes, transport calls, file access, config writes, session lifecycle, CSS tokens, or Command Code invocation behavior. Electron UI receipts remain recorded in the UI packages that changed rendered behavior and were not rerun for this docs-only closeout package.

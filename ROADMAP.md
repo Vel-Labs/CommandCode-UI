@@ -1,29 +1,31 @@
 # Roadmap
 
-## Current Status — 2026-06-06 V0 Hardening Closed
+## Current Status — 2026-06-06 V1 Contract Complete
 
-The v0 hardening gate is closed in the current worktree. V1 Phase 1 may begin from the v1 execution contract, provided new work preserves the adapter boundary and keeps mock/real/runtime receipts separate.
+The v0 hardening gate is closed, and the V1 execution contract in `docs/roadmaps/v1/ROADMAP_V1.md` is complete for the current V1 scope. Future work should start from the V1 gates and post-V1/plugin incubation notes rather than treating broad workbench mutations as already approved.
 
-Verified in the current worktree on 2026-06-06:
+V1 closeout verified in the current worktree on 2026-06-06:
 
 - `npm run typecheck` passes.
-- `npx vitest run` passes with `41/41`.
+- `npx vitest run` passes with `172/172`.
 - `npm run build` passes.
-- `npm run smoke:server`, `npm run smoke:browser`, `npm run smoke:headless`, and `npm run smoke:pty` pass.
+- `npm run smoke:browser`, `npm run smoke:headless`, and `npm run smoke:pty` pass.
 - `npm run doctor` passes with `5 passed, 0 failed`; Command Code is `0.32.3`.
-- Browser production route served the built renderer at `http://127.0.0.1:5183` after token proof; `/health` and bad-token requests did not grant auth.
-- Electron dev starts; Vite moved to `5175` because `5173` and `5174` were occupied, and the embedded server reported actual port `58801`.
-- Real interactive PTY session start returned `200` with `mock:false`, selected model metadata, transcript path, and stop/force-delete receipts.
-- Mock headless uses `useMock:true` and returns deterministic `[Mock headless]` output without invoking the real CLI.
-- File/config read and write boundaries have deny-by-default regression coverage in `tests/server-security.test.ts`.
+- Browser/API smoke covers mock headless, real `cmd --print` start, mock session create/exit, multi-session independence, and auth denial paths.
+- Real headless smoke exercised `cmd --print` with plan permission mode and exited `0`.
+- PTY smoke reported `node-pty available: true`, `/bin/zsh`, `Healthy: true`, and output `"ok"`.
+- Browser and Electron UI receipts for V1 UI packages are recorded in `docs/reports/SMOKE_TEST_REPORT.md`.
+- File/config read and write boundaries have deny-by-default regression coverage in `tests/server-security.test.ts` and gate reports.
 
-Deferred beyond v0:
+Deferred or gated beyond current V1:
 
 - `ccgui serve --port 0` is rejected by CLI argument parsing; use explicit ports for now.
-- Response-ready notifications are disabled instead of inferred from terminal output. V1 should add explicit session lifecycle/readiness state before reintroducing them.
-- Browser/Electron screenshot automation was not captured in this pass because Playwright is not installed in the project; route-level and startup receipts were used instead.
+- Response-ready notifications have reducer/planner scaffolding, but runtime dispatch remains gated until explicit Command Code readiness events exist.
+- Data deletion/export/import, broader Settings writes, hook execution/notification dispatch, workbench file/IDE/git mutations, terminal lifecycle/profile work, editable theme-token controls, and release-fetching behavior remain gated by reports under `docs/reports/`.
 
-**Closed execution contract:** [docs/reports/HARDENING_GATE.md](docs/reports/HARDENING_GATE.md)
+**Closed hardening gate:** [docs/reports/HARDENING_GATE.md](docs/reports/HARDENING_GATE.md)
+
+**Closed V1 execution contract:** [docs/roadmaps/v1/ROADMAP_V1.md](docs/roadmaps/v1/ROADMAP_V1.md)
 
 ---
 
