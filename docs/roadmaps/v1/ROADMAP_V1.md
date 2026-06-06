@@ -490,6 +490,8 @@ Sequential:
 
 Goal: make hooks and alerts configurable without hardcoded app behavior.
 
+Status on 2026-06-06: started with a parser/gate package. `src/core/hooksConfig.ts` now parses documented hook settings from raw `settings.json` text, preserves source scope/path, extracts command hooks, matchers, timeout, enabled state, event order, and blocking capability, rejects invalid JSON/shapes before any future write path, and orders project hooks before user hooks for display. `docs/reports/HOOKS_NOTIFICATIONS_GATE.md` records the write, execution, and notification-readiness boundaries that still block editable hook config and response-ready notifications. This package did not add file reads/writes, server routes, renderer IPC, hook execution, test-payload execution, session readiness, OS notifications, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `64/64`, and `npm run build`.
+
 ### Scope
 
 - Add Settings > Hooks.

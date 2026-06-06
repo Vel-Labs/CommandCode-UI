@@ -462,6 +462,16 @@ Scope: Settings replacement closeout package. Removed the legacy `AdvancedPanel`
 
 Scope: documentation/status closeout for Phase 2 Settings Center. It records that Settings is now the primary configuration path, the generic Advanced modal is removed, editable Settings actions show ownership/destination before writes, and remaining risky/destructive or upstream-owned actions stay planned, gated, blocked, or deferred. No renderer, server, IPC, config, transport, session lifecycle, file access, or Command Code settings behavior changed in this closeout package.
 
+### 2026-06-06 Phase 3 hooks parser gate
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `64/64` |
+| Build | Pass | `npm run build` |
+
+Scope: parser/gate package for Phase 3. `src/core/hooksConfig.ts` parses documented Command Code hook settings from raw `settings.json` text, preserves source scope/path, extracts command hooks, matchers, timeout, enabled state, event order, and blocking capability, rejects invalid JSON/shapes before future writes, and orders project hooks before user hooks for display. `docs/reports/HOOKS_NOTIFICATIONS_GATE.md` records the remaining write, hook execution, and notification-readiness gates. No file reads/writes, server routes, renderer IPC, hook execution, test payload execution, session readiness, OS notifications, or Command Code settings mutation were added.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |

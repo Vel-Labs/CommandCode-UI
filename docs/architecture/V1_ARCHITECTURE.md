@@ -135,6 +135,16 @@ Current implementation status on 2026-06-06:
 - `docs/reports/SETTINGS_PERSISTENCE_GATE.md` defines the Phase 2 ownership boundary for GUI-owned preferences versus Command Code-owned `settings.json` before additional editable sections add writes.
 - `docs/reports/ADVANCED_PANEL_REMOVAL_GATE.md` records the AdvancedPanel replacement coverage and removal receipts.
 
+## Hooks And Notifications
+
+Phase 3 has started with a pure parser/gate package:
+
+- `src/core/hooksConfig.ts` parses documented Command Code hook settings from raw `settings.json` text and preserves source scope/path, event, matcher, command, timeout, enabled state, display order, and blocking capability.
+- Project hooks are ordered before user hooks for display because project scope takes precedence over user scope.
+- Invalid JSON and invalid hook shapes fail before any future write path can use them.
+- `docs/reports/HOOKS_NOTIFICATIONS_GATE.md` records the boundaries that still block hook file reads/writes, hook execution, test-payload execution, OS notifications, quiet mode, response-ready state, input-required state, and session readiness.
+- Hook execution remains Command Code-owned. The GUI parser is only preparation for scoped Settings display, validation, and future diagnostics.
+
 Suggested sections:
 
 - General: project defaults, command binary, startup behavior.
