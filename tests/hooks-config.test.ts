@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { mergeHookConfigs, parseHookSettingsJson } from '../src/core/hooksConfig'
+import { mergeHookConfigs, parseHookSettingsJson, setHookCommandEnabled } from '../src/core/hooksConfig'
 
 describe('hooks config parser', () => {
   it('accepts empty settings without hooks', () => {
@@ -111,5 +111,58 @@ describe('hooks config parser', () => {
     }), 'project', '/repo/.commandcode/settings.json')
 
     expect(mergeHookConfigs(user, project).hooks.map((hook) => hook.command)).toEqual(['echo project', 'echo user'])
+  })
+
+  it('toggles grouped hook commands while preserving unrelated settings keys', () => {
+    const raw = JSON.stringify({
+      model: 'deepseek',
+      hooks: {
+        PreToolUse: [
+          {
+            matcher: 'Bash',
+            hooks: [
+              { type: 'command', command: 'node scripts/check-shell.js' },
+              { type: 'command', command: 'node scripts/audit-shell.js', enabled: false }
+            ]
+          }
+        ]
+      }
+    })
+
+    const result = setHookCommandEnabled(raw, 'PreToolUse', 'node scripts/check-shell.js', false)
+    expect(result.ok).toBe(true)
+
+    const parsed = JSON.parse(result.content || '{}') as {
+      model?: string
+      hooks: { PreToolUse: Array<{ hooks: Array<{ command: string; enabled?: boolean }> }> }
+    }
+    expect(parsed.model).toBe('deepseek')
+    expect(parsed.hooks.PreToolUse[0].hooks[0]).toMatchObject({
+      command: 'node scripts/check-shell.js',
+      enabled: false
+    })
+    expect(parsed.hooks.PreToolUse[0].hooks[1]).toMatchObject({
+      command: 'node scripts/audit-shell.js',
+      enabled: false
+    })
+  })
+
+  it('toggles direct hook command entries and reports missing commands without edits', () => {
+    const raw = JSON.stringify({
+      hooks: {
+        Stop: [
+          { type: 'command', command: 'command-code-bonk --sound done', enabled: false }
+        ]
+      }
+    })
+
+    const enabled = setHookCommandEnabled(raw, 'Stop', 'command-code-bonk --sound done', true)
+    expect(enabled.ok).toBe(true)
+    expect(JSON.parse(enabled.content || '{}').hooks.Stop[0].enabled).toBe(true)
+
+    expect(setHookCommandEnabled(raw, 'Stop', 'missing command', true)).toMatchObject({
+      ok: false,
+      error: 'Hook command not found for Stop'
+    })
   })
 })

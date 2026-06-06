@@ -15,6 +15,7 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 - Unknown events are preserved for diagnostics with warnings instead of silently dropped.
 - `/api/hooks/configs` reads exactly the documented user and selected-project settings paths and returns parsed source status for Settings > Hooks.
 - Settings > Hooks displays discovered project/user source status, parsed command rows, warnings, and errors without edit controls.
+- `setHookCommandEnabled` can toggle a matching direct or grouped command hook's `enabled` field in raw `settings.json` content while preserving unrelated settings keys for future preview/write flows.
 
 ## Not Implemented
 
@@ -44,7 +45,7 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 ## Validation Receipts
 
 - `npm run typecheck`
-- `npx vitest run` -> `67/67`
+- `npx vitest run` -> `69/69`
 - `npm run build`
 - `npm run smoke:browser`
 - Built browser route token proof at `http://127.0.0.1:5224/`

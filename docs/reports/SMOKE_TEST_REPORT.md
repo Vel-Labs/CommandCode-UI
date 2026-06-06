@@ -498,6 +498,16 @@ Scope: read-only Settings > Hooks presentation package. Hooks now shows the Comm
 
 Scope: read-only hook config discovery package. Added scoped `/api/hooks/configs`, `transport.discoverHookConfigs(cwd)`, and Settings > Hooks source/parsed-command display. The route derives only documented user/project `settings.json` paths, uses the existing project root resolver for `cwd`, caps reads at 1 MB, and parses through `src/core/hooksConfig.ts`. No hook writes, arbitrary file reads, renderer IPC, hook execution, test payload execution, session readiness, OS notifications, or Command Code settings mutation were added.
 
+### 2026-06-06 Phase 3 Hooks edit helper
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `69/69` |
+| Build | Pass | `npm run build` |
+
+Scope: pure helper package for future hook enable/disable previews. `setHookCommandEnabled` toggles a matching direct or grouped command hook's `enabled` field in raw `settings.json` content while preserving unrelated settings keys and returning formatted JSON. No file reads, file writes, server routes, renderer IPC, hook execution, test payload execution, session readiness, OS notifications, or Command Code settings mutation were added.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |

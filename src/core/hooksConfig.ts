@@ -45,6 +45,12 @@ export type MergedHookConfig = {
   errors: string[]
 }
 
+export type HookConfigEditResult = {
+  ok: boolean
+  content?: string
+  error?: string
+}
+
 export function parseHookSettingsJson(raw: string, sourceScope: HookScope, sourcePath: string): HookConfigParseResult {
   const warnings: string[] = []
   const errors: string[] = []
@@ -126,6 +132,49 @@ export function mergeHookConfigs(user: HookConfigParseResult, project: HookConfi
     warnings: [...project.warnings, ...user.warnings],
     errors: [...project.errors, ...user.errors]
   }
+}
+
+export function setHookCommandEnabled(raw: string, event: HookEvent, command: string, enabled: boolean): HookConfigEditResult {
+  let parsed: unknown
+  try {
+    parsed = raw.trim() ? JSON.parse(raw) : {}
+  } catch (error) {
+    return { ok: false, error: `Invalid JSON: ${error instanceof Error ? error.message : String(error)}` }
+  }
+
+  if (!isRecord(parsed)) {
+    return { ok: false, error: 'settings.json must contain a JSON object' }
+  }
+
+  if (!isRecord(parsed.hooks)) {
+    return { ok: false, error: 'hooks must be an object keyed by hook event' }
+  }
+
+  const eventEntries = parsed.hooks[event]
+  if (!Array.isArray(eventEntries)) {
+    return { ok: false, error: `hooks.${event} must be an array` }
+  }
+
+  const targetCommand = command.trim()
+  if (!targetCommand) {
+    return { ok: false, error: 'Missing hook command' }
+  }
+
+  for (const entry of eventEntries) {
+    if (!isRecord(entry)) continue
+    if (Array.isArray(entry.hooks)) {
+      const match = entry.hooks.find((hook) => isRecord(hook) && hook.command === targetCommand)
+      if (isRecord(match)) {
+        match.enabled = enabled
+        return { ok: true, content: `${JSON.stringify(parsed, null, 2)}\n` }
+      }
+    } else if (entry.command === targetCommand) {
+      entry.enabled = enabled
+      return { ok: true, content: `${JSON.stringify(parsed, null, 2)}\n` }
+    }
+  }
+
+  return { ok: false, error: `Hook command not found for ${event}` }
 }
 
 function normalizeHookEntry(
