@@ -167,7 +167,16 @@ export function SettingsRoute(props: SettingsRouteProps): JSX.Element {
     case 'appearance':
       return <AppearanceSettings appearanceTheme={appearanceTheme} setAppearanceTheme={setAppearanceTheme} />
     case 'usage':
-      return <UsageSettings headlessJobs={headlessJobs} clearHeadlessJobs={clearHeadlessJobs} sessionCount={sessionCount} />
+      return (
+        <UsageSettings
+          cwd={cwd}
+          commandExecutable={commandExecutable}
+          transport={transport}
+          headlessJobs={headlessJobs}
+          clearHeadlessJobs={clearHeadlessJobs}
+          sessionCount={sessionCount}
+        />
+      )
     case 'integrations':
       return <IntegrationsSettings openDocs={openDocs} transport={transport} openSection={openSection} />
     case 'advanced':

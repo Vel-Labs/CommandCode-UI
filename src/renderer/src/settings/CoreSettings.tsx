@@ -1,8 +1,10 @@
+import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
 import { Activity, Bot, Braces, CreditCard, Database, GitBranch, Keyboard, MemoryStick, Monitor, Plug, Settings, Sparkles, Terminal, Wrench } from 'lucide-react'
 import type { PermissionMode } from '../../../shared/types'
 import type { PtyDoctorResult } from '../../../core/ptyDoctor'
 import type { TransportAPI } from '../../../core/transport'
+import type { UsageSummary } from '../../../core/types'
 import type { AppearanceTheme, RuntimeMode, SettingsSection } from '../appTypes'
 import type { HeadlessJob } from '../components/HeadlessHistory'
 import { AuthCard } from '../components/AuthCard'
@@ -285,14 +287,36 @@ export function AppearanceSettings({
 }
 
 export function UsageSettings({
+  cwd,
+  commandExecutable,
+  transport,
   headlessJobs,
   clearHeadlessJobs,
   sessionCount
 }: {
+  cwd: string
+  commandExecutable: string
+  transport: TransportAPI
   headlessJobs: HeadlessJob[]
   clearHeadlessJobs: () => void
   sessionCount: number
 }): JSX.Element {
+  const [usage, setUsage] = useState<UsageSummary | null>(null)
+  const [loadingUsage, setLoadingUsage] = useState(false)
+
+  const loadUsage = async (): Promise<void> => {
+    setLoadingUsage(true)
+    try {
+      setUsage(await transport.usage(commandExecutable || undefined, cwd || undefined))
+    } catch {
+      setUsage(null)
+    } finally {
+      setLoadingUsage(false)
+    }
+  }
+
+  useEffect(() => { void loadUsage() }, [commandExecutable, cwd])
+
   return (
     <div className="settings-detail-page">
       <div className="settings-page-title">Usage</div>
@@ -302,6 +326,32 @@ export function UsageSettings({
           <span>Headless runs</span><strong>{headlessJobs.length}</strong>
         </div>
         <HeadlessHistory jobs={headlessJobs} onClear={clearHeadlessJobs} />
+      </div>
+      <div className="settings-card settings-card--wide">
+        <div className="settings-readonly-header">
+          <strong>Command Code usage summary</strong>
+          <button className="ghost-button native-ghost" onClick={() => void loadUsage()} disabled={loadingUsage}>{loadingUsage ? 'Loading...' : 'Refresh'}</button>
+        </div>
+        {usage && (
+          <>
+            <div className="usage-grid">
+              <div className="usage-stat">
+                <div className="usage-value">{usage.totalTokens.toLocaleString()}</div>
+                <div className="usage-label">Total tokens</div>
+              </div>
+              <div className="usage-stat">
+                <div className="usage-value">${usage.totalCost.toFixed(2)}</div>
+                <div className="usage-label">Total cost</div>
+              </div>
+              <div className="usage-stat">
+                <div className="usage-value">{usage.totalRuns.toLocaleString()}</div>
+                <div className="usage-label">Total runs</div>
+              </div>
+            </div>
+            <pre className="advanced-raw settings-usage-raw">{usage.raw}</pre>
+          </>
+        )}
+        {!usage && !loadingUsage && <p className="settings-muted">Refresh reads the existing Command Code usage summary through the current command binary and project. No GUI preference or Command Code config is written.</p>}
       </div>
     </div>
   )

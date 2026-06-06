@@ -9,7 +9,7 @@ This gate records what Settings replaces from `src/renderer/src/components/Advan
 | Advanced tab | Settings replacement | Status |
 |---|---|---|
 | Project state | Data / Project state | Implemented read-only |
-| Usage | Usage | Implemented read-only local headless history; Command Code usage summary still Advanced-only |
+| Usage | Usage | Implemented read-only local headless history and Command Code usage summary refresh |
 | Taste | Taste | Implemented read-only |
 | Agents | Agents | Implemented read-only discovery |
 | MCP | MCP | Implemented read-only `cmd mcp list` view |
@@ -24,7 +24,6 @@ The Advanced modal must stay available until each behavior below has a Settings 
 - Session discovery with `transport.discoverSessions(cwd)`.
 - Project-scoped session resume with `onResumeSession(session)`.
 - Transcript reveal with `transport.revealTranscript(session.transcriptPath)`.
-- Command Code usage summary refresh with `transport.usage(commandExecutable, cwd)`.
 - Agent editing and `transport.saveAgent(agentPath, content, cwd)`.
 - Memory editing and `transport.saveMemory(filePath, content, cwd)`.
 - MCP connect/disconnect actions through `transport.mcpAction(commandExecutable, action, serverName)`.
