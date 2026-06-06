@@ -973,7 +973,7 @@ Sequential:
 
 Goal: make v1 changes safe to maintain by a growing community.
 
-Early scaffold status on 2026-06-06: started. `docs/reports/V1_VALIDATION_TEMPLATE.md` now provides the reusable package validation receipt template for V1 work.
+Early scaffold status on 2026-06-06: started. `docs/reports/V1_VALIDATION_TEMPLATE.md` now provides the reusable package validation receipt template for V1 work. `tests/settings-registry.test.ts` adds executable coverage for the Settings Center registry, search filtering, group order, and route coverage without adding runtime behavior.
 
 ### Scope
 

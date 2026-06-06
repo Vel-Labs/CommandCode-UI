@@ -86,6 +86,16 @@ V1 Phase 1 can begin after this report, [HARDENING_GATE.md](HARDENING_GATE.md), 
 
 Scope: documentation-only scaffold. `docs/reports/V1_VALIDATION_TEMPLATE.md` defines reusable package receipts, hard-gate checks, route receipts, and commit notes for V1 work.
 
+### 2026-06-06 Phase 10 settings registry validation
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `46/46` |
+| Build | Pass | `npm run build` |
+
+Scope: test-only validation package. `tests/settings-registry.test.ts` covers the Settings Center registry section list, duplicate prevention, group order, search filtering by label/description/search text, defensive fallback metadata, and implemented route coverage. No renderer output, server routes, persistence behavior, IPC, runtime/session lifecycle, or Command Code settings behavior changed.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |
