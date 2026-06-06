@@ -4456,6 +4456,21 @@ input[type="range"]::-webkit-slider-thumb {
   resize: vertical;
 }
 
+.agent-helper {
+  margin-top: 0;
+  margin-bottom: 14px;
+}
+
+.agent-helper-textarea {
+  min-height: 84px;
+  resize: vertical;
+}
+
+.agent-helper-preview {
+  margin-top: 12px;
+  max-height: 220px;
+}
+
 .settings-actions-row {
   display: flex;
   flex-wrap: wrap;

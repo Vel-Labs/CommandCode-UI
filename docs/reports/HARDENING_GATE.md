@@ -9,15 +9,15 @@
 Validated on 2026-06-06:
 
 - `npm run typecheck` passes.
-- `npx vitest run` passes with `120/120`.
+- `npx vitest run` passes with `122/122`.
 - `npm run build` passes.
 - `npm run smoke:server` passes.
 - `npm run smoke:browser` passes with mock headless using `useMock:true`.
 - `npm run smoke:headless` passes for real `cmd --print`.
 - `npm run smoke:pty` passes; `node-pty` spawns `/bin/zsh` and prints `"ok"`.
 - `npm run doctor` passes with `5 passed, 0 failed`; Command Code is `0.32.3`.
-- Browser production route loads from explicit ports after token proof. The latest Phase 5 design-helper route used `http://127.0.0.1:57376`, returned `302` on token entry, and served built assets `index-DhV-rzOP.js` and `index-D0pnBW39.css` under cookie auth. `/health` and bad-token requests do not grant `ccgui-token`.
-- Electron dev starts and serves the renderer through an embedded local server. On the latest run, Vite moved to `5175` because `5173` and `5174` were occupied, and the embedded server reported `http://127.0.0.1:58884`.
+- Browser production route loads from explicit ports after token proof. The latest Phase 5 agent-helper route used `http://127.0.0.1:57377`, returned `302` on token entry, and served built assets `index-DAvzRyHn.js` and `index-C9vlN-bN.css` under cookie auth. `/health` and bad-token requests do not grant `ccgui-token`.
+- Electron dev starts and serves the renderer through an embedded local server. On the latest run, Vite moved to `5175` because `5173` and `5174` were occupied, and the embedded server reported `http://127.0.0.1:59085`.
 - Real interactive PTY starts through `POST /api/sessions` with `useMock:false`, returns `mock:false`, selected model metadata, transcript path, and accepts stop and force-delete.
 - File/config read and write routes have deny-by-default regression coverage.
 

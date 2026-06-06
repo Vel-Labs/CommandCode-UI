@@ -973,3 +973,17 @@ Scope: added tested command/workflow palette search and preview-only recipes for
 | Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
 
 Scope: added a tested `/design` command preview builder and preview-only Settings > Design helper. It includes documented mode and target in the command and keeps goal/selected-element context visible but outside the command. This did not add active-session send behavior, hidden prompt rewriting, config writes, renderer IPC, file access, CLI argument changes, or session lifecycle behavior. Real CLI path was not retested for this renderer-only helper slice.
+
+### 2026-06-06 Phase 5 agent helper preview
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `122/122` |
+| Build | Pass | `npm run build`; renderer assets `index-DAvzRyHn.js` and `index-C9vlN-bN.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57377`; token proof returned `302`, cookie-authenticated `/` served built assets `index-DAvzRyHn.js` and `index-C9vlN-bN.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:59085` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
+
+Scope: added a tested Agent Draft preview helper with project scope, destination preview, templates, and draft frontmatter/content. This did not add write routes, broaden renderer IPC, change file access policy, add unsupported agent routing semantics, mutate Command Code settings, or change session lifecycle. Real CLI path was not retested for this renderer-only helper slice.

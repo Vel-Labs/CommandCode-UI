@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { JSX, ReactNode } from 'react'
 import type { TransportAPI } from '../../../core/transport'
 import type { AgentConfig, DiscoveredSession, ProjectCommandCodeReference } from '../../../core/types'
+import { AgentHelper } from '../workflows/AgentHelper'
 
 export function ProjectStateSettings({ transport, cwd }: { transport: TransportAPI; cwd: string }): JSX.Element {
   const [reference, setReference] = useState<ProjectCommandCodeReference | null>(null)
@@ -214,6 +215,7 @@ export function AgentsSettingsReadOnly({ transport, cwd }: { transport: Transpor
 
   return (
     <SettingsReadOnlyCard title={`Agent configs (${agents.length})`} loading={loading} onRefresh={load}>
+      <AgentHelper cwd={cwd} />
       <p className="settings-muted">Agent edits use the existing project-scoped save route. Destination paths stay visible and server validation keeps writes under the selected project `.commandcode/agents/` root.</p>
       {saveStatus && <p className="settings-muted">{saveStatus}</p>}
       {agents.map((agent) => (
