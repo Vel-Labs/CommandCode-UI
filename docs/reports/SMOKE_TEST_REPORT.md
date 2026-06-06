@@ -1681,3 +1681,17 @@ Scope: Settings usability and project-agent creation package. Settings content n
 | Screenshots | Pass | `/tmp/ccgui-settings-hooks-size-aware-electron-v3.png` and `/tmp/ccgui-settings-hooks-size-aware-electron-bottom.png` |
 
 Scope: Settings size-awareness follow-up. The native shell height chain now constrains Settings to the visible Electron window, Settings cards use the available right-pane width, Hooks overview items use a compact responsive grid, and compact Settings row groups become multi-column when the viewport allows. This package did not change renderer IPC, file access, config writes, hook behavior, agent behavior, session lifecycle, or Command Code runtime semantics.
+
+### 2026-06-06 Session terminal visibility
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `173/173` |
+| Build | Pass | `npm run build`; renderer assets `index-BoPwOM3M.js` and `index-h_DKy3c-.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser`; mock headless, mock session create/exit, multi-session independence, auth checks passed |
+| PTY smoke | Pass | `npm run smoke:pty`; node-pty available, shell `/bin/zsh`, healthy `true`, output `"ok"` |
+| Built Browser session UI | Pass | Authenticated `http://127.0.0.1:58221/` loaded title `Command Code`; Demo-mode session preserved `browser terminal visibility proof` after sidebar collapse, `resetToAttachOnly: false`, and console warnings/errors were empty |
+| Built Electron session UI | Pass | Built Electron at `1306x768` started a Demo-mode session, preserved `terminal visibility proof` after sidebar resize, `resetToAttachOnly: false`, terminal host stayed visible, and screenshot saved to `/tmp/ccgui-session-terminal-visible-electron.png` |
+
+Scope: Session terminal visibility follow-up. `TerminalPane` no longer clears and resubscribes its xterm buffer when parent session readiness updates change callback identity, and active panes now fit/refresh after visible layout settlement. The session workspace and terminal card height chain is explicitly constrained for resized Electron windows. This package did not add renderer IPC, broaden transport, change PTY/session lifecycle ownership, scrape terminal output for private state, mutate files/config, or alter Command Code invocation semantics. Real CLI conversation output was not manually exercised in this package; PTY health was smoke-tested and the renderer fix is transport-agnostic.

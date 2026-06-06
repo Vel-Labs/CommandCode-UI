@@ -29,11 +29,16 @@ export function TerminalPane({ transport, sessionId, onExit, onExpandRequest, on
   const lastSizeRef = useRef({ cols: 0, rows: 0 })
   const lastUserInputAtRef = useRef(0)
   const recentOutputRef = useRef('')
+  const onExitRef = useRef(onExit)
   const onExpandRequestRef = useRef(onExpandRequest)
   const onInputRequestRef = useRef(onInputRequest)
   const onInputCommitRef = useRef(onInputCommit)
   const inputEnabledRef = useRef(inputEnabled)
   const [followingOutput, setFollowingOutput] = useState(true)
+
+  useEffect(() => {
+    onExitRef.current = onExit
+  }, [onExit])
 
   useEffect(() => {
     onExpandRequestRef.current = onExpandRequest
@@ -57,10 +62,9 @@ export function TerminalPane({ transport, sessionId, onExit, onExpandRequest, on
     }
   }, [inputEnabled])
 
-  useEffect(() => {
-    activeRef.current = active
+  const fitVisibleTerminal = (): void => {
     const terminal = terminalRef.current
-    if (!active || !terminal) return
+    if (!terminal || !activeRef.current) return
     fitRef.current?.fit()
     const nextSize = { cols: terminal.cols, rows: terminal.rows }
     const changed = nextSize.cols !== lastSizeRef.current.cols || nextSize.rows !== lastSizeRef.current.rows
@@ -68,6 +72,19 @@ export function TerminalPane({ transport, sessionId, onExit, onExpandRequest, on
     if (sessionRef.current && changed) {
       void transport.resize(sessionRef.current, terminal.cols, terminal.rows)
     }
+    if (terminal.rows > 0) {
+      terminal.refresh(0, terminal.rows - 1)
+    }
+  }
+
+  useEffect(() => {
+    activeRef.current = active
+    const terminal = terminalRef.current
+    if (!active || !terminal) return
+    fitVisibleTerminal()
+    window.requestAnimationFrame(() => {
+      fitVisibleTerminal()
+    })
     if (inputEnabledRef.current) {
       terminal.focus()
     }
@@ -201,11 +218,11 @@ export function TerminalPane({ transport, sessionId, onExit, onExpandRequest, on
       })
     })
 
-    const offExit = onExit
+    const offExit = onExitRef.current
       ? transport.onSessionExit(sessionId, (payload) => {
         terminal.writeln('')
         terminal.writeln(`\x1b[35msession exited\x1b[0m code=${payload.exitCode ?? 'null'} signal=${payload.signal ?? 'null'}`)
-        onExit(payload)
+        onExitRef.current?.(payload)
       })
       : () => undefined
 
@@ -213,7 +230,7 @@ export function TerminalPane({ transport, sessionId, onExit, onExpandRequest, on
       offData()
       offExit()
     }
-  }, [sessionId, onExit, transport])
+  }, [sessionId, transport])
 
   return (
     <div
