@@ -381,10 +381,10 @@ const integrationSections: Array<{
 }> = [
   { section: 'mcp', label: 'MCP', description: 'Read configured MCP servers and tool visibility.', icon: <Plug size={16} /> },
   { section: 'hooks', label: 'Hooks', description: 'Review documented hook scopes before write support lands.', icon: <Braces size={16} /> },
-  { section: 'agents', label: 'Agents', description: 'Inspect discovered project and global agent files.', icon: <Bot size={16} /> },
+  { section: 'agents', label: 'Agents', description: 'Inspect and edit scoped project agent files.', icon: <Bot size={16} /> },
   { section: 'skills', label: 'Skills', description: 'Inspect installed skills and source paths.', icon: <MemoryStick size={16} /> },
   { section: 'design', label: 'Design', description: 'Review the staged /design helper entry point.', icon: <Monitor size={16} /> },
-  { section: 'memory', label: 'Memory', description: 'Inspect memory scopes and ownership warnings.', icon: <MemoryStick size={16} /> },
+  { section: 'memory', label: 'Memory', description: 'Inspect and edit scoped project memory files.', icon: <MemoryStick size={16} /> },
   { section: 'taste', label: 'Taste', description: 'Inspect taste profile discovery without editing internals.', icon: <Sparkles size={16} /> }
 ]
 

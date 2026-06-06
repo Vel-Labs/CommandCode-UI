@@ -14,14 +14,12 @@ This gate records what Settings replaces from `src/renderer/src/components/Advan
 | Agents | Agents | Implemented discovery and project-scoped editing through existing save route |
 | MCP | MCP | Implemented `cmd mcp list` view with connect/disconnect command previews and execution |
 | Skills | Skills | Implemented read-only discovery and content preview expansion |
-| Memory | Memory | Implemented read-only discovery |
+| Memory | Memory | Implemented discovery and project-scoped editing through existing save route |
 | Sessions | Sessions | Implemented discovery with project-session resume and transcript reveal actions |
 
 ## Blocking Advanced-Only Behavior
 
-The Advanced modal must stay available until each behavior below has a Settings route or an explicit replacement path:
-
-- Memory editing and `transport.saveMemory(filePath, content, cwd)`.
+No Advanced-only behavior is currently blocking replacement coverage. Removal still requires the rules below, including direct route receipts for the Settings replacements.
 
 ## Removal Rules
 
@@ -36,6 +34,6 @@ Do not remove `AdvancedPanel` until:
 
 ## Current Decision
 
-Keep `AdvancedPanel` as the explicit advanced tool surface.
+Keep `AdvancedPanel` available until the removal rules are closed.
 
-Settings is now the primary navigation home for configuration and diagnostics, including project-scoped session resume, transcript reveal, MCP connect/disconnect execution, and project-scoped agent writes. Advanced remains the only place for memory writes.
+Settings is now the primary navigation home for configuration and diagnostics, including project-scoped session resume, transcript reveal, MCP connect/disconnect execution, project-scoped agent writes, and project-scoped memory writes. Advanced no longer has an exclusive action, but removal remains gated by direct Browser/Electron reachability receipts and roadmap/doc closeout.

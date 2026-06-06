@@ -341,6 +341,23 @@ Scope: Settings MCP action package. MCP now exposes connect/disconnect execution
 
 Scope: Settings Agents write package. Agents now exposes edit/save using existing `transport.saveAgent` with visible destination paths. No renderer IPC expansion, new server routes, or Command Code settings mutation were added.
 
+### 2026-06-06 Phase 2 Settings memory editing
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `56/56` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5215`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets `index-DmRQ1WBq.js` and `index-B3iP_G8E.css` |
+| In-app Browser route | Pass | Authenticated `http://127.0.0.1:5215/` loaded title `Command Code`; shell body contained `Command Code` and `Settings` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:50919` |
+| Memory path boundary tests | Pass | `tests/server-security.test.ts` covers denied memory writes without a workspace root and allowed writes only to scoped project memory destinations |
+| Real Settings memory save click-through | Not run | Existing `transport.saveMemory` path was wired into Settings, but no project memory file was edited through the Settings button in this package |
+| Browser screenshot automation | Not run | Playwright is not installed in this project/runtime; no new dependency was added for this settings package |
+
+Scope: Settings Memory write package. Memory now exposes edit/save using existing `transport.saveMemory` with visible destination paths. No renderer IPC expansion, new server routes, or Command Code settings mutation were added.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |

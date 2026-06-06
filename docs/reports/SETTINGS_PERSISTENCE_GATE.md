@@ -89,7 +89,8 @@ Requires a write gate before implementation:
 - data deletion, cache clearing, reset, export, or import
 - hook editor writes
 - MCP add/remove/auth actions
-- agent, skill, memory, or taste editing
+- skill or taste editing
+- additional agent or memory create/delete flows outside the existing scoped save routes
 - Command Code `settings.json` mutation
 
 ## Validation Status
@@ -111,12 +112,14 @@ Current visible destination coverage:
 - Appearance shows the GUI app/project preference destinations for `appearanceTheme`.
 - Notifications shows renderer-local `localStorage` destinations for toast and audio preferences.
 - Terminal shows the renderer-local `localStorage` destination for xterm presentation preferences.
+- Agents shows the project-scoped `.commandcode/agents/` destination before saving through the existing save route.
+- Memory shows the project-scoped `COMMANDCODE.md`, `AGENTS.md`, `CLAUDE.md`, or `.commandcode/memory/` destination before saving through the existing save route.
 
 Known unimplemented acceptance:
 
 - OS notifications, hook-triggered alerts, quiet mode, and per-session readiness preferences
 - terminal bell behavior, profiles, history controls, and live PTY geometry updates
 - window restore and automatic session start/resume behavior
-- editable settings destination labels for future write-capable sections
+- editable settings destination labels for future write-capable sections not listed above
 - data controls write/delete only within approved roots; see `docs/reports/DATA_CONTROLS_GATE.md`
 - AdvancedPanel removal after Settings replacement paths exist

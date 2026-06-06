@@ -128,6 +128,7 @@ Current implementation status on 2026-06-06:
 - Sessions now includes project-session resume and transcript reveal actions in Settings using existing App/transport paths; no terminal-output inference or new IPC was added.
 - MCP now includes connect/disconnect execution in Settings using the existing `transport.mcpAction` path and visible command previews. Add, remove, and auth actions remain gated.
 - Agents now includes edit/save in Settings using the existing `transport.saveAgent` route. Destination paths are visible and server validation keeps writes under the selected project `.commandcode/agents/` root.
+- Memory now includes edit/save in Settings using the existing `transport.saveMemory` route. Destination paths are visible and server validation keeps writes to `COMMANDCODE.md`, `AGENTS.md`, `CLAUDE.md`, or `.commandcode/memory/` under the selected project root.
 - No renderer IPC expansion or Command Code settings mutation was added by these Settings Center packages.
 - `docs/reports/SETTINGS_PERSISTENCE_GATE.md` defines the Phase 2 ownership boundary for GUI-owned preferences versus Command Code-owned `settings.json` before additional editable sections add writes.
 - `docs/reports/ADVANCED_PANEL_REMOVAL_GATE.md` defines which AdvancedPanel behavior has Settings replacement coverage and which advanced-only actions still block modal removal.
