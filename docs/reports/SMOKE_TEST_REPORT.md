@@ -863,3 +863,17 @@ Scope: behavior-preserving extraction of command palette/release-note constants 
 | Browser screenshot automation | Not run | Playwright is not installed in this project; no new dependency was added for this cleanup |
 
 Scope: removed documented unreferenced legacy components, the unreachable `mode` popover branch, and stale `.control-panel`, `.quick-command-list`, `.mode-rail`, and `.mode-popover` CSS selectors. No Command Code runtime, transport, session lifecycle, or config write behavior changed.
+
+### 2026-06-06 Phase 4 session model identity labels
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `107/107` |
+| Build | Pass | `npm run build`; renderer assets `index-B80NPNmD.js` and `index-Df7RZjIk.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57370`; token proof returned `302`, cookie-authenticated `/` served built assets `index-B80NPNmD.js` and `index-Df7RZjIk.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:57625` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
+
+Scope: added a pure renderer session model identity resolver and used it for session header, composer chip, tab detail, and transcript metadata labels. This did not change Command Code model routing, CLI arguments, IPC routes, config writes, filesystem access, or session lifecycle. Real CLI path was not retested for this presentation-only slice.

@@ -612,6 +612,8 @@ Sequential:
 
 Goal: make model routing and per-session model context truthful.
 
+Status update 2026-06-06: First presentation-foundation package added a tested session model identity resolver in `src/renderer/src/services/sessionModelIdentity.ts` and wired it into active session header labels, composer chips, tab details, and transcript metadata. This package keeps display labels and command values separate, preserves the existing `SessionTab.model` session-start metadata, and uses `Default at start` when exact old-session metadata is unavailable instead of falling back to the current global picker. It did not add model routing config writes, CLI argument changes, Command Code model semantics, IPC routes, filesystem access, or session lifecycle changes. Validation receipts: `npm run typecheck`, `npx vitest run` -> `107/107`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:57370/` serving assets `index-B80NPNmD.js` and `index-Df7RZjIk.css`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:57625`. Browser screenshot automation remains not run because Playwright is not installed in this project.
+
 ### Scope
 
 - Add persistent Settings > Models / Task Routing for `/configure-models`.

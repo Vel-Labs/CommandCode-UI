@@ -7,6 +7,7 @@ import { ComposerBar } from '../components/ComposerBar'
 import { StatusPill } from '../components/StatusPill'
 import { TabBar } from '../components/TabBar'
 import { TerminalPane } from '../components/TerminalPane'
+import { sessionModelLabel } from '../services/sessionModelIdentity'
 
 export function SessionWorkspace({
   transport,
@@ -92,7 +93,7 @@ export function SessionWorkspace({
           <div className="session-title">{activeTab?.label || 'Session'}</div>
           <div className="session-context">
             <span>{activeTab?.projectLabel || projectLabel}</span>
-            <StatusPill label={sessionModelLabel(activeTab?.model)} tone="default" />
+            <StatusPill label={sessionModelLabel({ model: activeTab?.model, transcriptModel: activeTab?.resumedSession?.model })} tone="default" />
             <StatusPill label={activeTab?.mock ? 'mock' : 'real cli'} tone={activeTab?.mock ? 'purple' : 'warn'} />
             {activeTab?.readiness.inputRequired && <StatusPill label="input" tone="warn" />}
             {activeTab?.readiness.responseReady && <StatusPill label="ready" tone="default" />}
@@ -161,7 +162,7 @@ export function SessionWorkspace({
           showPlanSuggestion={showPlanSuggestion}
           onPlanMode={onUsePlanMode}
           projectLabel={projectLabel}
-          modelLabel={sessionModelLabel(activeTab?.model)}
+          modelLabel={sessionModelLabel({ model: activeTab?.model, transcriptModel: activeTab?.resumedSession?.model })}
           permissionLabel={permissionLabel}
           riskyPermission={riskyPermission}
           onProject={onProject}
@@ -205,8 +206,4 @@ function WorkbenchToolRail({
       </button>
     </div>
   )
-}
-
-function sessionModelLabel(model?: string): string {
-  return model?.trim() || 'Default at start'
 }

@@ -4,6 +4,7 @@ import { FileText, RotateCcw } from 'lucide-react'
 import type { DiscoveredSession } from '../../../core/types'
 import type { TransportAPI } from '../../../core/transport'
 import type { WorkEvent } from '../appTypes'
+import { resolveSessionModelIdentity } from '../services/sessionModelIdentity'
 
 export function TranscriptWorkspace({
   session,
@@ -24,13 +25,15 @@ export function TranscriptWorkspace({
   onReveal: () => void
   onOpenTranscript: () => void
 }): JSX.Element {
+  const modelIdentity = resolveSessionModelIdentity({ transcriptModel: session.model })
+
   return (
     <section className="transcript-workspace" aria-label="Transcript">
       <header className="transcript-header">
         <div>
           <div className="transcript-eyebrow">Recent context</div>
           <h1>{session.title || session.id}</h1>
-          <div className="transcript-meta">{session.id} · {new Date(session.timestamp).toLocaleString()}</div>
+          <div className="transcript-meta">{session.id} · {new Date(session.timestamp).toLocaleString()} · {modelIdentity.label}</div>
         </div>
         <div className="transcript-actions">
           <button className="primary-button" onClick={onResume}><RotateCcw size={16} /> Resume</button>

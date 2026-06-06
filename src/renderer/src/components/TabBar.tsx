@@ -1,5 +1,6 @@
 import type { JSX } from 'react'
 import type { SessionReadinessState } from '../services/sessionReadiness'
+import { sessionModelLabel } from '../services/sessionModelIdentity'
 
 type SessionTab = {
   id: string
@@ -31,7 +32,7 @@ export function TabBar({ tabs, activeId, onSelect, onKill }: TabBarProps): JSX.E
         >
           <span className={`tab-dot ${tab.mock ? 'tab-dot--mock' : 'tab-dot--live'}`} />
           <span className="tab-label">{tab.label}</span>
-          <span className="tab-model">{tab.model?.trim() || 'default'}</span>
+          <span className="tab-model">{sessionModelLabel({ model: tab.model })}</span>
           {tab.readiness.unread && <span className="tab-readiness tab-readiness--unread">new</span>}
           {tab.readiness.inputRequired && <span className="tab-readiness tab-readiness--input">input</span>}
           {tab.readiness.responseReady && <span className="tab-readiness tab-readiness--ready">ready</span>}
