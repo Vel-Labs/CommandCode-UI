@@ -65,7 +65,12 @@ export function RightInspectorPanel({
 
   return (
     <aside className="right-inspector" aria-label={title}>
-      <div className="right-inspector-resize-handle" onPointerDown={onResizeStart} title="Resize inspector" />
+      <div
+        className="right-inspector-resize-handle"
+        onPointerDown={onResizeStart}
+        title="Resize or collapse inspector"
+        aria-label="Resize or collapse inspector"
+      />
       <header className="right-inspector-header">
         <div className="right-inspector-title-group">
           <div>{title}</div>

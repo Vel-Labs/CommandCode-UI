@@ -1532,3 +1532,17 @@ Scope: receipt-only popover validation. This did not change code, renderer IPC, 
 | Built Electron UI | Pass | Playwright Electron launcher clicked the same switcher targets with `Files->Files`, `Transcript->Transcript`, `Docs->Docs`, `Env->Environment`, and `IDE->IDE`; screenshot `/tmp/ccgui-phase9-inspector-switcher-electron.png` |
 
 Scope: right-inspector companion-pane polish. `RightInspectorPanel` now exposes a compact switcher for existing inspector modes only. This did not add hooks/MCP inspector modes, file actions, renderer IPC, server routes, transport calls, config writes, file access capability, session lifecycle changes, or Command Code invocation behavior.
+
+### 2026-06-06 Phase 9 inspector resize-to-collapse
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Build | Pass | `npm run build`; renderer assets `index-BGEnCu0J.js` and `index-BIgUyJ0b.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` -> `7.3b Multi-session independence: PASS` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57410`; token proof returned `302`, cookie-authenticated `/` served built assets `index-BGEnCu0J.js` and `index-BIgUyJ0b.css` |
+| Built asset UI proof | Pass | `rg -n "Resize or collapse inspector|right-inspector-resize-handle::before|index-BGEnCu0J|index-BIgUyJ0b" out/renderer/assets/index-BGEnCu0J.js out/renderer/assets/index-BIgUyJ0b.css out/renderer/index.html` |
+| In-app Browser drag | Pass | Demo-mode session opened Environment inspector; handle label was `Resize or collapse inspector`; dragging past the collapse threshold produced `inspectorCount: 0`; screenshot `/tmp/ccgui-phase9-inspector-collapse-browser.png` |
+| Built Electron drag | Pass | Playwright Electron launcher repeated the same drag path; handle label was `Resize or collapse inspector`; after drag `inspectorCount: 0`; screenshot `/tmp/ccgui-phase9-inspector-collapse-electron.png` |
+
+Scope: right-inspector resize-to-collapse polish. The existing drag-to-collapse behavior is now discoverable through a labeled handle and visible grip. This did not add persistence keys, resize routes, renderer IPC, server routes, transport calls, config writes, file access capability, session lifecycle changes, or Command Code invocation behavior.

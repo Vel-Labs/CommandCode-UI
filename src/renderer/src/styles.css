@@ -3321,9 +3321,27 @@ input[type="range"]::-webkit-slider-thumb {
   background: transparent;
 }
 
+.right-inspector-resize-handle::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 2px;
+  width: 5px;
+  height: 44px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  transform: translateY(-50%);
+  opacity: 0;
+}
+
 .right-inspector-resize-handle:hover::after,
 .is-resizing-panel .right-inspector-resize-handle::after {
   background: color-mix(in srgb, var(--cc-accent-cool, #8b5cf6) 65%, transparent);
+}
+
+.right-inspector-resize-handle:hover::before,
+.is-resizing-panel .right-inspector-resize-handle::before {
+  opacity: 1;
 }
 
 .right-inspector-header {
