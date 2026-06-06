@@ -233,4 +233,32 @@ describe('CoreSessionManager session metadata', () => {
     expect(result.model).toBeUndefined()
     manager.forceKill(result.id)
   })
+
+  it('keeps a blocked mock session independent from other live sessions', async () => {
+    const manager = new CoreSessionManager()
+    const first = manager.start({ cwd: os.homedir(), useMock: true })
+    const second = manager.start({ cwd: os.homedir(), useMock: true })
+    const third = manager.start({ cwd: os.homedir(), useMock: true })
+    const exited: string[] = []
+    manager.on('session:exit', (payload) => exited.push(payload.sessionId))
+
+    manager.write(first.id, 'partial input without newline')
+    manager.write(second.id, '/exit\r')
+
+    await new Promise((resolve) => setTimeout(resolve, 20))
+
+    expect(exited).toContain(second.id)
+    expect(manager.isActive(first.id)).toBe(true)
+    expect(manager.isActive(second.id)).toBe(false)
+    expect(manager.isActive(third.id)).toBe(true)
+
+    manager.write(first.id, '/help\r')
+    await new Promise((resolve) => setTimeout(resolve, 350))
+
+    expect(manager.getReplay(first.id)).toContain('Mock slash commands')
+    expect(manager.getReplay(third.id)).toContain('Command Code GUI mock session')
+
+    manager.forceKill(first.id)
+    manager.forceKill(third.id)
+  })
 })

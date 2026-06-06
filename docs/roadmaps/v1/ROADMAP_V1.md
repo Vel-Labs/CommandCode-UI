@@ -1014,6 +1014,8 @@ Seventh status update on 2026-06-06: active Command Code sessions now keep their
 
 Eighth status update on 2026-06-06: `FileViewer` now treats `.html` and `.htm` as explicit fallback-to-source previews with a visible safety note. HTML content is not executed in the GUI preview. Validation receipts: `npm run typecheck`, `npx vitest run` -> `161/161`, `npm run build`, `npm run smoke:browser`, built route token proof at `http://127.0.0.1:57399/` serving `index-Cg2UA8m-.js` and `index-pRMa43Mm.css`, built asset proof for `HTML is shown as source`, `html-source`, `fileViewerMode`, and `not executed`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:64927`. This did not add sandbox execution, renderer IPC, server routes, new file access, config writes, or Command Code invocation behavior.
 
+Ninth status update on 2026-06-06: added `tests/cli.test.ts` coverage proving a partial-input mock session remains active while another live mock session exits and a third session remains active, then the first session can still respond. Validation receipts: `npm run typecheck` and `npx vitest run` -> `162/162`. This is a regression proof only and does not change runtime code, renderer IPC, server routes, terminal behavior, config writes, or Command Code invocation behavior.
+
 ### Scope
 
 - Parse transcript JSONL into readable conversation/timeline entries. Implemented for the transcript preview UI.
@@ -1060,7 +1062,7 @@ Likely new files:
 - Markdown preview renders `.md` files. Existing `FileViewer` Markdown rendering is reachable from transcript artifact chips through the right inspector.
 - HTML preview is sandboxed or falls back safely. Implemented as source-only fallback with a visible non-execution note.
 - Active sessions restore visually after tab changes, inspector resizing, and terminal input toggles. Implemented for tab/layout restoration with mounted per-session panes; manual multi-session dogfood remains part of Phase 8 closeout.
-- One blocked interactive session does not block rendering or state in other sessions.
+- One blocked interactive session does not block rendering or state in other sessions. Mock session independence is covered in `tests/cli.test.ts`; manual UI dogfood remains part of Phase 8 closeout.
 - Per-session artifacts remain associated with the correct session.
 - `npm run typecheck`
 - `npx vitest run`

@@ -1373,3 +1373,12 @@ Scope: session lifecycle UI package. Active sessions now keep their own mounted 
 | Browser plugin navigation | Not available | The Browser navigation tool was not exposed; route-level and built-asset receipts were used instead |
 
 Scope: safe file preview package. `.html` and `.htm` files now render as source with a visible safety note that HTML is not executed in the GUI preview. The package adds pure `fileViewerMode` tests and does not add sandbox execution, renderer IPC, server routes, new file access, config writes, runtime/session lifecycle changes, or Command Code invocation behavior.
+
+### 2026-06-06 Phase 8 multi-session independence regression
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `162/162` |
+
+Scope: regression-test package. `tests/cli.test.ts` now verifies that a mock session held at partial input remains active while another live session exits and a third session remains active, then the first session can still respond to a later command. This did not change runtime code, renderer IPC, server routes, terminal behavior, config writes, file access, or Command Code invocation behavior.
