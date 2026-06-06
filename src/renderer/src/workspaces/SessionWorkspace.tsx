@@ -114,15 +114,26 @@ export function SessionWorkspace({
       <TabBar tabs={tabs} activeId={activeTabId} onSelect={onSelectTab} onKill={onKillTab} />
 
       <section className="terminal-card native-terminal-card">
-        <TerminalPane
-          transport={transport}
-          sessionId={activeTabId}
-          inputEnabled={terminalInputEnabled}
-          onInputRequest={onTerminalInputRequest}
-          onInputCommit={onTerminalInputCommit}
-          onExit={onExit}
-          onExpandRequest={onExpandRequest}
-        />
+        {tabs.length ? tabs.map((tab) => (
+          <div
+            key={tab.id}
+            className={`terminal-pane-slot ${tab.id === activeTabId ? 'terminal-pane-slot--active' : ''}`}
+            aria-hidden={tab.id !== activeTabId}
+          >
+            <TerminalPane
+              transport={transport}
+              sessionId={tab.id}
+              active={tab.id === activeTabId}
+              inputEnabled={tab.id === activeTabId && terminalInputEnabled}
+              onInputRequest={tab.id === activeTabId ? onTerminalInputRequest : undefined}
+              onInputCommit={tab.id === activeTabId ? onTerminalInputCommit : undefined}
+              onExit={onExit}
+              onExpandRequest={tab.id === activeTabId ? onExpandRequest : undefined}
+            />
+          </div>
+        )) : (
+          <TerminalPane transport={transport} inputEnabled={false} />
+        )}
       </section>
 
       {bottomTerminalOpen && shellSessionId && (

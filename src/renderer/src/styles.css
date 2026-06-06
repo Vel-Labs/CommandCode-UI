@@ -2645,12 +2645,27 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 .native-terminal-card {
+  position: relative;
   min-height: 0;
   overflow: hidden;
   border-color: rgba(255, 255, 255, 0.09);
   border-radius: 12px;
   background: #050505;
   box-shadow: none;
+}
+
+.terminal-pane-slot {
+  position: absolute;
+  inset: 6px;
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.terminal-pane-slot--active {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
 }
 
 .bottom-terminal-panel {

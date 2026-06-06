@@ -17,13 +17,15 @@ type TerminalPaneProps = {
   onInputCommit?: () => void
   compact?: boolean
   inputEnabled?: boolean
+  active?: boolean
 }
 
-export function TerminalPane({ transport, sessionId, onExit, onExpandRequest, onInputRequest, onInputCommit, compact = false, inputEnabled = true }: TerminalPaneProps): JSX.Element {
+export function TerminalPane({ transport, sessionId, onExit, onExpandRequest, onInputRequest, onInputCommit, compact = false, inputEnabled = true, active = true }: TerminalPaneProps): JSX.Element {
   const hostRef = useRef<HTMLDivElement | null>(null)
   const terminalRef = useRef<Terminal | null>(null)
   const fitRef = useRef<FitAddon | null>(null)
   const sessionRef = useRef<string | undefined>(sessionId)
+  const activeRef = useRef(active)
   const lastSizeRef = useRef({ cols: 0, rows: 0 })
   const lastUserInputAtRef = useRef(0)
   const recentOutputRef = useRef('')
@@ -49,11 +51,30 @@ export function TerminalPane({ transport, sessionId, onExit, onExpandRequest, on
     inputEnabledRef.current = inputEnabled
     if (terminalRef.current) {
       terminalRef.current.options.disableStdin = !inputEnabled
-      if (inputEnabled) {
+      if (inputEnabled && activeRef.current) {
         terminalRef.current.focus()
       }
     }
   }, [inputEnabled])
+
+  useEffect(() => {
+    activeRef.current = active
+    const terminal = terminalRef.current
+    if (!active || !terminal) return
+    fitRef.current?.fit()
+    const nextSize = { cols: terminal.cols, rows: terminal.rows }
+    const changed = nextSize.cols !== lastSizeRef.current.cols || nextSize.rows !== lastSizeRef.current.rows
+    lastSizeRef.current = nextSize
+    if (sessionRef.current && changed) {
+      void transport.resize(sessionRef.current, terminal.cols, terminal.rows)
+    }
+    if (inputEnabledRef.current) {
+      terminal.focus()
+    }
+    if (followingOutput) {
+      terminal.scrollToBottom()
+    }
+  }, [active, followingOutput, transport])
 
   useEffect(() => {
     if (!hostRef.current || terminalRef.current) return
@@ -124,7 +145,7 @@ export function TerminalPane({ transport, sessionId, onExit, onExpandRequest, on
       const nextSize = { cols: terminal.cols, rows: terminal.rows }
       const changed = nextSize.cols !== lastSizeRef.current.cols || nextSize.rows !== lastSizeRef.current.rows
       lastSizeRef.current = nextSize
-      if (active && changed) transport.resize(active, terminal.cols, terminal.rows)
+      if (active && activeRef.current && changed) transport.resize(active, terminal.cols, terminal.rows)
     }
 
     const resizeObserver = new ResizeObserver(() => {
@@ -154,7 +175,7 @@ export function TerminalPane({ transport, sessionId, onExit, onExpandRequest, on
     terminal.writeln('')
     recentOutputRef.current = ''
     fitRef.current?.fit()
-    if (inputEnabledRef.current) {
+    if (inputEnabledRef.current && activeRef.current) {
       terminal.focus()
     }
     terminal.scrollToBottom()

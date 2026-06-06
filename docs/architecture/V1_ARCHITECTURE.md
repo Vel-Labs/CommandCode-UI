@@ -271,4 +271,5 @@ Current Phase 8 status on 2026-06-06:
 - `src/renderer/src/services/transcriptArtifacts.ts` provides browser-safe artifact suggestions for transcript UI only. It does not perform filesystem checks and is not an access-control boundary; the existing `FileViewer` and `/api/files/read` route remain the file-read enforcement path.
 - Transcript artifact chips open the existing right-inspector file preview after explicit user action. They do not auto-open files, add server routes, add renderer IPC, or broaden filesystem capability.
 - Sidebar session labels distinguish recent transcript contexts from live sessions, and live session rows show compact readiness/runtime metadata from existing `SessionReadinessState`.
+- `SessionWorkspace` keeps one mounted `TerminalPane` per live session. Inactive panes remain hidden and subscribed to their own output, while only the active pane accepts input and emits resize calls. This preserves terminal buffers across tab switches and inspector/layout changes without terminal-output scraping.
 - Safe rendered HTML preview, file reveal actions from artifact chips, session restoration, and response-ready state remain planned or gated.

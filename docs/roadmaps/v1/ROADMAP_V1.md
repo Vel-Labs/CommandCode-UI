@@ -1010,6 +1010,8 @@ Fifth status update on 2026-06-06: transcript workspaces now show read-only resu
 
 Sixth status update on 2026-06-06: the sidebar now distinguishes `Recent contexts` from `Live sessions` and adds compact metadata under rows: recent context source/date and live session readiness/runtime labels. This improves active-session visibility without changing session lifecycle, transcript discovery, resume behavior, terminal behavior, transport, renderer IPC, file access, config writes, or Command Code invocation behavior. Validation receipts: `npm run typecheck`, `npx vitest run` -> `159/159`, `npm run build`, `npm run smoke:browser`, built route token proof at `http://127.0.0.1:57397/` serving `index-B6d8s-38.js` and `index-iHF04H3r.css`, built asset proof for `Recent contexts`, `Live sessions`, `sessionVisibilityLabel`, and `sidebar-row-meta`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:64486`.
 
+Seventh status update on 2026-06-06: active Command Code sessions now keep their own mounted `TerminalPane` while inactive panes are hidden, so tab switches and inspector/layout changes no longer clear the visible terminal buffer for the selected session. Only the active pane accepts input and sends resize events; inactive panes remain subscribed to their own session output. This did not add renderer IPC, server routes, broad shell/file capability, Command Code command changes, config writes, transcript mutation, or private runtime inference. Validation receipts: `npm run typecheck`, `npx vitest run` -> `159/159`, `npm run build`, `npm run smoke:browser`, `npm run smoke:pty`, built route token proof at `http://127.0.0.1:57398/` serving `index-BTmTf7TD.js` and `index-Cw9LExQE.css`, built asset proof for `terminal-pane-slot`, `terminal-pane-slot--active`, `activeRef`, and mapped terminal panes, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:64699`.
+
 ### Scope
 
 - Parse transcript JSONL into readable conversation/timeline entries. Implemented for the transcript preview UI.
@@ -1020,7 +1022,7 @@ Sixth status update on 2026-06-06: the sidebar now distinguishes `Recent context
 - Add right-inspector previews for rendered Markdown, rendered HTML, raw text, ANSI logs, and reveal-file actions. Existing right-inspector file preview is wired from transcript artifact chips for Markdown, raw text, and ANSI through the current guarded file-read route; safe rendered HTML remains planned.
 - Add safe HTML rendering rules, sandboxing, or fallback-to-source behavior.
 - Add session search, grouping, labels/notes, and safe bulk operations.
-- Fix hidden/background terminal restoration so resize is not needed to repaint.
+- Fix hidden/background terminal restoration so resize is not needed to repaint. Implemented by keeping one mounted terminal pane per live session and activating panes without clearing their buffers.
 - Add explicit states for attaching, replaying, waiting for input, running, completed, errored, unread, and response-ready.
 - Clarify sidebar naming and active-session visibility. Implemented with `Recent contexts` and `Live sessions` sidebar labels plus per-row source/date/readiness/runtime metadata.
 
@@ -1055,7 +1057,7 @@ Likely new files:
 - Artifact detector rejects paths outside allowed roots and symlink escapes. Implemented and validated in `tests/artifact-detection.test.ts`.
 - Markdown preview renders `.md` files. Existing `FileViewer` Markdown rendering is reachable from transcript artifact chips through the right inspector.
 - HTML preview is sandboxed or falls back safely.
-- Active sessions restore visually after tab changes, inspector resizing, and terminal input toggles.
+- Active sessions restore visually after tab changes, inspector resizing, and terminal input toggles. Implemented for tab/layout restoration with mounted per-session panes; manual multi-session dogfood remains part of Phase 8 closeout.
 - One blocked interactive session does not block rendering or state in other sessions.
 - Per-session artifacts remain associated with the correct session.
 - `npm run typecheck`

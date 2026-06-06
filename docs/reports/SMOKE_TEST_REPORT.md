@@ -1342,3 +1342,19 @@ Scope: read-only resume receipt UI package. Transcript workspaces now show sourc
 | Browser plugin navigation | Not available | The Browser navigation tool was not exposed; route-level and built-asset receipts were used instead |
 
 Scope: sidebar presentation package. Sidebar labels now distinguish recent transcript contexts from live sessions, and rows show source/date or readiness/runtime metadata from existing session data. This did not change session lifecycle, transcript discovery, resume behavior, terminal behavior, transport, renderer IPC, file access, config writes, response-ready inference, or Command Code invocation behavior.
+
+### 2026-06-06 Phase 8 multi-session terminal restoration
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `159/159` |
+| Build | Pass | `npm run build`; renderer assets `index-BTmTf7TD.js` and `index-Cw9LExQE.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| PTY smoke | Pass | `npm run smoke:pty` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57398`; token proof returned `302`, cookie-authenticated `/` served built assets `index-BTmTf7TD.js` and `index-Cw9LExQE.css` |
+| Built asset UI proof | Pass | `rg -n "terminal-pane-slot|terminal-pane-slot--active|activeRef|inputEnabledRef|tabs.length \\? tabs.map" out/renderer/assets/index-BTmTf7TD.js out/renderer/assets/index-Cw9LExQE.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:64699` |
+| Browser plugin navigation | Not available | The Browser navigation tool was not exposed; route-level and built-asset receipts were used instead |
+
+Scope: session lifecycle UI package. Active sessions now keep their own mounted terminal panes so tab switches and inspector/layout changes do not clear terminal buffers. Hidden panes remain subscribed to their session output, while only the active pane accepts input and sends resize calls. This did not add renderer IPC, server routes, broad shell/file capability, Command Code command changes, config writes, transcript mutation, or private runtime inference. Manual three-session dogfood remains required before Phase 8 closeout.
