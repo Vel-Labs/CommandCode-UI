@@ -1560,3 +1560,17 @@ Scope: right-inspector resize-to-collapse polish. The existing drag-to-collapse 
 | Built Electron UI | Pass | Playwright Electron launcher showed the same computed-style receipt and screenshot `/tmp/ccgui-phase9-inspector-transition-electron.png` |
 
 Scope: CSS-only inspector motion polish. Right-inspector open state now has restrained grid easing and slide/fade entry motion with a reduced-motion override. This did not alter inspector state, persistence, renderer IPC, server routes, transport calls, config writes, file access capability, session lifecycle, or Command Code invocation behavior.
+
+### 2026-06-06 Phase 9 Settings loading skeletons
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Build | Pass | `npm run build`; renderer assets `index-CxJL1HRY.js` and `index-Cf7sVHd_.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` -> `7.3b Multi-session independence: PASS` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57412`; token proof returned `302`, cookie-authenticated `/` served built assets `index-CxJL1HRY.js` and `index-Cf7sVHd_.css` |
+| Built asset UI proof | Pass | `rg -n "settings-loading-skeleton|settings-skeleton-sheen|prefers-reduced-motion|index-CxJL1HRY|index-Cf7sVHd_" out/renderer/assets/index-CxJL1HRY.js out/renderer/assets/index-Cf7sVHd_.css out/renderer/index.html` |
+| In-app Browser Settings UI | Pass | Settings > MCP loading path showed `skeletonCount: 1` with the existing `Loading...` refresh button state; screenshot `/tmp/ccgui-phase9-settings-skeleton-mcp-browser.png` |
+| Built Electron Settings UI | Pass | Playwright Electron launcher showed the same Settings > MCP loading path with `skeletonCount: 1`; screenshot `/tmp/ccgui-phase9-settings-skeleton-electron.png` |
+
+Scope: shared Settings loading presentation. `SettingsReadOnlyCard` now renders additive skeleton rows from existing loading state. This did not change Settings navigation, transport calls, discovery semantics, config writes, renderer IPC, server routes, file access capability, session lifecycle, or Command Code invocation behavior.

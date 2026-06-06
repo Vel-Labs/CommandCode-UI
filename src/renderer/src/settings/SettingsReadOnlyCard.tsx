@@ -17,6 +17,13 @@ export function SettingsReadOnlyCard({
         <strong>{title}</strong>
         <button className="ghost-button native-ghost" onClick={() => void onRefresh()} disabled={loading}>{loading ? 'Loading...' : 'Refresh'}</button>
       </div>
+      {loading && (
+        <div className="settings-loading-skeleton" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
+      )}
       {children}
     </div>
   )
