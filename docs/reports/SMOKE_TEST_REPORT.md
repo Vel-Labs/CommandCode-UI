@@ -633,6 +633,21 @@ Scope: preview-only Settings UI package for broader hook edits. Settings > Hooks
 
 Scope: scoped broader hook edit write package. Added `/api/hooks/apply-edit`, `transport.applyHookEdit(...)`, and Settings `Apply edit preview` confirmation for command, matcher, timeout, and delete edits. The server recomputes the preview from the current scoped settings file, writes a sibling `.ccgui.bak` backup, then writes only the derived user/project `settings.json` path. No arbitrary file path, renderer IPC, hook execution, OS notification, audio behavior, or Command Code runtime mutation was added. The real Command Code interactive path was not exercised because this package edits config only.
 
+### 2026-06-06 Phase 3 scoped hook log viewer
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `94/94` |
+| Build | Pass | `npm run build`; assets `index-B7vaMBRP.js` and `index-Df7RZjIk.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser`; mock session created/exited, auth checks passed |
+| Hook log API proof | Pass | Authenticated `/api/hooks/logs` and `/api/hooks/logs/read` against temp project `/var/folders/r8/0k0xbybj7svf24btnjglc7jh0000gn/T/ccgui-hook-log-proof-KXgeh5`; listed only `audit.log`, read `hook log proof`, rejected outside `outside.log`, and rejected unsupported `secret.md` |
+| Built browser route | Pass | `npm run dev:server -- --port 56188`; token proof returned `302`, cookie-authenticated `/` served built assets `index-B7vaMBRP.js` and `index-Df7RZjIk.css`; authenticated `/api/hooks/logs` for the repo returned derived project/user hook directories and no arbitrary path |
+| Electron dev startup | Pass | `npm run dev`; renderer `http://localhost:5175/`, embedded app server `http://127.0.0.1:56240` |
+| In-app Browser screenshot automation | Not run | Browser plugin navigation tools were not exposed in this turn and Playwright is not installed in this project; route-level and Electron startup receipts were used instead |
+
+Scope: scoped read-only hook log diagnostics package. Added `src/core/hooksLogs.ts`, `/api/hooks/logs`, `/api/hooks/logs/read`, `transport.listHookLogs(...)`, `transport.readHookLog(...)`, and Settings > Hooks source diagnostics plus raw preview UI. The server derives only `<project>/.commandcode/hooks` and `~/.commandcode/hooks`, lists supported log-like files (`.log`, `.jsonl`, `.txt`, `.ansi`), caps reads at the existing 1 MB file-read limit, and rejects outside paths and unsupported extensions. No arbitrary file access, renderer IPC, hook execution, hook test-runner, OS notification, audio behavior, or Command Code runtime mutation was added. The real Command Code interactive path was not exercised because this package only reads scoped diagnostics.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |

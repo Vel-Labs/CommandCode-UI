@@ -28,6 +28,7 @@ import type {
 } from '../../core/types'
 import type { PtyDoctorResult } from '../../core/ptyDoctor'
 import type { HookConfigDiscoveryResult, HookConfigEditApplyResult, HookConfigEditPreviewResult, HookConfigToggleApplyResult, HookConfigTogglePreviewResult } from '../../core/hooksConfig'
+import type { HookLogDiscoveryResult, HookLogReadResult } from '../../core/hooksLogs'
 
 let cachedToken = ''
 let serverUrl = ''
@@ -376,6 +377,18 @@ export function createBrowserTransport(): TransportAPI {
 
     applyHookEdit: async (options) =>
       fetchJson<HookConfigEditApplyResult>('/api/hooks/apply-edit', {
+        method: 'POST',
+        body: JSON.stringify(options)
+      }),
+
+    listHookLogs: async (cwd?) =>
+      fetchJson<HookLogDiscoveryResult>('/api/hooks/logs', {
+        method: 'POST',
+        body: JSON.stringify({ cwd })
+      }),
+
+    readHookLog: async (options) =>
+      fetchJson<HookLogReadResult>('/api/hooks/logs/read', {
         method: 'POST',
         body: JSON.stringify(options)
       }),

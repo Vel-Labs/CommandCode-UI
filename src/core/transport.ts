@@ -38,6 +38,7 @@ import type {
   HookEvent,
   HookScope
 } from './hooksConfig'
+import type { HookLogDiscoveryResult, HookLogReadResult } from './hooksLogs'
 
 export type SessionDataSource = 'live' | 'replay'
 export type SessionDataCallback = (data: string, metadata: { source: SessionDataSource }) => void
@@ -106,6 +107,12 @@ export type TransportAPI = {
     action: 'update' | 'remove'
     update?: HookCommandUpdate
   }) => Promise<HookConfigEditApplyResult>
+  listHookLogs: (cwd?: string) => Promise<HookLogDiscoveryResult>
+  readHookLog: (options: {
+    cwd?: string
+    sourceScope: HookScope
+    path: string
+  }) => Promise<HookLogReadResult>
   applyHookToggle: (options: {
     cwd?: string
     sourceScope: HookScope

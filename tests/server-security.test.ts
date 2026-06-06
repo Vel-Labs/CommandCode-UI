@@ -209,6 +209,69 @@ describe('server filesystem boundaries', () => {
     expect(discovered.hooks[0]).toMatchObject({ command: 'echo project-stop', sourceScope: 'project' })
   })
 
+  it('lists and reads hook logs only from the scoped project hooks directory', async () => {
+    const app = await startServer()
+    const project = tempProject()
+    const hooksDir = path.join(project, '.commandcode', 'hooks')
+    const logPath = path.join(hooksDir, 'audit.log')
+    const ignoredPath = path.join(hooksDir, 'secret.md')
+
+    mkdirSync(hooksDir, { recursive: true })
+    writeFileSync(logPath, 'hook output\n', 'utf8')
+    writeFileSync(ignoredPath, 'not a log\n', 'utf8')
+
+    const listed = await apiPost<{
+      logs: Array<{ path: string; name: string; sourceScope: string }>
+      sources: Array<{ sourceScope: string; dir: string; exists: boolean }>
+    }>(app, '/api/hooks/logs', { cwd: project })
+    const projectSource = listed.sources.find((source) => source.sourceScope === 'project')
+
+    expect(projectSource).toMatchObject({
+      dir: path.join(realpathSync(project), '.commandcode', 'hooks'),
+      exists: true
+    })
+    expect(listed.logs.map((log) => log.name)).toContain('audit.log')
+    expect(listed.logs.map((log) => log.name)).not.toContain('secret.md')
+
+    const read = await apiPost<{ ok: boolean; content?: string; path?: string }>(app, '/api/hooks/logs/read', {
+      cwd: project,
+      sourceScope: 'project',
+      path: logPath
+    })
+
+    expect(read.ok).toBe(true)
+    expect(read.path).toBe(path.join(realpathSync(project), '.commandcode', 'hooks', 'audit.log'))
+    expect(read.content).toBe('hook output\n')
+  })
+
+  it('rejects hook log reads outside scoped hooks directory or unsupported extensions', async () => {
+    const app = await startServer()
+    const project = tempProject()
+    const hooksDir = path.join(project, '.commandcode', 'hooks')
+    const outsidePath = path.join(project, 'outside.log')
+    const unsupportedPath = path.join(hooksDir, 'secret.md')
+
+    mkdirSync(hooksDir, { recursive: true })
+    writeFileSync(outsidePath, 'outside\n', 'utf8')
+    writeFileSync(unsupportedPath, 'secret\n', 'utf8')
+
+    const outside = await apiPost<{ ok: boolean; error?: string }>(app, '/api/hooks/logs/read', {
+      cwd: project,
+      sourceScope: 'project',
+      path: outsidePath
+    })
+    const unsupported = await apiPost<{ ok: boolean; error?: string }>(app, '/api/hooks/logs/read', {
+      cwd: project,
+      sourceScope: 'project',
+      path: unsupportedPath
+    })
+
+    expect(outside.ok).toBe(false)
+    expect(outside.error).toContain('outside documented hooks directory')
+    expect(unsupported.ok).toBe(false)
+    expect(unsupported.error).toContain('Unsupported hook log file type')
+  })
+
   it('reports hook config parse errors without writing or executing hooks', async () => {
     const app = await startServer()
     const project = tempProject()

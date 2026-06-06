@@ -43,6 +43,14 @@ import {
   type HookConfigSourceResult,
   type HookScope
 } from '../core/hooksConfig'
+import {
+  extensionOf,
+  isHookLogFileName,
+  type HookLogDiscoveryResult,
+  type HookLogEntry,
+  type HookLogReadResult,
+  type HookLogSourceResult
+} from '../core/hooksLogs'
 import type {
   CliExecResult,
   AppGuiPreferences,
@@ -422,6 +430,104 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
     const workspace = resolveWorkspaceRoot(cwd)
     if (!workspace.root) return { error: workspace.error || 'Access denied — project root is required' }
     return { sourcePath: path.join(workspace.root, '.commandcode', 'settings.json') }
+  }
+
+  function hookLogDirForScope(sourceScope: HookScope, cwd?: string): { dir?: string; error?: string } {
+    if (sourceScope === 'user') {
+      return { dir: path.join(os.homedir(), '.commandcode', 'hooks') }
+    }
+
+    const workspace = resolveWorkspaceRoot(cwd)
+    if (!workspace.root) return { error: workspace.error || 'Access denied — project root is required' }
+    return { dir: path.join(workspace.root, '.commandcode', 'hooks') }
+  }
+
+  function emptyHookLogSource(sourceScope: HookScope, dir: string, error?: string): HookLogSourceResult {
+    return {
+      sourceScope,
+      dir,
+      exists: false,
+      logs: [],
+      errors: error ? [error] : []
+    }
+  }
+
+  function discoverHookLogSource(sourceScope: HookScope, dir: string): HookLogSourceResult {
+    if (!existsSync(dir)) return emptyHookLogSource(sourceScope, dir)
+
+    try {
+      const stat = statSync(dir)
+      if (!stat.isDirectory()) return emptyHookLogSource(sourceScope, dir, 'Hook log path is not a directory')
+
+      const logs: HookLogEntry[] = []
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        if (!entry.isFile() || !isHookLogFileName(entry.name)) continue
+        const logPath = path.join(dir, entry.name)
+        if (!isPathUnderRoot(logPath, dir)) continue
+        const logStat = statSync(logPath)
+        logs.push({
+          sourceScope,
+          path: logPath,
+          name: entry.name,
+          ext: extensionOf(entry.name),
+          sizeBytes: logStat.size,
+          updatedAt: logStat.mtime.toISOString()
+        })
+      }
+      logs.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+      return { sourceScope, dir, exists: true, logs: logs.slice(0, 50), errors: [] }
+    } catch (err) {
+      return emptyHookLogSource(sourceScope, dir, err instanceof Error ? err.message : 'Failed to list hook logs')
+    }
+  }
+
+  function discoverHookLogs(cwd?: string): HookLogDiscoveryResult {
+    const userDir = hookLogDirForScope('user')
+    const projectDir = hookLogDirForScope('project', cwd)
+    const userSource = discoverHookLogSource('user', userDir.dir || path.join(os.homedir(), '.commandcode', 'hooks'))
+    const projectSource = projectDir.dir
+      ? discoverHookLogSource('project', projectDir.dir)
+      : emptyHookLogSource('project', '<project>/.commandcode/hooks', projectDir.error || 'Access denied — project root is required')
+    return {
+      sources: [projectSource, userSource],
+      logs: [...projectSource.logs, ...userSource.logs],
+      errors: [...projectSource.errors, ...userSource.errors]
+    }
+  }
+
+  function readHookLog(body: { cwd?: string; sourceScope?: string; path?: string }): HookLogReadResult {
+    const { cwd, sourceScope, path: logPath } = body
+    if (sourceScope !== 'project' && sourceScope !== 'user') {
+      return { ok: false, error: 'sourceScope must be project or user' }
+    }
+    if (!logPath) return { ok: false, error: 'No hook log path provided' }
+
+    const logDir = hookLogDirForScope(sourceScope, cwd)
+    if (!logDir.dir) return { ok: false, error: logDir.error || 'Access denied — project root is required' }
+
+    const resolved = resolveBoundaryPath(logPath)
+    if (!isPathUnderRoot(resolved, logDir.dir)) {
+      return { ok: false, sourceScope, path: resolved, error: 'Access denied — hook log path outside documented hooks directory' }
+    }
+    if (!isHookLogFileName(resolved)) {
+      return { ok: false, sourceScope, path: resolved, error: 'Unsupported hook log file type' }
+    }
+    if (!existsSync(resolved) || statSync(resolved).isDirectory()) {
+      return { ok: false, sourceScope, path: resolved, error: 'Hook log not found' }
+    }
+
+    const stat = statSync(resolved)
+    if (stat.size > MAX_FILE_READ_BYTES) {
+      return { ok: false, sourceScope, path: resolved, error: 'Hook log exceeds 1MB read limit' }
+    }
+    return {
+      ok: true,
+      sourceScope,
+      path: resolved,
+      ext: extensionOf(resolved),
+      sizeBytes: stat.size,
+      content: readFileSync(resolved, 'utf8')
+    }
   }
 
   function buildHookTogglePreview(body: {
@@ -1020,6 +1126,15 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
       command?: string
       enabled?: boolean
     })
+  })
+
+  addRoute('POST', '/api/hooks/logs', async ({ body }) => {
+    const { cwd } = body as { cwd?: string }
+    return discoverHookLogs(cwd)
+  })
+
+  addRoute('POST', '/api/hooks/logs/read', async ({ body }) => {
+    return readHookLog(body as { cwd?: string; sourceScope?: string; path?: string })
   })
 
   addRoute('POST', '/api/hooks/preview-edit', async ({ body }) => {

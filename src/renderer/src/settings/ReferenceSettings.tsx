@@ -12,6 +12,11 @@ import type {
   HookConfigTogglePreviewResult,
   ParsedHookCommand
 } from '../../../core/hooksConfig'
+import type {
+  HookLogDiscoveryResult,
+  HookLogEntry,
+  HookLogReadResult
+} from '../../../core/hooksLogs'
 import { buildHookPayloadPreview } from '../../../core/hooksPayload'
 import type { HookPayloadPreview } from '../../../core/hooksPayload'
 import {
@@ -238,6 +243,11 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
   const [editApplyResult, setEditApplyResult] = useState<HookConfigEditApplyResult | null>(null)
   const [editPreviewing, setEditPreviewing] = useState(false)
   const [editApplying, setEditApplying] = useState(false)
+  const [hookLogs, setHookLogs] = useState<HookLogDiscoveryResult | null>(null)
+  const [hookLogsLoading, setHookLogsLoading] = useState(false)
+  const [hookLogsError, setHookLogsError] = useState('')
+  const [hookLogRead, setHookLogRead] = useState<HookLogReadResult | null>(null)
+  const [readingLogPath, setReadingLogPath] = useState('')
   const examples = [
     { label: 'Block risky shell', event: 'PreToolUse', matcher: 'Bash', command: 'node .commandcode/hooks/block-risky-shell.js' },
     { label: 'Sensitive read warning', event: 'PreToolUse', matcher: 'Read', command: 'node .commandcode/hooks/warn-sensitive-read.js' },
@@ -271,6 +281,32 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
       .then(setDiscovery)
       .catch((err) => setError(err instanceof Error ? err.message : String(err)))
       .finally(() => setLoading(false))
+  }, [cwd, transport])
+
+  const refreshHookLogs = useCallback(() => {
+    setHookLogsLoading(true)
+    setHookLogsError('')
+    return transport.listHookLogs(cwd)
+      .then(setHookLogs)
+      .catch((err) => setHookLogsError(err instanceof Error ? err.message : String(err)))
+      .finally(() => setHookLogsLoading(false))
+  }, [cwd, transport])
+
+  useEffect(() => {
+    void refreshHookLogs()
+  }, [refreshHookLogs])
+
+  const readHookLog = useCallback((log: HookLogEntry) => {
+    setReadingLogPath(log.path)
+    setHookLogRead(null)
+    transport.readHookLog({
+      cwd,
+      sourceScope: log.sourceScope,
+      path: log.path
+    })
+      .then(setHookLogRead)
+      .catch((err) => setHookLogRead({ ok: false, error: err instanceof Error ? err.message : String(err) }))
+      .finally(() => setReadingLogPath(''))
   }, [cwd, transport])
 
   const previewToggle = useCallback((hook: ParsedHookCommand) => {
@@ -563,6 +599,72 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
         </div>
       )}
       <div className="settings-command-grid">
+        <div className="settings-command-row">
+          <strong>Hook logs</strong>
+          <code>.commandcode/hooks, ~/.commandcode/hooks</code>
+          <span>
+            read-only
+            <button className="ghost-button native-ghost settings-inline-action" onClick={() => void refreshHookLogs()} disabled={hookLogsLoading}>
+              {hookLogsLoading ? 'Refreshing' : 'Refresh logs'}
+            </button>
+          </span>
+        </div>
+        {(hookLogs?.sources ?? []).map((source) => (
+          <div key={`${source.sourceScope}:${source.dir}`} className="settings-command-row">
+            <strong>{source.sourceScope === 'project' ? 'Project logs' : 'User logs'}</strong>
+            <code>{source.dir}</code>
+            <span>
+              {source.exists
+                ? `${source.logs.length} log file${source.logs.length === 1 ? '' : 's'}`
+                : source.errors[0] || 'Not found'}
+            </span>
+          </div>
+        ))}
+        {(hookLogs?.logs ?? []).map((log) => (
+          <div key={`${log.sourceScope}:${log.path}`} className="settings-command-row">
+            <strong>{log.sourceScope} log</strong>
+            <code>{log.path}</code>
+            <span>
+              {formatBytes(log.sizeBytes)} / {formatDateTime(log.updatedAt)}
+              <button className="ghost-button native-ghost settings-inline-action" onClick={() => readHookLog(log)} disabled={readingLogPath === log.path}>
+                {readingLogPath === log.path ? 'Opening' : 'Open log'}
+              </button>
+            </span>
+          </div>
+        ))}
+      </div>
+      {hookLogsLoading && <p className="settings-muted">Loading hook logs from scoped hook directories.</p>}
+      {hookLogsError && <p className="settings-muted">{hookLogsError}</p>}
+      {hookLogs && hookLogs.logs.length === 0 && !hookLogsLoading && (
+        <p className="settings-muted">No hook log files found in the scoped project or user hook directories.</p>
+      )}
+      {hookLogs && hookLogs.errors.length > 0 && (
+        <div className="settings-command-grid">
+          {hookLogs.errors.map((message) => (
+            <div key={message} className="settings-command-row">
+              <strong>Log diagnostic</strong>
+              <code>{message}</code>
+              <span>read-only</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {hookLogRead && (
+        <div className="settings-command-grid">
+          <div className="settings-command-row">
+            <strong>{hookLogRead.ok ? 'Hook log preview' : 'Hook log failed'}</strong>
+            <code>{hookLogRead.path || hookLogRead.error || 'No log selected'}</code>
+            <span>
+              {hookLogRead.ok
+                ? `${hookLogRead.sourceScope || 'scoped'} / ${hookLogRead.ext || 'log'} / ${formatBytes(hookLogRead.sizeBytes || 0)}`
+                : 'read-only'}
+            </span>
+          </div>
+          {hookLogRead.content && <pre className="advanced-raw">{hookLogRead.content}</pre>}
+          {hookLogRead.error && <p className="settings-muted">{hookLogRead.error}</p>}
+        </div>
+      )}
+      <div className="settings-command-grid">
         {examples.map((example) => (
           <div key={example.label} className="settings-command-row">
             <strong>{example.label}</strong>
@@ -571,7 +673,7 @@ export function HooksSettingsReadOnly({ transport, cwd }: { transport: Transport
           </div>
         ))}
       </div>
-      <p className="settings-muted">Scoped hook discovery, enable/disable writes, and preview-confirmed broader edit writes are available. Hook execution, OS notifications, quiet mode, and response-ready delivery remain gated by `docs/reports/HOOKS_NOTIFICATIONS_GATE.md`.</p>
+      <p className="settings-muted">Scoped hook discovery, enable/disable writes, preview-confirmed broader edit writes, and scoped read-only hook log viewing are available. Hook execution, OS notifications, quiet mode, and response-ready delivery remain gated by `docs/reports/HOOKS_NOTIFICATIONS_GATE.md`.</p>
     </SettingsReferenceCard>
   )
 }
@@ -644,4 +746,23 @@ function updateLabel(state: UpdateState, version?: string): string {
   if (state === 'failed') return 'Update check failed'
   if (state === 'current') return version || 'Up to date'
   return 'Not checked'
+}
+
+function formatBytes(sizeBytes: number): string {
+  if (!Number.isFinite(sizeBytes) || sizeBytes <= 0) return '0 B'
+  if (sizeBytes < 1024) return `${sizeBytes} B`
+  const units = ['KB', 'MB', 'GB']
+  let value = sizeBytes / 1024
+  let unitIndex = 0
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024
+    unitIndex += 1
+  }
+  return `${value.toFixed(value >= 10 ? 0 : 1)} ${units[unitIndex]}`
+}
+
+function formatDateTime(value: string): string {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return date.toLocaleString()
 }
