@@ -50,11 +50,11 @@ The default theme uses the Command Code spectral grid. The Blueprint theme keeps
 - Model picker with local favorite models, per-project model persistence, and task model routing through `/configure-models`
 - Project-state reference for `.commandcode` commands, skills, taste, memory, GUI preferences, and existing Command Code chat contexts
 - Click existing project contexts to resume them through Command Code's own `cmd --resume <session-title-or-id>` path, with chat history visible in the right inspector
-- Settings page with profile, runtime, appearance, usage, integrations, and advanced sections
+- Settings page with profile, runtime, appearance, usage, integrations, hooks, MCP, agents, skills, memory, taste, notifications, terminal, keyboard, data, and advanced diagnostics sections
 - Selectable appearance themes with local persistence
 - Runtime checks for CLI, PTY health, and available Command Code updates
 - Codex-like workbench rail for IDE/Finder, environment status, repo terminal, and right sidebar controls
-- Right inspector for files, file preview, transcript/history, docs, environment status, IDE status, and advanced actions
+- Right inspector for files, file preview, transcript/history, docs, environment status, and IDE status, with gated workbench actions kept preview-only until their route contracts are explicit
 - `Cmd+T` / `Ctrl+T` opens another Command Code session in the same selected project
 - The composer is the primary prompt surface; Enter sends and Shift+Enter inserts a line break. Command Code selection prompts automatically enter Menu input so arrow keys and Enter go to the terminal, while the header Terminal button opens a separate shell in the repo for commands like `npm run dev`
 - `Ctrl+O` terminal expansion shortcut opens active session details in the right inspector
@@ -98,7 +98,9 @@ The app treats `.commandcode` as a canonical project signal, but keeps ownership
 - `~/.commandcode/gui-preferences.json` is GUI-owned app state for the last selected project, recent projects, command binary, model defaults, appearance, dismissed release notes, and sidebar/inspector widths. This file is what keeps `npm run dev` from forgetting state when Electron starts the local server on a new port.
 - `~/.commandcode/projects/<project-slug>/` contains Command Code runtime-owned chat contexts, metadata, checkpoints, and settings.
 
-Advanced → Project state shows these locations and the files found in each section. Existing project chat contexts appear in the sidebar as recent chats, initially capped with Show more. Selecting one immediately starts a real Command Code PTY with `cmd --resume <session-title-or-id>` and keeps the prior transcript/history visible in the right inspector. The GUI does not append directly to runtime-owned `.jsonl` transcript or checkpoint files.
+Settings → Data and Advanced → Project state show these locations and the files found in each section. Existing project chat contexts appear in the sidebar as recent chats, initially capped with Show more. Selecting one immediately starts a real Command Code PTY with `cmd --resume <session-title-or-id>` and keeps the prior transcript/history visible in the right inspector. The GUI does not append directly to runtime-owned `.jsonl` transcript or checkpoint files.
+
+Workbench file mutations, IDE actions, git mutations, terminal lifecycle/profile changes, editable theme-token controls, and release-fetching behavior are gated in `docs/reports/WORKBENCH_POLISH_GATE.md`. Settings → Data surfaces those gates as preview-only status instead of exposing unscoped actions.
 
 ## Localhost Browser Mode
 
@@ -187,6 +189,8 @@ Installed Command Code CLI
 npm run typecheck
 npx vitest run
 npm run build
+npm run smoke:browser
+npm run smoke:headless
 npm run smoke:pty
 ```
 
@@ -200,4 +204,5 @@ All documentation lives under `docs/`. See [docs/INDEX.md](docs/INDEX.md) for th
 | [Guides](docs/guides/) | Visual design style guide |
 | [Reference](docs/reference/) | CLI reference, component reference, known limitations |
 | [Reports](docs/reports/) | Smoke test reports, hardening gates, test plans |
+| [Contributors](docs/contributors/) | V1 implementation guide, package loop, validation gates |
 | [Roadmap](ROADMAP.md) | Implementation plan and remaining work |

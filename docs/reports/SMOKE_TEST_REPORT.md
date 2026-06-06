@@ -1622,5 +1622,6 @@ Scope: Phase 9 closeout docs. Phase 9 is marked complete for the current V1 cont
 | Command Code local docs | Pass | `rg -n "Focused local page: design.md|Focused local page: tools.md|started" docs/reference/command-code-docs/README.md docs/reference/command-code-docs/design.md docs/reference/command-code-docs/tools.md` |
 | Test plan | Pass | `rg -n "Current automated commands|Gated coverage|npm run smoke:browser|WORKBENCH_POLISH_GATE" docs/reports/TEST_PLAN.md` |
 | Contributor guide | Pass | `rg -n "Package Loop|Current Gates|Runtime Boundary|Phase Handoff" docs/contributors/V1_IMPLEMENTATION_GUIDE.md` |
+| README | Pass | `rg -n "WORKBENCH_POLISH_GATE|Settings page with profile|Contributors|npm run smoke:browser" README.md` |
 
-Scope: documentation-only Phase 10 index package. This added contributor guidance, focused local Command Code design/tools pages, refreshed the docs index, and updated the test plan. It did not change runtime code, renderer IPC, server routes, transport calls, file access, config writes, session lifecycle, CSS tokens, or Command Code invocation behavior.
+Scope: documentation-only Phase 10 index package. This added contributor guidance, focused local Command Code design/tools pages, refreshed the docs index, updated the test plan, and aligned the README with the current Settings, validation, and workbench gate surfaces. It did not change runtime code, renderer IPC, server routes, transport calls, file access, config writes, session lifecycle, CSS tokens, or Command Code invocation behavior.
