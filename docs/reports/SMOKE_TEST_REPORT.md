@@ -549,6 +549,18 @@ Scope: scoped config-write package for Settings > Hooks enable/disable toggles. 
 
 Scope: dry-run payload preview package for Settings > Hooks. Added `src/core/hooksPayload.ts` and Settings `Sample payload` controls that render explicitly marked `ccgui_dry_run` JSON samples for discovered hook commands. No hook execution, session start, real runtime payload inference, file access, renderer IPC, Command Code settings mutation, or notification readiness behavior was added.
 
+### 2026-06-06 Phase 3 session readiness model
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `83/83` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Not run | No browser transport, auth, mock, session UI, settings navigation, or inspector behavior changed |
+| Real CLI path | Not run | Package is a pure reducer and does not start or control Command Code |
+
+Scope: pure session readiness model package for Phase 3. Added `src/renderer/src/services/sessionReadiness.ts` and reducer tests for background, unread, response-ready, and input-required state. Attach, replay, foreground navigation, and replay output remain non-notifying; live background output only marks unread; explicit background `assistant-ready` and `input-required` events return distinct notification intent for future wiring. No OS notifications, toast dispatch, audio behavior, session lifecycle integration, terminal-output heuristics, server routes, renderer IPC, file access, Command Code settings mutation, hook execution, or real CLI execution was added.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |

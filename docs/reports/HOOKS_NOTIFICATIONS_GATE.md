@@ -19,6 +19,8 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 - `/api/hooks/preview-toggle` and Settings > Hooks `Preview enable/disable` controls return formatted JSON for a scoped hook toggle without writing the source file.
 - `/api/hooks/apply-toggle` and Settings > Hooks `Apply preview` write only previewed enable/disable toggles to derived user/project `settings.json` paths after writing a sibling `.ccgui.bak` backup.
 - `src/core/hooksPayload.ts` and Settings > Hooks `Sample payload` controls build explicitly marked dry-run JSON samples without executing hook commands or starting sessions.
+- `src/renderer/src/services/sessionReadiness.ts` adds a pure session readiness reducer for background, unread, response-ready, and input-required state.
+- The readiness reducer keeps attach, replay, and foreground transitions non-notifying, separates live background output from response-ready state, and emits notification intent only for explicit background `assistant-ready` or `input-required` events.
 
 ## Not Implemented
 
@@ -26,7 +28,7 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 - No arbitrary hook config path is accepted from the renderer.
 - No renderer IPC or broad file access permission was added.
 - No hook command execution or real-session test-payload runner was added.
-- No OS notifications, hook-triggered alerts, quiet mode, response-ready state, input-required state, or session readiness model was added.
+- No OS notifications, hook-triggered alerts, quiet mode, runtime-integrated response-ready notifications, runtime-integrated input-required notifications, or session lifecycle integration was added.
 
 ## Required Before Hook Writes
 
@@ -43,13 +45,14 @@ This gate defines the boundary before Settings can edit Command Code hooks or re
 - Session readiness must be based on explicit session lifecycle or protocol state, not terminal byte-length changes.
 - Opening, attaching, or returning to a session must not fire response-ready notifications.
 - Background session output, response-ready state, and input-required state must be distinguishable.
+- Implemented as a pure reducer only; wiring to real session lifecycle events remains required before OS or toast notifications can use it.
 - Notification preferences must suppress or enable each category predictably.
 - Audio must remain off unless enabled by user-owned GUI preferences.
 
 ## Validation Receipts
 
 - `npm run typecheck`
-- `npx vitest run` -> `76/76`
+- `npx vitest run` -> `83/83`
 - `npm run build`
 - `npm run smoke:browser`
 - Built browser route token proof at `http://127.0.0.1:5224/`

@@ -504,6 +504,8 @@ Sixth write package added scoped `/api/hooks/apply-toggle`, `transport.applyHook
 
 Seventh dry-run package added `src/core/hooksPayload.ts` and Settings > Hooks `Sample payload` controls. The helper builds explicitly marked `ccgui_dry_run` JSON samples for `PreToolUse`, `PostToolUse`, and `Stop` using documented common fields such as event name, session id, transcript path, cwd, and permission mode. Settings displays the sample payload in a read-only panel for discovered hook commands. This package did not execute hooks, start sessions, infer real runtime payload state, add file access, add renderer IPC, mutate Command Code settings, or add notification readiness. Validation receipts: `npm run typecheck`, `npx vitest run` -> `76/76`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5227/` with assets `index-4gIYdAEq.js` and `index-D4dE-QgW.css`, and Electron dev startup with renderer `http://localhost:5175/` plus embedded app server `http://127.0.0.1:54048`.
 
+Eighth pure readiness package added `src/renderer/src/services/sessionReadiness.ts` with reducer tests for per-session background, unread, response-ready, and input-required state. Attach, replay, foreground navigation, and replay output remain non-notifying; live background output only marks unread; explicit background `assistant-ready` and `input-required` events return distinct notification intent for future notification wiring. This package did not add OS notifications, toast dispatch, audio behavior, session lifecycle integration, terminal-output heuristics, server routes, renderer IPC, file access, Command Code settings mutation, hook execution, or real CLI execution. Validation receipts: `npm run typecheck`, `npx vitest run` -> `83/83`, and `npm run build`.
+
 ### Scope
 
 - Add Settings > Hooks.
@@ -517,9 +519,9 @@ Seventh dry-run package added `src/core/hooksPayload.ts` and Settings > Hooks `S
 - Add a test payload runner so users can validate hook behavior before real sessions. Dry-run sample payload preview is implemented; command execution remains gated.
 - Add examples for dangerous shell blocking, sensitive read warnings, write auditing, and Stop-hook finish notifications.
 - Document and support a community-style Stop-hook notification/audio recipe compatible with `vipulgupta2048/command-code-bonk`.
-- Replace terminal data-length notification heuristics with explicit session lifecycle state.
-- Track per-session unread, response-ready, and input-required state.
-- Notify only when background sessions produce ready output or require operator input.
+- Replace terminal data-length notification heuristics with explicit session lifecycle state. Pure reducer implemented; runtime session integration remains gated.
+- Track per-session unread, response-ready, and input-required state. Pure reducer implemented.
+- Notify only when background sessions produce ready output or require operator input. Pure reducer returns notification intent; UI/OS notification dispatch remains gated.
 
 ### Likely Impacted Files
 
@@ -541,16 +543,16 @@ Likely new files:
 - `src/core/hooksConfig.test.ts`
 - `src/renderer/src/settings/HookEditor.tsx`
 - `src/renderer/src/settings/HookTestRunner.tsx`
-- `src/renderer/src/services/sessionReadiness.ts`
+- `src/renderer/src/services/sessionReadiness.ts` (implemented as a pure reducer)
 
 ### Tests And Proof
 
 - Hook config parser handles empty, user-only, project-only, and merged configs.
 - Invalid hook JSON is rejected before write.
 - Test payload runner executes or dry-runs without starting a real session.
-- Opening/attaching/returning to a session does not produce response-ready toast.
-- Background session output produces one appropriate unread/ready notification.
-- Input-required state produces a distinct notification.
+- Opening/attaching/returning to a session does not produce response-ready toast. Implemented at pure reducer level; runtime UI notification integration remains gated.
+- Background session output produces one appropriate unread/ready notification. Reducer distinguishes live background output from readiness intent; notification dispatch remains gated.
+- Input-required state produces a distinct notification. Implemented at pure reducer intent level; notification dispatch remains gated.
 - Notification preferences suppress or enable categories correctly.
 - `npm run typecheck`
 - `npx vitest run`
