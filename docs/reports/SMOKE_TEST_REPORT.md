@@ -1164,3 +1164,16 @@ Scope: added a preview-only Add server section to Settings > MCP for HTTP, stdio
 | MCP docs content | Pass | `rg -n "add-json|client-secret|Open Gates|Current GUI status" docs/reference/command-code-docs/mcp.md docs/reference/command-code-docs/README.md` |
 
 Scope: added a focused local MCP reference page and linked it from the local Command Code docs index. This did not change runtime code, renderer IPC, file access, config writes, CLI arguments, session lifecycle, MCP mutation behavior, or Command Code settings mutation.
+
+### 2026-06-06 Phase 6 MCP closeout
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `148/148` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Real headless | Pass | `npm run smoke:headless` -> `cmd --print` exit `0` |
+| CLI syntax checks | Pass | `cmd mcp --help`, `cmd mcp add --help`, `cmd mcp add-json --help`, `cmd mcp remove --help`, and `cmd mcp auth --help` |
+
+Scope: documentation-only Phase 6 closeout. The closeout marks implemented MCP visibility, diagnostics, previews, connect/disconnect execution, and redacted add-flow previews as validated while keeping MCP add/remove/auth-clear mutation, config editing, server edit/save, connection tests, deeper diagnostics, log viewing, and secret persistence deferred behind explicit gates. No runtime code, renderer IPC, file access, config writes, CLI arguments, session lifecycle, MCP mutation behavior, or Command Code settings mutation changed.

@@ -797,6 +797,20 @@ Sequential:
 
 Goal: make MCP visible and operable from the GUI without hiding secrets or inventing runtime behavior.
 
+Status on 2026-06-06: complete and validated for the current V1 contract. Settings > MCP is a first-class Settings route with scope/policy reference, read-only list diagnostics, parsed tool chips when present in `cmd mcp list` output, visible connect/disconnect command previews and execution through the existing `transport.mcpAction` path, gated details/remove/auth previews, and preview-only HTTP/stdio/JSON add flows with redacted secret display. MCP add execution, remove execution, auth-clear execution, config parsing/editing, server edit/save, connection tests, deeper diagnostics, and log viewing remain deferred behind explicit mutation, config-write, secret-handling, and fixture-validation gates.
+
+Phase closeout validation receipts on 2026-06-06:
+
+- `npm run typecheck`
+- `npx vitest run` -> `148/148`
+- `npm run build`
+- `npm run smoke:browser`
+- `npm run smoke:headless`
+- `cmd mcp --help`, `cmd mcp add --help`, `cmd mcp add-json --help`, `cmd mcp remove --help`, and `cmd mcp auth --help`
+- Latest built route token proof at `http://127.0.0.1:57388/` serving assets `index-CX2HZXGu.js` and `index-8BkyITsP.css`
+- Latest Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:61837`
+- Browser plugin navigation was not available in this thread, so route-level and built-asset receipts were used for the latest UI proof.
+
 Status update 2026-06-06: First MCP foundation package added `src/core/mcpCommands.ts` with tested pure builders for `cmd mcp connect|disconnect <server>` argument arrays and display previews. `src/core/discovery.ts` now uses the same builder for the existing MCP action path, and Settings > MCP uses the shared preview builder instead of a renderer-local formatter. This package did not add new MCP actions, add/remove/auth flows, config writes, renderer IPC, secret storage, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `135/135`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:57382/` serving assets `index-ClVCWnWo.js` and `index-BYxtwXbi.css`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:60273`. Browser screenshot automation remains not run because Playwright is not installed in this project.
 
 Status update 2026-06-06: Second MCP foundation package added `src/core/mcpReference.ts` with tested local/project/user scope path metadata and MCP policy notes for permission prompts, plan-mode disabling, and secret handling. Settings > MCP now renders these read-only reference tiles before server action rows so scope, config path, and secret policy are visible before future MCP writes. This package did not add MCP add/remove/auth flows, config reads or writes, renderer IPC, secret storage, runtime mutation, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `138/138`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:57383/` serving assets `index-ielxPO9j.js` and `index-B7MCApJP.css`, and Electron dev startup with Vite `5175` plus embedded app server `http://127.0.0.1:60472`. Browser screenshot automation remains not run because Playwright is not installed in this project.
@@ -876,9 +890,10 @@ Sequential:
 
 ### Acceptance
 
-- MCP secrets are not stored in GUI preferences.
-- Project/user/local scope is explicit before every MCP write.
-- MCP tools are discoverable with status and failure text.
+- MCP secrets are not stored in GUI preferences. Implemented and validated for shipped surfaces: add previews redact secret-like values, and no MCP secret persistence path was added.
+- Project/user/local scope is explicit before every MCP write. Implemented for shipped write-adjacent surfaces: add previews expose scope before any future write; no add/remove/auth-clear write path is shipped.
+- MCP tools are discoverable with status and failure text. Implemented through the read-only list parser, optional tool chips, and `/api/mcp/list` diagnostics.
+- MCP mutation flows beyond existing connect/disconnect are deferred behind separate gates for scoped config writes, safe fixture click-throughs, and secret-handling policy.
 
 ## Phase 7: Agents, Skills, Memory, And Taste
 
