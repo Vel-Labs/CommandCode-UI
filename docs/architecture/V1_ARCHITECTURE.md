@@ -96,8 +96,8 @@ Deferred Phase 1 hook boundaries:
 
 Dead UI audit:
 
-- `docs/reports/PHASE1_DEAD_UI_AUDIT.md` documents unreferenced legacy components, an unreachable `mode` popover branch, and stale CSS candidates.
-- No dead UI removal has happened yet; removal should be a separate cleanup package after validation.
+- `docs/reports/PHASE1_DEAD_UI_AUDIT.md` documents the audit and validated cleanup of unreferenced legacy components, an unreachable `mode` popover branch, and stale CSS selectors.
+- Broader CSS module/token separation remains planned and should be kept separate from Phase 2 Settings Center expansion.
 
 ## Settings Center
 

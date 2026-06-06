@@ -5,19 +5,19 @@
 
 ## Summary
 
-This audit documents dead or legacy UI paths before removal. No files were removed in this audit package.
+This audit documents dead or legacy UI paths before removal. The initial audit package documented the paths without removal. A follow-up cleanup package removed the documented unreferenced components, the unreachable `mode` popover branch, and the matching stale CSS selectors.
 
 ## Findings
 
 | Path | Status | Evidence | Recommended action |
 |---|---|---|---|
-| `src/renderer/src/components/ControlPanel.tsx` | Unreferenced legacy component | `rg` found no imports/usages outside the component file. It still owns legacy quick-command UI and status blocks. | Remove in a cleanup package after confirming no external story/test imports exist. |
-| `src/renderer/src/components/ModeRail.tsx` | Unreferenced legacy component | `rg` found no imports/usages outside the component file. The current risky-mode/status presentation is in `SessionWorkspace`, `SettingsWorkspace`, and popovers. | Remove in the same cleanup package as stale mode-rail CSS. |
-| `src/renderer/src/components/RecentProjects.tsx` | Unreferenced legacy component | `rg` found no imports/usages outside the component file. Recent project presentation now lives in `ShellLayout` and `AppPopovers`. | Remove after confirming no intended reuse in Phase 2 Settings Center. |
-| `src/renderer/src/components/DocsSidecar.tsx` | Unreferenced legacy component | `rg` found no imports/usages outside the component file. Docs are currently surfaced through `RightInspectorPanel` iframe and settings/runtime links. | Remove or replace with a right-inspector-specific docs component in a cleanup package. |
-| `src/renderer/src/components/HeadlessRunner.tsx` | Unreferenced legacy component | `rg` found no imports/usages outside the component file. Headless runs are now launched through composer/command palette and recorded by `HeadlessHistory`. | Remove after verifying Phase 2 does not need the old modal runner surface. |
-| `openPopover === 'mode'` branch in `AppPopovers` | Unreachable branch | `PopoverKey` includes `mode`, but `rg "setOpenPopover\\('mode'"` found no opener. Runtime mode is opened through `runtime`. | Remove the branch and `.mode-popover` CSS in a cleanup package. |
-| `.control-panel`, `.quick-command-list`, `.mode-rail`, `.mode-popover` CSS | Likely stale CSS | Selectors only support unreferenced components or the unreachable `mode` popover. | Remove after the corresponding components/branch are removed. |
+| `src/renderer/src/components/ControlPanel.tsx` | Removed | `rg` found no imports/usages outside the component file. It owned legacy quick-command UI and status blocks. | Complete. |
+| `src/renderer/src/components/ModeRail.tsx` | Removed | `rg` found no imports/usages outside the component file. The current risky-mode/status presentation is in `SessionWorkspace`, `SettingsWorkspace`, and popovers. | Complete. |
+| `src/renderer/src/components/RecentProjects.tsx` | Removed | `rg` found no imports/usages outside the component file. Recent project presentation now lives in `ShellLayout` and `AppPopovers`. | Complete. |
+| `src/renderer/src/components/DocsSidecar.tsx` | Removed | `rg` found no imports/usages outside the component file. Docs are currently surfaced through `RightInspectorPanel` iframe and settings/runtime links. | Complete. |
+| `src/renderer/src/components/HeadlessRunner.tsx` | Removed | `rg` found no imports/usages outside the component file. Headless runs are now launched through composer/command palette and recorded by `HeadlessHistory`. | Complete. |
+| `openPopover === 'mode'` branch in `AppPopovers` | Removed | `PopoverKey` included `mode`, but `rg "setOpenPopover\\('mode'"` found no opener. Runtime mode is opened through `runtime`. | Complete. |
+| `.control-panel`, `.quick-command-list`, `.mode-rail`, `.mode-popover` CSS | Removed | Selectors only supported unreferenced components or the unreachable `mode` popover. | Complete. |
 
 ## Not Dead
 
@@ -27,9 +27,19 @@ This audit documents dead or legacy UI paths before removal. No files were remov
 | `src/renderer/src/components/AdvancedPanel.tsx` | Used | Rendered from `App.tsx` behind `advancedOpen`. |
 | `src/renderer/src/components/StatusPill.tsx` | Used | Rendered by `SessionWorkspace` and legacy `ControlPanel`. |
 
-## Cleanup Gate
+## Cleanup Receipts
 
-Removal should be a separate package with:
+Cleanup validation on 2026-06-06:
+
+- `npm run typecheck`
+- `npm run build`
+- `npm run smoke:browser`
+- Built browser route token proof at `http://127.0.0.1:5192/`
+- Electron dev startup with embedded app server `http://127.0.0.1:61897`
+
+## Future Cleanup Gate
+
+Any further UI removal should be a separate package with:
 
 - `npm run typecheck`
 - `npm run build`

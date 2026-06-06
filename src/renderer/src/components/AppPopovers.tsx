@@ -15,7 +15,6 @@ export function AppPopovers({
   openPopover,
   recentProjects,
   runtimeMode,
-  realSessionDisabled,
   ptyHealth,
   commandExecutable,
   cwd,
@@ -51,7 +50,6 @@ export function AppPopovers({
   openPopover: PopoverKey
   recentProjects: string[]
   runtimeMode: RuntimeMode
-  realSessionDisabled: boolean
   ptyHealth: PtyDoctorResult | null
   commandExecutable: string
   cwd: string
@@ -94,23 +92,6 @@ export function AppPopovers({
               <Folder size={16} /> {displayPath(project)}
             </button>
           ))}
-        </div>
-      )}
-
-      {openPopover === 'mode' && (
-        <div ref={popoverRef} className="native-popover mode-popover">
-          <div className="popover-title">Session</div>
-          <button
-            className={`popover-row ${runtimeMode === 'real-session' ? 'popover-row--active' : ''}`}
-            disabled={realSessionDisabled}
-            onClick={() => setRuntimeMode('real-session')}
-            title={realSessionDisabled ? (ptyHealth?.error || 'PTY is unhealthy') : 'Start a real PTY session'}
-          >
-            Real session
-          </button>
-          <button className={`popover-row ${runtimeMode === 'mock' ? 'popover-row--active' : ''}`} onClick={() => setRuntimeMode('mock')}>Demo mode</button>
-          <div className="popover-note">Headless runs now live in the command menu as Run headless.</div>
-          {realSessionDisabled && <div className="popover-note">{ptyHealth?.error || 'Real session disabled until PTY is healthy.'}</div>}
         </div>
       )}
 

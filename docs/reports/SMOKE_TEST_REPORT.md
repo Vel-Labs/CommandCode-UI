@@ -154,3 +154,16 @@ Scope: behavior-preserving renderer extraction of existing popover presentation 
 | Browser screenshot automation | Not run | Playwright is not installed in this project; no new dependency was added for this architecture-only extraction |
 
 Scope: behavior-preserving extraction of command palette/release-note constants into `src/renderer/src/commandPalette.ts` and outside-click/Escape popover dismissal into `src/renderer/src/hooks/useDismissiblePopover.ts`. Runtime health, session lifecycle, app preference, and project preference hooks remain deferred behind hard gates because they affect runtime truth, transport/session lifecycle, or shared settings persistence.
+
+### 2026-06-06 Phase 1 dead UI cleanup
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5192`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:61897` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; no new dependency was added for this cleanup |
+
+Scope: removed documented unreferenced legacy components, the unreachable `mode` popover branch, and stale `.control-panel`, `.quick-command-list`, `.mode-rail`, and `.mode-popover` CSS selectors. No Command Code runtime, transport, session lifecycle, or config write behavior changed.

@@ -3,7 +3,7 @@ import type { DiscoveredSession } from '../../core/types'
 export type WorkspaceView = 'home' | 'session' | 'transcript' | 'settings'
 export type RightInspector = 'none' | 'files' | 'file' | 'transcript' | 'docs' | 'advanced' | 'environment' | 'ide'
 export type RuntimeMode = 'mock' | 'real-session'
-export type PopoverKey = 'project' | 'mode' | 'permission' | 'runtime' | 'model' | 'slash' | null
+export type PopoverKey = 'project' | 'permission' | 'runtime' | 'model' | 'slash' | null
 export type SettingsSection = 'profile' | 'general' | 'runtime' | 'appearance' | 'usage' | 'integrations' | 'advanced'
 export type AppearanceTheme = 'cc-spectrum' | 'terminal-minimal' | 'blueprint' | 'high-contrast'
 export type CommandAction = 'insert' | 'send' | 'run-headless'

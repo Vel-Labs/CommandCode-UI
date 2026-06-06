@@ -1197,7 +1197,6 @@ export function App(): JSX.Element {
           openPopover={openPopover}
           recentProjects={recentProjects}
           runtimeMode={runtimeMode}
-          realSessionDisabled={realSessionDisabled}
           ptyHealth={ptyHealth}
           commandExecutable={commandExecutable}
           cwd={cwd}
