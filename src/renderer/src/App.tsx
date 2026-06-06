@@ -6,10 +6,7 @@ import {
   Folder,
   FolderOpen,
   GitBranch,
-  HardDrive,
   Keyboard,
-  PanelBottom,
-  PanelRightOpen,
   Route,
   Sparkles,
   Terminal,
@@ -22,20 +19,17 @@ import type { TransportAPI } from '../../core/transport'
 import { useTransport } from './useTransport'
 import { ModelDropdown } from './components/ModelDropdown'
 import { AuthCard } from './components/AuthCard'
-import { TerminalPane } from './components/TerminalPane'
-import { TabBar } from './components/TabBar'
 import { pushCommandHistory } from './components/CommandHistory'
 import { HeadlessHistory, type HeadlessJob } from './components/HeadlessHistory'
 import { notify, playChime } from './components/ToastSystem'
 import { IdePanel } from './components/IdePanel'
 import { AdvancedPanel } from './components/AdvancedPanel'
-import { StatusPill } from './components/StatusPill'
 import { buildPtySubmitChunks } from '../../shared/ptyInput'
 import { RightInspectorPanel } from './inspectors/RightInspectorPanel'
 import { TranscriptWorkspace } from './workspaces/TranscriptWorkspace'
 import { ShellLayout } from './layout/ShellLayout'
-import { ComposerBar } from './components/ComposerBar'
 import { HomeWorkspace } from './workspaces/HomeWorkspace'
+import { SessionWorkspace } from './workspaces/SessionWorkspace'
 import type {
   AppearanceTheme,
   CommandPaletteItem,
@@ -229,10 +223,6 @@ function ptyHealthLabel(ptyHealth: PtyDoctorResult | null): string {
   if (ptyHealth.healthy) return 'PTY connected'
   if (ptyHealth.available) return 'PTY unhealthy'
   return 'PTY unavailable'
-}
-
-function sessionModelLabel(model?: string): string {
-  return model?.trim() || 'Default at start'
 }
 
 function looksPlanLike(input: string): boolean {
@@ -1235,93 +1225,49 @@ export function App(): JSX.Element {
           </div>
         ) : (
           <div className={`workbench-shell ${rightInspector !== 'none' ? 'workbench-shell--with-inspector' : ''}`}>
-            <section className={`session-workspace ${bottomTerminalOpen ? 'session-workspace--bottom-terminal' : ''}`} aria-label="Active session">
-              <header className="session-header session-header--compact">
-                <div className="session-title-group">
-                  <div className="session-title">{activeTab?.label || 'Session'}</div>
-                  <div className="session-context">
-                    <span>{activeTab?.projectLabel || projectLabel}</span>
-                    <StatusPill label={sessionModelLabel(activeTab?.model)} tone="default" />
-                    <StatusPill label={activeTab?.mock ? 'mock' : 'real cli'} tone={activeTab?.mock ? 'purple' : 'warn'} />
-                    <StatusPill label={permissionLabel(permissionMode, trust)} tone={riskyPermission ? 'warn' : permissionMode === 'plan' ? 'purple' : 'default'} />
-                  </div>
-                </div>
-                <WorkbenchToolRail
-                  rightInspector={rightInspector}
-                  bottomTerminalOpen={bottomTerminalOpen}
-                  onOpenIde={() => openRightInspector('ide')}
-                  onOpenEnvironment={() => openRightInspector('environment')}
-                  onToggleTerminal={() => void toggleShellTerminal()}
-                  onToggleInspector={() => openRightInspector(rightInspector === 'none' ? 'files' : 'none')}
-                />
-              </header>
-
-              <TabBar tabs={tabs} activeId={activeTabId} onSelect={setActiveTabId} onKill={killTab} />
-
-              <section className="terminal-card native-terminal-card">
-                <TerminalPane
-                  transport={transport}
-                  sessionId={activeTabId}
-                  inputEnabled={terminalInputEnabled}
-                  onInputRequest={() => setTerminalInputEnabled(true)}
-                  onInputCommit={() => setTerminalInputEnabled(false)}
-                  onExit={onExit}
-                  onExpandRequest={openTerminalExpansion}
-                />
-              </section>
-
-              {bottomTerminalOpen && shellSessionId && (
-                <section className="bottom-terminal-panel" aria-label="Bottom terminal">
-                  <header className="bottom-terminal-header">
-                    <span>Terminal · {projectLabel}</span>
-                    <button className="icon-button" onClick={() => void closeShellTerminal()} title="Close bottom terminal"><X size={15} /></button>
-                  </header>
-                  <TerminalPane
-                    transport={transport}
-                    sessionId={shellSessionId}
-                    compact
-                    notifyResponses={false}
-                    onExit={() => {
-                      setShellSessionId(undefined)
-                      setBottomTerminalOpen(false)
-                      setStatusLine('Terminal exited.')
-                    }}
-                  />
-                </section>
-              )}
-
-              <div className="session-composer">
-                <div className="session-utility-row">
-                  <button className="ghost-button native-ghost" onClick={stopSession}>Stop</button>
-                  <span>{terminalInputEnabled ? 'Menu input enabled. Use terminal menus, then return to the composer.' : (statusLine || 'Click terminal for menus; use composer for prompts.')}</span>
-                  <button
-                    className={`ghost-button native-ghost terminal-input-toggle ${terminalInputEnabled ? 'terminal-input-toggle--active' : ''}`}
-                    onClick={() => setTerminalInputEnabled((value) => !value)}
-                    title="Temporarily route keyboard input to Command Code terminal menus"
-                  >
-                    <Keyboard size={14} />
-                    Menu input
-                  </button>
-                </div>
-                <ComposerBar
-                  active
-                  prompt={composerPrompt}
-                  setPrompt={setComposerPrompt}
-                  onSubmit={submitComposer}
-                  onFocus={() => setTerminalInputEnabled(false)}
-                  showPlanSuggestion={showPlanSuggestion}
-                  onPlanMode={usePlanMode}
-                  projectLabel={projectLabel}
-                  modelLabel={sessionModelLabel(activeTab?.model)}
-                  permissionLabel={permissionLabel(permissionMode, trust)}
-                  riskyPermission={riskyPermission}
-                  onProject={() => setOpenPopover(openPopover === 'project' ? null : 'project')}
-                  onPermission={() => setOpenPopover(openPopover === 'permission' ? null : 'permission')}
-                  onModel={() => setOpenPopover(openPopover === 'model' ? null : 'model')}
-                  onSlash={() => setOpenPopover(openPopover === 'slash' ? null : 'slash')}
-                />
-              </div>
-            </section>
+            <SessionWorkspace
+              transport={transport}
+              tabs={tabs}
+              activeTabId={activeTabId}
+              activeTab={activeTab}
+              projectLabel={projectLabel}
+              rightInspector={rightInspector}
+              bottomTerminalOpen={bottomTerminalOpen}
+              shellSessionId={shellSessionId}
+              terminalInputEnabled={terminalInputEnabled}
+              statusLine={statusLine}
+              composerPrompt={composerPrompt}
+              showPlanSuggestion={showPlanSuggestion}
+              permissionLabel={permissionLabel(permissionMode, trust)}
+              riskyPermission={riskyPermission}
+              permissionTone={riskyPermission ? 'warn' : permissionMode === 'plan' ? 'purple' : 'default'}
+              onSelectTab={setActiveTabId}
+              onKillTab={killTab}
+              onExit={onExit}
+              onExpandRequest={openTerminalExpansion}
+              onOpenIde={() => openRightInspector('ide')}
+              onOpenEnvironment={() => openRightInspector('environment')}
+              onToggleTerminal={() => void toggleShellTerminal()}
+              onToggleInspector={() => openRightInspector(rightInspector === 'none' ? 'files' : 'none')}
+              onCloseShellTerminal={closeShellTerminal}
+              onShellExit={() => {
+                setShellSessionId(undefined)
+                setBottomTerminalOpen(false)
+                setStatusLine('Terminal exited.')
+              }}
+              onStopSession={stopSession}
+              onToggleTerminalInput={() => setTerminalInputEnabled((value) => !value)}
+              onTerminalInputRequest={() => setTerminalInputEnabled(true)}
+              onTerminalInputCommit={() => setTerminalInputEnabled(false)}
+              setComposerPrompt={setComposerPrompt}
+              onSubmitComposer={submitComposer}
+              onFocusComposer={() => setTerminalInputEnabled(false)}
+              onUsePlanMode={usePlanMode}
+              onProject={() => setOpenPopover(openPopover === 'project' ? null : 'project')}
+              onPermission={() => setOpenPopover(openPopover === 'permission' ? null : 'permission')}
+              onModel={() => setOpenPopover(openPopover === 'model' ? null : 'model')}
+              onSlash={() => setOpenPopover(openPopover === 'slash' ? null : 'slash')}
+            />
             <RightInspectorPanel
               mode={rightInspector}
               transport={transport}
@@ -1465,39 +1411,6 @@ export function App(): JSX.Element {
           />
         )}
     </ShellLayout>
-  )
-}
-
-function WorkbenchToolRail({
-  rightInspector,
-  bottomTerminalOpen,
-  onOpenIde,
-  onOpenEnvironment,
-  onToggleTerminal,
-  onToggleInspector
-}: {
-  rightInspector: RightInspector
-  bottomTerminalOpen: boolean
-  onOpenIde: () => void
-  onOpenEnvironment: () => void
-  onToggleTerminal: () => void
-  onToggleInspector: () => void
-}): JSX.Element {
-  return (
-    <div className="workbench-tool-rail" aria-label="Workbench tools">
-      <button className={`icon-button ${rightInspector === 'ide' ? 'icon-button--active' : ''}`} onClick={onOpenIde} title="IDE and Finder">
-        <HardDrive size={17} />
-      </button>
-      <button className={`icon-button ${rightInspector === 'environment' ? 'icon-button--active' : ''}`} onClick={onOpenEnvironment} title="Environment">
-        <GitBranch size={17} />
-      </button>
-      <button className={`icon-button ${bottomTerminalOpen ? 'icon-button--active' : ''}`} onClick={onToggleTerminal} title="Bottom terminal">
-        <PanelBottom size={17} />
-      </button>
-      <button className={`icon-button ${rightInspector !== 'none' ? 'icon-button--active' : ''}`} onClick={onToggleInspector} title="Right sidebar">
-        <PanelRightOpen size={17} />
-      </button>
-    </div>
   )
 }
 
