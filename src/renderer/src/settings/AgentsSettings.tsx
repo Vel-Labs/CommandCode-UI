@@ -7,6 +7,7 @@ import { SettingsReadOnlyCard } from './SettingsReadOnlyCard'
 
 export function AgentsSettingsReadOnly({ transport, cwd }: { transport: TransportAPI; cwd: string }): JSX.Element {
   const [agents, setAgents] = useState<AgentConfig[]>([])
+  const [expanded, setExpanded] = useState<string | undefined>()
   const [editing, setEditing] = useState<string | undefined>()
   const [content, setContent] = useState('')
   const [saveStatus, setSaveStatus] = useState('')
@@ -54,13 +55,27 @@ export function AgentsSettingsReadOnly({ transport, cwd }: { transport: Transpor
       {saveStatus && <p className="settings-muted">{saveStatus}</p>}
       {agents.map((agent) => (
         <div key={agent.path} className="settings-readonly-row">
-          <strong>{agent.name}</strong>
-          <span>{agent.description || agent.path}</span>
+          <button
+            className="settings-readonly-toggle"
+            onClick={() => setExpanded(expanded === agent.path ? undefined : agent.path)}
+          >
+            <strong>{agent.name}</strong>
+            <span>{agent.description || agent.path}</span>
+          </button>
           <code className="settings-readonly-path">{agent.path}</code>
           <span className="settings-destination-note">Scope: {agent.scope === 'project' ? 'project editable' : 'user read-only'}</span>
           <div className="settings-inline-actions">
             <button className="ghost-button native-ghost settings-inline-action" onClick={() => startEditing(agent)} disabled={agent.scope !== 'project'}>Edit</button>
           </div>
+          {expanded === agent.path && editing !== agent.path && (
+            <>
+              <div className="settings-command-preview">
+                <span>Destination</span>
+                <code>{agent.path}</code>
+              </div>
+              <pre className="settings-preview-block">{agentPreview(agent.rawContent)}</pre>
+            </>
+          )}
           {editing === agent.path && (
             <div className="settings-editor-block">
               <div className="settings-destination-note">
@@ -79,4 +94,10 @@ export function AgentsSettingsReadOnly({ transport, cwd }: { transport: Transpor
       ))}
     </SettingsReadOnlyCard>
   )
+}
+
+function agentPreview(value: string): string {
+  const lines = value.trim() ? value.trim().split('\n') : ['No agent content available.']
+  const preview = lines.slice(0, 16).join('\n')
+  return lines.length > 16 ? `${preview}\n... ${lines.length - 16} more lines` : preview
 }

@@ -1233,3 +1233,17 @@ Scope: improved read-only Settings > Skills source visibility with discovered pa
 | Direct memory save click-through | Not run | Existing `transport.saveMemory` route and server policy were not changed; previous isolated Settings Memory save receipts remain the write-path evidence |
 
 Scope: added read-only Memory previews and made opening the existing editor an explicit `Edit` action while preserving the same visible destination and save route. This did not add renderer IPC, server routes, new config writes, file access changes, runtime/session lifecycle changes, memory CRUD beyond the existing save behavior, undo/revert, template semantics, or Command Code settings mutation.
+
+### 2026-06-06 Phase 7 Agent preview affordance
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Build | Pass | `npm run build`; renderer assets `index-cFVLxJPL.js` and `index-8BkyITsP.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 57393`; token proof returned `302`, cookie-authenticated `/` served built assets `index-cFVLxJPL.js` and `index-8BkyITsP.css` |
+| Built asset UI proof | Pass | `rg -n "No agent content available|agentPreview|Project agent destination|user read-only|project editable|Destination" out/renderer/assets/index-cFVLxJPL.js` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:62825` |
+| Direct agent save click-through | Not run | Existing `transport.saveAgent` route and server policy were not changed; previous isolated Settings Agent save receipts remain the write-path evidence |
+
+Scope: added read-only Agent raw-content previews and made opening the existing project editor an explicit `Edit` action while preserving the same visible destination and save route. This did not add renderer IPC, server routes, new config writes, file access changes, runtime/session lifecycle changes, agent CRUD beyond the existing project save behavior, agent routing semantics, default-agent semantics, or Command Code settings mutation.
