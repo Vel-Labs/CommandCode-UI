@@ -4141,6 +4141,36 @@ input[type="range"]::-webkit-slider-thumb {
   white-space: nowrap;
 }
 
+.settings-data-gate-row {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.7fr) minmax(90px, auto) minmax(220px, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 12px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.settings-data-gate-row strong {
+  color: #f4f4f5;
+}
+
+.settings-data-gate-row span {
+  width: fit-content;
+  padding: 2px 8px;
+  border: 1px solid rgba(251, 113, 133, 0.24);
+  border-radius: 999px;
+  color: #fecdd3;
+  background: rgba(251, 113, 133, 0.08);
+  font-size: 11px;
+}
+
+.settings-data-gate-row p {
+  margin: 0;
+  color: #a0a0a6;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .settings-shortcut-grid {
   display: grid;
   gap: 8px;
@@ -4447,6 +4477,7 @@ input[type="range"]::-webkit-slider-thumb {
   }
 
   .settings-shortcut-row,
+  .settings-data-gate-row,
   .settings-command-row {
     grid-template-columns: 1fr;
   }

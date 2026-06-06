@@ -282,6 +282,19 @@ Scope: presentation-only Settings Keyboard package. Keyboard now shows grouped s
 
 Scope: app-preference Settings General package. General now writes sanitized `startupProjectBehavior` to `~/.commandcode/gui-preferences.json` and app preference hydration uses it to restore the last selected project or open without a selected project. No automatic session start/resume, window restore, renderer IPC expansion, Command Code settings mutation, or runtime/session lifecycle changes were added.
 
+### 2026-06-06 Phase 2 Settings data controls gate
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5211`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets `index-lrqYgMS2.js` and `index-3LQJOXlJ.css` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:50208` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project/runtime; no new dependency was added for this settings package |
+
+Scope: read-only Settings Data controls gate package. Data now names transcript deletion, cache clearing, preference reset, export, and import as blocked or planned actions and records the required route/path-validation boundary in `docs/reports/DATA_CONTROLS_GATE.md`. No file delete/write/export/import routes, renderer IPC expansion, Command Code settings mutation, or runtime/session lifecycle changes were added.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |

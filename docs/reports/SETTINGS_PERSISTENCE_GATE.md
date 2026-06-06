@@ -118,5 +118,5 @@ Known unimplemented acceptance:
 - terminal bell behavior, profiles, history controls, and live PTY geometry updates
 - window restore and automatic session start/resume behavior
 - editable settings destination labels for future write-capable sections
-- data controls write/delete only within approved roots
+- data controls write/delete only within approved roots; see `docs/reports/DATA_CONTROLS_GATE.md`
 - AdvancedPanel removal after Settings replacement paths exist

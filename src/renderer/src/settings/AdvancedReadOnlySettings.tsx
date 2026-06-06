@@ -21,32 +21,52 @@ export function ProjectStateSettings({ transport, cwd }: { transport: TransportA
   useEffect(() => { void load() }, [cwd])
 
   return (
-    <SettingsReadOnlyCard title="Project state" loading={loading} onRefresh={load}>
-      <p className="settings-muted">Read-only view of project `.commandcode` paths and user-level runtime context roots.</p>
-      {reference && (
-        <>
-          <div className="reference-path-grid">
-            <div><span>Project</span><code>{reference.projectPath}</code></div>
-            <div><span>Repo state</span><code>{reference.projectCommandCodePath}</code></div>
-            <div><span>Runtime contexts</span><code>{reference.userProjectContextPath}</code></div>
-          </div>
-          {reference.sections.map((section) => (
-            <div key={section.key} className="reference-section">
-              <div className="reference-section-head">
-                <div>
-                  <strong>{section.label}</strong>
-                  <span>{section.description}</span>
-                </div>
-                <span className={`reference-badge ${section.exists ? 'reference-badge--on' : ''}`}>
-                  {section.exists ? `${section.files.length} files` : 'not present'}
-                </span>
-              </div>
-              <code className="reference-path">{section.path}</code>
+    <>
+      <SettingsReadOnlyCard title="Project state" loading={loading} onRefresh={load}>
+        <p className="settings-muted">Read-only view of project `.commandcode` paths and user-level runtime context roots.</p>
+        {reference && (
+          <>
+            <div className="reference-path-grid">
+              <div><span>Project</span><code>{reference.projectPath}</code></div>
+              <div><span>Repo state</span><code>{reference.projectCommandCodePath}</code></div>
+              <div><span>Runtime contexts</span><code>{reference.userProjectContextPath}</code></div>
             </div>
-          ))}
-        </>
-      )}
-    </SettingsReadOnlyCard>
+            {reference.sections.map((section) => (
+              <div key={section.key} className="reference-section">
+                <div className="reference-section-head">
+                  <div>
+                    <strong>{section.label}</strong>
+                    <span>{section.description}</span>
+                  </div>
+                  <span className={`reference-badge ${section.exists ? 'reference-badge--on' : ''}`}>
+                    {section.exists ? `${section.files.length} files` : 'not present'}
+                  </span>
+                </div>
+                <code className="reference-path">{section.path}</code>
+              </div>
+            ))}
+          </>
+        )}
+      </SettingsReadOnlyCard>
+      <SettingsReadOnlyCard title="Data controls gate" loading={loading} onRefresh={load}>
+        <p className="settings-muted">Read-only control map. Delete, reset, export, import, and cache-clearing actions stay blocked until scoped routes and path validation tests exist.</p>
+        <DataGateRow action="Transcript deletion" status="Blocked" detail="Requires approved transcript roots, affected-file count, confirmation, and post-delete validation." />
+        <DataGateRow action="Cache clearing" status="Blocked" detail="Requires GUI-owned cache inventory and a route that cannot touch Command Code runtime state." />
+        <DataGateRow action="Preference reset" status="Blocked" detail="Requires app/project scope selection and exact preference path preview before write or delete." />
+        <DataGateRow action="Data export" status="Planned" detail="Requires explicit output path selection and manifest of included GUI-owned data." />
+        <DataGateRow action="Data import" status="Planned" detail="Requires schema validation, destination preview, and rollback/cancel affordance before writes." />
+      </SettingsReadOnlyCard>
+    </>
+  )
+}
+
+function DataGateRow({ action, status, detail }: { action: string; status: string; detail: string }): JSX.Element {
+  return (
+    <div className="settings-data-gate-row">
+      <strong>{action}</strong>
+      <span>{status}</span>
+      <p>{detail}</p>
+    </div>
   )
 }
 

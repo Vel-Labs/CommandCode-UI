@@ -372,6 +372,8 @@ Eighteenth presentation package expanded Settings Keyboard with grouped shortcut
 
 Nineteenth app-preference package added `startupProjectBehavior` to app GUI preferences and Settings General. Operators can choose whether app preference hydration restores the last selected project or opens without a selected project. This package updated server sanitization and app preference boundary tests, but did not add automatic session start/resume, window restore, renderer IPC expansion, Command Code settings mutation, or runtime/session lifecycle changes. Validation receipts: `npm run typecheck`, `npx vitest run` -> `56/56`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5210/`, and Electron dev startup with embedded app server `http://127.0.0.1:50069`.
 
+Twentieth read-only gate package added `docs/reports/DATA_CONTROLS_GATE.md` and a Settings Data controls gate card. Data now names transcript deletion, cache clearing, preference reset, export, and import as blocked or planned actions with required path, scope, preview, confirmation, and validation boundaries. This package did not add file delete/write/export/import routes, renderer IPC expansion, Command Code settings mutation, or runtime/session lifecycle changes. Validation receipts: `npm run typecheck`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5211/`, and Electron dev startup with embedded app server `http://127.0.0.1:50208`.
+
 ### Scope
 
 - Fold AdvancedPanel content into Settings as first-class sections. Read-only replacement coverage is started; AdvancedPanel removal remains gated by `docs/reports/ADVANCED_PANEL_REMOVAL_GATE.md`.
@@ -383,7 +385,7 @@ Nineteenth app-preference package added `startupProjectBehavior` to app GUI pref
 - Add notification settings for toast/audio categories, quiet mode, per-session readiness, hook-triggered alerts, and volume. Existing GUI toast/audio category and volume controls are implemented through renderer-local preferences; OS notifications, quiet mode, hook-triggered alerts, and readiness remain planned.
 - Add keyboard shortcut reference and visible accelerator hints. Keyboard now shows grouped shortcuts and command examples, and existing New Session, Send, and Menu Input controls show accelerator hints; shortcut remapping remains planned.
 - Add startup behavior settings: default project, window restore, startup session behavior. Startup project behavior is implemented as an app GUI preference; window restore and automatic session start/resume remain planned.
-- Add data controls: transcript deletion, cache clearing, preference reset, export/import.
+- Add data controls: transcript deletion, cache clearing, preference reset, export/import. Data now has a read-only controls gate; destructive and file-producing actions remain blocked until scoped routes and path validation tests exist.
 - Add About/version/release-history/update visibility. About now shows update state plus bundled release-note history; update checks remain user-triggered by existing controls.
 - Add loading states and undo/revert affordances for editable settings where appropriate. Existing editable Settings controls now show destination labels; future write-capable sections remain gated by `docs/reports/SETTINGS_PERSISTENCE_GATE.md`.
 
@@ -420,6 +422,7 @@ Likely new files:
 - Renderer-local toast/audio notification preferences persist and load. OS notifications, hook-triggered alerts, quiet mode, and readiness remain planned.
 - Renderer-local terminal presentation preferences persist and load without breaking xterm. Bell behavior, profiles, history controls, and live PTY geometry updates remain planned.
 - Editable settings show destination path before write. Implemented for existing editable GUI preference controls; future write-capable sections remain gated.
+- Data control writes/deletes remain blocked by `docs/reports/DATA_CONTROLS_GATE.md`.
 - Browser/Electron screenshots for Settings at desktop and narrow widths.
 - `npm run typecheck`
 - `npx vitest run`
