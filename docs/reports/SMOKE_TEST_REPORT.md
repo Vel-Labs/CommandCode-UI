@@ -77,6 +77,15 @@ V1 Phase 1 can begin after this report, [HARDENING_GATE.md](HARDENING_GATE.md), 
 
 ## V1 Incremental Receipts
 
+### 2026-06-06 Phase 10 validation scaffold
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Docs index | Pass | `docs/INDEX.md` links `docs/reports/V1_VALIDATION_TEMPLATE.md` |
+
+Scope: documentation-only scaffold. `docs/reports/V1_VALIDATION_TEMPLATE.md` defines reusable package receipts, hard-gate checks, route receipts, and commit notes for V1 work.
+
 ### 2026-06-06 Phase 1 closeout
 
 | Check | Result | Receipt |

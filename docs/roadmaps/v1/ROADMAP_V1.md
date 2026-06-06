@@ -109,6 +109,7 @@ Documentation gate:
 - Update this roadmap after each package with `implemented`, `validated`, `blocked`, `deferred`, and `planned` kept separate.
 - Update `docs/architecture/V1_ARCHITECTURE.md` when module ownership or layering changes.
 - Update user-facing docs only when behavior, setup, CLI usage, security boundaries, or validation expectations change.
+- Use `docs/reports/V1_VALIDATION_TEMPLATE.md` as the receipt scaffold for each V1 package.
 
 Git commit gate:
 
@@ -961,6 +962,8 @@ Sequential:
 ## Phase 10: Validation, Docs, And Contributor Enablement
 
 Goal: make v1 changes safe to maintain by a growing community.
+
+Early scaffold status on 2026-06-06: started. `docs/reports/V1_VALIDATION_TEMPLATE.md` now provides the reusable package validation receipt template for V1 work.
 
 ### Scope
 
