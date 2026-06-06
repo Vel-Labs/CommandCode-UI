@@ -314,9 +314,10 @@ export function createBrowserTransport(): TransportAPI {
         method: 'POST'
       }),
 
-    listAgents: async () =>
+    listAgents: async (cwd?) =>
       fetchJson<{ agents: AgentConfig[] }>('/api/agents/list', {
-        method: 'POST'
+        method: 'POST',
+        body: JSON.stringify({ cwd })
       }),
 
     saveAgent: async (agentPath, content, cwd) =>

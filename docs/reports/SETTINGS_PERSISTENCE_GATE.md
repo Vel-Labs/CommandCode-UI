@@ -112,7 +112,7 @@ Current visible destination coverage:
 - Appearance shows the GUI app/project preference destinations for `appearanceTheme`.
 - Notifications shows renderer-local `localStorage` destinations for toast and audio preferences.
 - Terminal shows the renderer-local `localStorage` destination for xterm presentation preferences.
-- Agents shows the project-scoped `.commandcode/agents/` destination before saving through the existing save route.
+- Agents shows the project-scoped `.commandcode/agents/` destination before saving through the existing save route. User/global agents remain visible but read-only because the Settings save route is project-scoped.
 - Memory shows the project-scoped `COMMANDCODE.md`, `AGENTS.md`, `CLAUDE.md`, or `.commandcode/memory/` destination before saving through the existing save route.
 
 Known unimplemented acceptance:

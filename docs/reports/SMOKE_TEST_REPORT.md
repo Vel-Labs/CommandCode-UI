@@ -358,6 +358,23 @@ Scope: Settings Agents write package. Agents now exposes edit/save using existin
 
 Scope: Settings Memory write package. Memory now exposes edit/save using existing `transport.saveMemory` with visible destination paths. No renderer IPC expansion, new server routes, or Command Code settings mutation were added.
 
+### 2026-06-06 Phase 2 Settings agent boundary alignment
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `57/57` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5216`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets `index-DBkQa1hg.js` and `index-B3iP_G8E.css` |
+| In-app Browser route | Pass | Authenticated `http://127.0.0.1:5216/` loaded title `Command Code`; shell body contained `Command Code` and `Settings` |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:51274` |
+| Agent list/save boundary test | Pass | `tests/server-security.test.ts` covers that `/api/agents/list` with `cwd` includes `<project>/.commandcode/agents/` files with `scope: project` and that the same path is writable through `/api/agents/save` |
+| Real Settings agent save click-through | Not run | The server and Settings route contract is aligned, but no project agent file was edited through the Settings button in this package |
+| Browser screenshot automation | Not run | Playwright is not installed in this project/runtime; no new dependency was added for this settings package |
+
+Scope: Settings Agents boundary package. Project agents are now discoverable through `/api/agents/list` with `cwd`, editable in Settings, and saved through the existing scoped save route. User/global agents remain visible but read-only. No renderer IPC expansion, new save route, hidden config write, or Command Code settings mutation was added.
+
 ### 2026-06-06 Phase 2 settings registry and search
 
 | Check | Result | Receipt |

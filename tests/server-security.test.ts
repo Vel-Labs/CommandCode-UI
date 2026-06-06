@@ -132,6 +132,30 @@ describe('server filesystem boundaries', () => {
     expect(memorySave.ok).toBe(true)
   })
 
+  it('lists project agents from the same scoped root that agent saves use', async () => {
+    const app = await startServer()
+    const project = tempProject()
+    const agentPath = path.join(project, '.commandcode', 'agents', 'settings-smoke.md')
+
+    mkdirSync(path.dirname(agentPath), { recursive: true })
+    writeFileSync(agentPath, 'description: Scoped settings agent\n', 'utf8')
+
+    const listed = await apiPost<{ agents: Array<{ path: string; name: string; scope?: string; rawContent: string }> }>(app, '/api/agents/list', {
+      cwd: project
+    })
+    const projectAgent = listed.agents.find((agent) => agent.path === agentPath)
+    expect(projectAgent?.name).toBe('settings-smoke')
+    expect(projectAgent?.scope).toBe('project')
+
+    const save = await apiPost<{ ok: boolean; error?: string }>(app, '/api/agents/save', {
+      cwd: project,
+      path: agentPath,
+      content: 'description: Updated settings agent\n'
+    })
+    expect(save.ok).toBe(true)
+    expect(readFileSync(agentPath, 'utf8')).toContain('Updated settings agent')
+  })
+
   it('removes registered workspace roots when sessions are deleted', async () => {
     const app = await startServer()
     const project = tempProject()

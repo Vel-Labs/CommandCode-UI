@@ -269,6 +269,7 @@ function AgentEditor({ transport, cwd }: { transport: TransportAPI; cwd: string 
     path: string
     name: string
     rawContent: string
+    scope?: 'project' | 'user'
     description?: string
   }>>([])
   const [editing, setEditing] = useState<string | undefined>()
@@ -278,7 +279,7 @@ function AgentEditor({ transport, cwd }: { transport: TransportAPI; cwd: string 
   const load = async () => {
     setLoading(true)
     try {
-      setAgents((await transport.listAgents()).agents)
+      setAgents((await transport.listAgents(cwd || undefined)).agents)
     } catch {
       setAgents([])
     } finally {
@@ -294,7 +295,7 @@ function AgentEditor({ transport, cwd }: { transport: TransportAPI; cwd: string 
     } catch { /* show error? */ }
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [cwd])
 
   return (
     <div className="advanced-section">
@@ -303,14 +304,15 @@ function AgentEditor({ transport, cwd }: { transport: TransportAPI; cwd: string 
         <button className="ghost-button" onClick={load} disabled={loading}>{loading ? 'Loading…' : 'Refresh'}</button>
       </div>
       {agents.map((agent) => (
-        <div key={agent.name} className="agent-entry">
+        <div key={agent.path} className="agent-entry">
           <div className="agent-header">
             <span className="agent-name">{agent.name}</span>
             {agent.description && <span className="agent-desc">{agent.description}</span>}
+            <span className="agent-desc">{agent.scope === 'project' ? 'project editable' : 'user read-only'}</span>
             <button className="ghost-button" onClick={() => {
               setEditing(agent.path)
               setContent(agent.rawContent)
-            }}>Edit</button>
+            }} disabled={agent.scope !== 'project'}>Edit</button>
           </div>
           {editing === agent.path && (
             <div className="agent-editor">

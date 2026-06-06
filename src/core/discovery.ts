@@ -320,8 +320,42 @@ function parseSingleCategory(name: string, filePath: string): TasteCategory {
   return cat
 }
 
-export function listAgents(): AgentConfig[] {
+function readAgentConfig(fullPath: string, entry: string, scope: AgentConfig['scope']): AgentConfig | undefined {
+  try {
+    const content = readFileSync(fullPath, 'utf8')
+    const config: AgentConfig = {
+      path: fullPath,
+      name: entry.replace(/\.(md|ya?ml)$/, ''),
+      rawContent: content,
+      scope
+    }
+    if (entry.endsWith('.md')) {
+      config.systemPrompt = extractFrontmatterField(content, 'system_prompt')
+      config.description = extractFrontmatterField(content, 'description')
+    } else {
+      const yamlDesc = content.match(/description:\s*(.+)/i)
+      if (yamlDesc) config.description = yamlDesc[1]!.trim()
+    }
+    return config
+  } catch {
+    return undefined
+  }
+}
+
+export function listAgents(cwd?: string): AgentConfig[] {
   const agents: AgentConfig[] = []
+  const projectAgentsDir = cwd?.trim() ? path.join(path.resolve(cwd), '.commandcode', 'agents') : undefined
+
+  if (projectAgentsDir && existsSync(projectAgentsDir)) {
+    try {
+      for (const entry of readdirSync(projectAgentsDir)) {
+        if (entry.startsWith('.')) continue
+        if (!entry.endsWith('.md') && !entry.endsWith('.yaml') && !entry.endsWith('.yml')) continue
+        const config = readAgentConfig(path.join(projectAgentsDir, entry), entry, 'project')
+        if (config) agents.push(config)
+      }
+    } catch { /* skip */ }
+  }
 
   for (const agentsDir of [path.join(BASE_DIR, 'agents'), path.join(AGENTS_DIR, 'agents')]) {
     if (!existsSync(agentsDir)) continue
@@ -330,22 +364,8 @@ export function listAgents(): AgentConfig[] {
         const fullPath = path.join(agentsDir, entry)
         if (entry.startsWith('.')) continue
         if (!entry.endsWith('.md') && !entry.endsWith('.yaml') && !entry.endsWith('.yml')) continue
-        try {
-          const content = readFileSync(fullPath, 'utf8')
-          const config: AgentConfig = {
-            path: fullPath,
-            name: entry.replace(/\.(md|ya?ml)$/, ''),
-            rawContent: content
-          }
-          if (entry.endsWith('.md')) {
-            config.systemPrompt = extractFrontmatterField(content, 'system_prompt')
-            config.description = extractFrontmatterField(content, 'description')
-          } else {
-            const yamlDesc = content.match(/description:\s*(.+)/i)
-            if (yamlDesc) config.description = yamlDesc[1]!.trim()
-          }
-          agents.push(config)
-        } catch { /* skip */ }
+        const config = readAgentConfig(fullPath, entry, 'user')
+        if (config) agents.push(config)
       }
     } catch { /* skip */ }
   }

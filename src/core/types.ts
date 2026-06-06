@@ -247,6 +247,7 @@ export type AgentConfig = {
   path: string
   name: string
   rawContent: string
+  scope?: 'project' | 'user'
   systemPrompt?: string
   description?: string
 }

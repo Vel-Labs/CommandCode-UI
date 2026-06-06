@@ -127,7 +127,7 @@ Current implementation status on 2026-06-06:
 - Data now includes a read-only data-controls gate card and `docs/reports/DATA_CONTROLS_GATE.md`; transcript deletion, cache clearing, preference reset, export, and import remain blocked until scoped routes and path validation tests exist.
 - Sessions now includes project-session resume and transcript reveal actions in Settings using existing App/transport paths; no terminal-output inference or new IPC was added.
 - MCP now includes connect/disconnect execution in Settings using the existing `transport.mcpAction` path and visible command previews. Add, remove, and auth actions remain gated.
-- Agents now includes edit/save in Settings using the existing `transport.saveAgent` route. Destination paths are visible and server validation keeps writes under the selected project `.commandcode/agents/` root.
+- Agents now includes project-scoped discovery and edit/save in Settings using the existing `transport.saveAgent` route. Destination paths are visible, project agents are editable, user/global agents are marked read-only, and server validation keeps writes under the selected project `.commandcode/agents/` root.
 - Memory now includes edit/save in Settings using the existing `transport.saveMemory` route. Destination paths are visible and server validation keeps writes to `COMMANDCODE.md`, `AGENTS.md`, `CLAUDE.md`, or `.commandcode/memory/` under the selected project root.
 - No renderer IPC expansion or Command Code settings mutation was added by these Settings Center packages.
 - `docs/reports/SETTINGS_PERSISTENCE_GATE.md` defines the Phase 2 ownership boundary for GUI-owned preferences versus Command Code-owned `settings.json` before additional editable sections add writes.

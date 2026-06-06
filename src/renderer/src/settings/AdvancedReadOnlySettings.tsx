@@ -180,7 +180,7 @@ export function AgentsSettingsReadOnly({ transport, cwd }: { transport: Transpor
   const load = async (): Promise<void> => {
     setLoading(true)
     try {
-      setAgents((await transport.listAgents()).agents)
+      setAgents((await transport.listAgents(cwd || undefined)).agents)
     } catch {
       setAgents([])
     } finally {
@@ -210,7 +210,7 @@ export function AgentsSettingsReadOnly({ transport, cwd }: { transport: Transpor
     }
   }
 
-  useEffect(() => { void load() }, [])
+  useEffect(() => { void load() }, [cwd])
 
   return (
     <SettingsReadOnlyCard title={`Agent configs (${agents.length})`} loading={loading} onRefresh={load}>
@@ -221,8 +221,9 @@ export function AgentsSettingsReadOnly({ transport, cwd }: { transport: Transpor
           <strong>{agent.name}</strong>
           <span>{agent.description || agent.path}</span>
           <code className="settings-readonly-path">{agent.path}</code>
+          <span className="settings-destination-note">Scope: {agent.scope === 'project' ? 'project editable' : 'user read-only'}</span>
           <div className="settings-inline-actions">
-            <button className="ghost-button native-ghost settings-inline-action" onClick={() => startEditing(agent)}>Edit</button>
+            <button className="ghost-button native-ghost settings-inline-action" onClick={() => startEditing(agent)} disabled={agent.scope !== 'project'}>Edit</button>
           </div>
           {editing === agent.path && (
             <div className="settings-editor-block">

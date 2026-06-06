@@ -820,8 +820,9 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
     return { packages: listTastePackages() }
   })
 
-  addRoute('POST', '/api/agents/list', async () => {
-    return { agents: listAgents() }
+  addRoute('POST', '/api/agents/list', async ({ body }) => {
+    const { cwd } = body as { cwd?: string }
+    return { agents: listAgents(cwd) }
   })
 
   addRoute('POST', '/api/agents/save', async ({ body }) => {
