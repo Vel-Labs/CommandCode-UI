@@ -1153,3 +1153,14 @@ Scope: added tested pure preview builders for documented `cmd mcp add` and `cmd 
 | Browser plugin navigation | Not available | The Browser navigation tool was not exposed in this thread; route-level receipts were used instead |
 
 Scope: added a preview-only Add server section to Settings > MCP for HTTP, stdio, and JSON config flows. The section uses the pure add/add-json preview builders and redacts secret-like values, but it has no apply button and does not call transport routes. This did not add MCP add mutation, config reads or writes, renderer IPC, secret storage, runtime mutation, or Command Code settings mutation. Real external MCP add/add-json mutation was not tested.
+
+### 2026-06-06 Phase 10 MCP reference docs
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| CLI syntax checks | Pass | `cmd mcp --help`, `cmd mcp add --help`, `cmd mcp add-json --help`, `cmd mcp remove --help`, and `cmd mcp auth --help` |
+| Docs index | Pass | `rg --files docs/reference/command-code-docs` includes `docs/reference/command-code-docs/mcp.md` |
+| MCP docs content | Pass | `rg -n "add-json|client-secret|Open Gates|Current GUI status" docs/reference/command-code-docs/mcp.md docs/reference/command-code-docs/README.md` |
+
+Scope: added a focused local MCP reference page and linked it from the local Command Code docs index. This did not change runtime code, renderer IPC, file access, config writes, CLI arguments, session lifecycle, MCP mutation behavior, or Command Code settings mutation.

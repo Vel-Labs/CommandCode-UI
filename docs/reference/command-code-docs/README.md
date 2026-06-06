@@ -68,6 +68,8 @@ GUI implications:
 
 ## MCP
 
+Focused local page: `mcp.md`
+
 Source pages:
 
 - https://commandcode.ai/docs/mcp
@@ -93,6 +95,7 @@ GUI implications:
 - Add guided add flows for HTTP, stdio, and JSON config.
 - Show command preview before adding/removing/auth-clearing.
 - Treat auth/token handling as user-owned and avoid storing secrets in GUI preferences.
+- Current GUI status: Settings > MCP shows scope/policy reference, list diagnostics, parsed tool chips when present in existing list output, connect/disconnect through the existing action path, gated remove/auth/details previews, and preview-only HTTP/stdio/JSON add flows. MCP add/remove/auth-clear mutation and config editing remain gated.
 
 ## Design
 
@@ -145,7 +148,7 @@ Suggested next local docs:
 
 - `hooks.md` (started)
 - `models.md` (started)
-- `mcp.md`
+- `mcp.md` (started)
 - `design.md`
 - `tools.md`
 - `gui-implications.md`

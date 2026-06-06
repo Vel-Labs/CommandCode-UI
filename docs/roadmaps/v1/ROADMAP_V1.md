@@ -1119,6 +1119,8 @@ Goal: make v1 changes safe to maintain by a growing community.
 
 Early scaffold status on 2026-06-06: started. `docs/reports/V1_VALIDATION_TEMPLATE.md` now provides the reusable package validation receipt template for V1 work. `tests/settings-registry.test.ts` adds executable coverage for the Settings Center registry, search filtering, group order, and route coverage without adding runtime behavior.
 
+Status update 2026-06-06: MCP reference docs package added `docs/reference/command-code-docs/mcp.md` and linked it from the local Command Code docs index. The page records current installed `cmd mcp` help evidence for add, add-json, remove, and auth command shapes; names implemented Settings > MCP surfaces; and keeps add/remove/auth-clear mutation, config editing, diagnostics, and secret persistence behind explicit gates. This package did not change runtime code, renderer IPC, file access, config writes, CLI arguments, or session lifecycle. Validation receipts: `npm run typecheck`, `cmd mcp --help`, `cmd mcp add --help`, `cmd mcp add-json --help`, `cmd mcp remove --help`, `cmd mcp auth --help`, `rg --files docs/reference/command-code-docs`, and `rg -n "add-json|client-secret|Open Gates|Current GUI status" docs/reference/command-code-docs/mcp.md docs/reference/command-code-docs/README.md`.
+
 ### Scope
 
 - Keep local Command Code docs under `docs/reference/command-code-docs/`.
