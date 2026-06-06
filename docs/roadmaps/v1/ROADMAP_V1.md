@@ -336,6 +336,8 @@ Goal: turn Settings into the app's natural configuration center.
 
 Status on 2026-06-06: started. First read-only settings architecture package added `src/renderer/src/settings/settingsRegistry.tsx`, expanded the settings section taxonomy, replaced the settings search placeholder with real registry filtering, and added read-only placeholder pages for new Phase 2 sections. This package did not add config writes, persistence changes, server routes, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `41/41`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5193/`, and Electron dev startup with embedded app server `http://127.0.0.1:62462`.
 
+Second read-only package added Settings-hosted views for Project state, MCP, Agents, Skills, Memory, and Taste via `src/renderer/src/settings/AdvancedReadOnlySettings.tsx`. The Advanced modal remains available, and no connect/disconnect/edit/save actions were migrated. This package did not add config writes, persistence changes, server routes, or Command Code settings mutation. Validation receipts: `npm run typecheck`, `npx vitest run` -> `41/41`, `npm run build`, `npm run smoke:browser`, built browser route token proof at `http://127.0.0.1:5194/`, and Electron dev startup with embedded app server `http://127.0.0.1:62843`.
+
 ### Scope
 
 - Fold AdvancedPanel content into Settings as first-class sections.

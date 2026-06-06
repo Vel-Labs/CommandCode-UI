@@ -100,6 +100,20 @@ Scope: documentation-only scaffold. `docs/reports/V1_VALIDATION_TEMPLATE.md` def
 
 Scope: read-only Settings Center registry/search package. Added searchable settings taxonomy and placeholder pages for new sections without config writes, persistence changes, server routes, or Command Code settings mutation.
 
+### 2026-06-06 Phase 2 read-only advanced settings migration
+
+| Check | Result | Receipt |
+|---|---:|---|
+| TypeScript | Pass | `npm run typecheck` |
+| Unit tests | Pass | `npx vitest run` -> `41/41` |
+| Build | Pass | `npm run build` |
+| Browser/API smoke | Pass | `npm run smoke:browser` |
+| Built browser route | Pass | `npx tsx src/cli/ccgui.ts serve --port 5194`; token proof returned `302`, cookie-authenticated `/` served built `Command Code` HTML and assets |
+| Electron dev startup | Pass | `npm run dev`; Vite used `5175`, embedded app server reported `http://127.0.0.1:62843` |
+| Browser screenshot automation | Not run | Playwright is not installed in this project; no new dependency was added for this settings package |
+
+Scope: Settings-hosted read-only Project state, MCP, Agents, Skills, Memory, and Taste views. Advanced modal remains available. No connect/disconnect/edit/save actions, config writes, persistence changes, server routes, or Command Code settings mutation were added.
+
 ### 2026-06-06 Phase 1 closeout
 
 | Check | Result | Receipt |

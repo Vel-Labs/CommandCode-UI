@@ -108,6 +108,7 @@ Current implementation status on 2026-06-06:
 - `src/renderer/src/settings/settingsRegistry.tsx` owns the searchable settings section registry and Phase 2 taxonomy.
 - `ShellLayout` renders registry-backed settings navigation and filters sections through the settings search input.
 - `SettingsWorkspace` renders read-only placeholder pages for newly registered Phase 2 sections until each section has a validated replacement path.
+- `src/renderer/src/settings/AdvancedReadOnlySettings.tsx` renders Settings-hosted read-only views for Project state, MCP, Agents, Skills, Memory, and Taste.
 - No new config write, persistence, server route, or Command Code settings mutation was added by the registry/search package.
 
 Suggested sections:

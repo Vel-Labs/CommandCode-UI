@@ -4033,6 +4033,32 @@ input[type="range"]::-webkit-slider-thumb {
   color: #f4f4f5;
 }
 
+.settings-readonly-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.settings-readonly-row {
+  display: grid;
+  gap: 4px;
+  padding: 12px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.settings-readonly-row strong {
+  color: #f4f4f5;
+  font-weight: 650;
+}
+
+.settings-readonly-row span {
+  color: #a0a0a6;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
 /* Chip menus should feel attached to the composer instead of centered modals. */
 .slash-popover {
   left: 56px;

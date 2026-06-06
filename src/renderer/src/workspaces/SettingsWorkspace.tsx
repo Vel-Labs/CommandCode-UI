@@ -9,6 +9,14 @@ import { AuthCard } from '../components/AuthCard'
 import { HeadlessHistory } from '../components/HeadlessHistory'
 import { IdePanel } from '../components/IdePanel'
 import { ModelDropdown } from '../components/ModelDropdown'
+import {
+  AgentsSettingsReadOnly,
+  McpSettingsReadOnly,
+  MemorySettingsReadOnly,
+  ProjectStateSettings,
+  SkillsSettingsReadOnly,
+  TasteSettingsReadOnly
+} from '../settings/AdvancedReadOnlySettings'
 import { settingsItem } from '../settings/settingsRegistry'
 
 const appearanceOptions: Array<{
@@ -249,7 +257,49 @@ export function SettingsWorkspace({
           </div>
         )}
 
-        {!['profile', 'general', 'runtime', 'appearance', 'usage', 'integrations', 'advanced'].includes(section) && (
+        {section === 'data' && (
+          <div className="settings-detail-page">
+            <div className="settings-page-title">Data</div>
+            <ProjectStateSettings transport={transport} cwd={cwd} />
+          </div>
+        )}
+
+        {section === 'mcp' && (
+          <div className="settings-detail-page">
+            <div className="settings-page-title">MCP</div>
+            <McpSettingsReadOnly transport={transport} commandExecutable={commandExecutable} />
+          </div>
+        )}
+
+        {section === 'agents' && (
+          <div className="settings-detail-page">
+            <div className="settings-page-title">Agents</div>
+            <AgentsSettingsReadOnly transport={transport} />
+          </div>
+        )}
+
+        {section === 'skills' && (
+          <div className="settings-detail-page">
+            <div className="settings-page-title">Skills</div>
+            <SkillsSettingsReadOnly transport={transport} />
+          </div>
+        )}
+
+        {section === 'memory' && (
+          <div className="settings-detail-page">
+            <div className="settings-page-title">Memory</div>
+            <MemorySettingsReadOnly transport={transport} cwd={cwd} />
+          </div>
+        )}
+
+        {section === 'taste' && (
+          <div className="settings-detail-page">
+            <div className="settings-page-title">Taste</div>
+            <TasteSettingsReadOnly transport={transport} />
+          </div>
+        )}
+
+        {!['profile', 'general', 'runtime', 'appearance', 'usage', 'integrations', 'advanced', 'data', 'mcp', 'agents', 'skills', 'memory', 'taste'].includes(section) && (
           <SettingsPlaceholder section={section} />
         )}
       </main>
