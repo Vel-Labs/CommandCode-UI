@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
-import { Bot, Braces, CreditCard, Database, GitBranch, History, Keyboard, MemoryStick, Monitor, Plug, Settings, Sparkles, Terminal, Wrench } from 'lucide-react'
+import { Activity, Bot, Braces, CreditCard, Database, GitBranch, History, Keyboard, MemoryStick, Monitor, Plug, Settings, Sparkles, Terminal, Wrench } from 'lucide-react'
 import type { PermissionMode } from '../../../shared/types'
 import type { PtyDoctorResult } from '../../../core/ptyDoctor'
 import type { TransportAPI } from '../../../core/transport'
@@ -11,6 +11,8 @@ import { AuthCard } from '../components/AuthCard'
 import { HeadlessHistory } from '../components/HeadlessHistory'
 import { IdePanel } from '../components/IdePanel'
 import { ModelDropdown } from '../components/ModelDropdown'
+import { SettingsPageHeader } from './SettingsPageHeader'
+import { settingsItem } from './settingsRegistry'
 
 const appearanceOptions: Array<{
   id: AppearanceTheme
@@ -50,12 +52,46 @@ const profileActions: Array<{
   description: string
   icon: JSX.Element
 }> = [
-  { section: 'general', label: 'General', description: 'Command binary and onboarding behavior.', icon: <Settings size={16} /> },
-  { section: 'runtime', label: 'Runtime', description: 'PTY health, mode, permissions, model, auth, and IDE diagnostics.', icon: <Wrench size={16} /> },
-  { section: 'usage', label: 'Usage', description: 'Headless history and local run counters.', icon: <CreditCard size={16} /> },
-  { section: 'sessions', label: 'Sessions', description: 'Review discovered Command Code sessions without resuming them.', icon: <History size={16} /> },
-  { section: 'data', label: 'Project state', description: 'Read project .commandcode paths and local state.', icon: <Database size={16} /> },
-  { section: 'integrations', label: 'Integrations', description: 'Open MCP, hooks, agents, skills, design, memory, and taste.', icon: <Plug size={16} /> }
+  { section: 'general', label: 'Choose Command Code binary', description: 'Confirm the CLI path and startup behavior.', icon: <Settings size={16} /> },
+  { section: 'runtime', label: 'Review runtime health', description: 'Check PTY, auth, model, permissions, and IDE state.', icon: <Wrench size={16} /> },
+  { section: 'integrations', label: 'Set up integrations', description: 'Open MCP, hooks, agents, memory, design, skills, and taste tasks.', icon: <Plug size={16} /> }
+]
+
+const settingsTaskGroups: Array<{
+  label: string
+  description: string
+  actions: Array<{ section: SettingsSection; label: string; icon: JSX.Element }>
+}> = [
+  {
+    label: 'Project tools',
+    description: 'Work with project-scoped sessions, memory, agents, and data.',
+    actions: [
+      { section: 'sessions', label: 'Sessions', icon: <History size={15} /> },
+      { section: 'memory', label: 'Memory', icon: <MemoryStick size={15} /> },
+      { section: 'agents', label: 'Agents', icon: <Bot size={15} /> },
+      { section: 'data', label: 'Data', icon: <Database size={15} /> }
+    ]
+  },
+  {
+    label: 'Integration setup',
+    description: 'Configure or inspect Command Code extension surfaces.',
+    actions: [
+      { section: 'mcp', label: 'MCP', icon: <Plug size={15} /> },
+      { section: 'hooks', label: 'Hooks', icon: <Braces size={15} /> },
+      { section: 'design', label: 'Design', icon: <Monitor size={15} /> },
+      { section: 'skills', label: 'Skills', icon: <MemoryStick size={15} /> }
+    ]
+  },
+  {
+    label: 'Reference and diagnostics',
+    description: 'Check usage, shortcuts, terminal presentation, notifications, and release state.',
+    actions: [
+      { section: 'usage', label: 'Usage', icon: <CreditCard size={15} /> },
+      { section: 'keyboard', label: 'Keyboard', icon: <Keyboard size={15} /> },
+      { section: 'terminal', label: 'Terminal', icon: <Terminal size={15} /> },
+      { section: 'about', label: 'About', icon: <Activity size={15} /> }
+    ]
+  }
 ]
 
 export function ProfileSettings({
@@ -89,12 +125,11 @@ export function ProfileSettings({
 
   return (
     <div className="settings-profile-page">
-      <div className="settings-page-title">Profile</div>
-      <div className="profile-hero">
-        <div className="profile-avatar">CC</div>
-        <div className="profile-name">Command Code</div>
-        <div className="profile-meta">Local desktop adapter - {model || 'Default model'}</div>
-      </div>
+      <SettingsPageHeader
+        item={settingsItem('profile')}
+        status={`${runtimeHealth} PTY / ${modeLabel(runtimeMode)}`}
+        scope={cwd ? projectLabel : 'No project selected'}
+      />
       <div className="profile-stat-strip">
         <div><strong>{sessionCount}</strong><span>Open sessions</span></div>
         <div><strong>{headlessJobs.length}</strong><span>Headless runs</span></div>
@@ -102,29 +137,22 @@ export function ProfileSettings({
         <div><strong>{runtimeHealth}</strong><span>PTY health</span></div>
         <div><strong>{permissionLabel(permissionMode, trust)}</strong><span>Permissions</span></div>
       </div>
-      <div className="settings-profile-grid">
-        <section>
-          <h3>Activity insights</h3>
-          <dl>
-            <div><dt>Runtime mode</dt><dd>{modeLabel(runtimeMode)}</dd></div>
-            <div><dt>Current project</dt><dd>{projectLabel}</dd></div>
-            <div><dt>Command binary</dt><dd>{commandExecutable}</dd></div>
-            <div><dt>Failed headless runs</dt><dd>{failedHeadless}</dd></div>
-          </dl>
-        </section>
-        <section>
-          <h3>Runtime receipts</h3>
-          <dl>
-            <div><dt>PTY shell</dt><dd>{ptyHealth?.shell || 'Not available'}</dd></div>
-            <div><dt>Project path</dt><dd>{cwd || 'No project selected'}</dd></div>
-            <div><dt>Model override</dt><dd>{model || 'Default'}</dd></div>
-            <div><dt>Trust flag</dt><dd>{trust ? 'Enabled' : 'Disabled'}</dd></div>
-          </dl>
-        </section>
+      <div className="settings-card settings-card--wide settings-setup-card">
+        <div className="settings-readonly-header">
+          <strong>Setup checklist</strong>
+          <span className="settings-state-pill">{failedHeadless ? `${failedHeadless} failed run${failedHeadless === 1 ? '' : 's'}` : 'No failed runs'}</span>
+        </div>
+        <div className="settings-checklist-grid">
+          <SetupCheck label="Command binary" value={commandExecutable} state={commandExecutable ? 'Set' : 'Missing'} />
+          <SetupCheck label="PTY" value={ptyHealth?.shell || 'Not available'} state={runtimeHealth} />
+          <SetupCheck label="Project" value={projectLabel} state={cwd ? 'Selected' : 'Not selected'} />
+          <SetupCheck label="Model" value={model || 'Default at start'} state={model ? 'Override' : 'Default'} />
+          <SetupCheck label="Permissions" value={permissionLabel(permissionMode, trust)} state={trust || permissionMode === 'auto-accept' ? 'Risk visible' : 'Standard'} />
+        </div>
       </div>
       <div className="settings-card settings-card--wide profile-action-card">
         <div className="settings-readonly-header">
-          <strong>Settings shortcuts</strong>
+          <strong>Recommended next actions</strong>
         </div>
         <div className="settings-action-grid profile-action-grid">
           {profileActions.map((item) => (
@@ -135,6 +163,22 @@ export function ProfileSettings({
             </button>
           ))}
         </div>
+      </div>
+      <div className="settings-task-group-grid">
+        {settingsTaskGroups.map((group) => (
+          <section key={group.label} className="settings-task-group">
+            <strong>{group.label}</strong>
+            <p>{group.description}</p>
+            <div className="settings-task-link-row">
+              {group.actions.map((action) => (
+                <button key={action.section} className="settings-task-link" onClick={() => openSection(action.section)}>
+                  {action.icon}
+                  <span>{action.label}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        ))}
       </div>
     </div>
   )
@@ -159,7 +203,7 @@ export function GeneralSettings({
 }): JSX.Element {
   return (
     <div className="settings-detail-page">
-      <div className="settings-page-title">General</div>
+      <SettingsPageHeader item={settingsItem('general')} status="GUI app/project preferences" scope="No Command Code config mutation" />
       <div className="settings-card">
         <label className="field-label">Command binary</label>
         <input className="native-input" value={commandExecutable} onChange={(event) => setCommandExecutable(event.target.value)} />
@@ -222,7 +266,7 @@ export function RuntimeSettings({
 
   return (
     <div className="settings-detail-page">
-      <div className="settings-page-title">Runtime</div>
+      <SettingsPageHeader item={settingsItem('runtime')} status={`${runtimeHealth} PTY / ${modeLabel(runtimeMode)}`} scope={cwd ? 'Project preference scope available' : 'No project selected'} />
       <div className="settings-card settings-card--wide">
         <div className="settings-status-row">
           <span>Mode</span><strong>{modeLabel(runtimeMode)}</strong>
@@ -267,7 +311,7 @@ export function AppearanceSettings({
 }): JSX.Element {
   return (
     <div className="settings-detail-page">
-      <div className="settings-page-title">Appearance</div>
+      <SettingsPageHeader item={settingsItem('appearance')} status="Adapter presentation only" scope="Saved as GUI preference" />
       <div className="settings-card settings-card--wide">
         <div className="appearance-options" role="radiogroup" aria-label="Appearance theme">
           {appearanceOptions.map((option) => (
@@ -335,7 +379,7 @@ export function UsageSettings({
 
   return (
     <div className="settings-detail-page">
-      <div className="settings-page-title">Usage</div>
+      <SettingsPageHeader item={settingsItem('usage')} status="Read-only usage diagnostics" scope={cwd ? 'Project context selected' : 'Global/default context'} />
       <div className="settings-card settings-card--wide">
         <div className="settings-status-row">
           <span>Open sessions</span><strong>{sessionCount}</strong>
@@ -374,18 +418,19 @@ export function UsageSettings({
 }
 
 const integrationSections: Array<{
+  group: 'Set up' | 'Create or edit' | 'Inspect'
   section: SettingsSection
   label: string
   description: string
   icon: JSX.Element
 }> = [
-  { section: 'mcp', label: 'MCP', description: 'Read configured MCP servers and tool visibility.', icon: <Plug size={16} /> },
-  { section: 'hooks', label: 'Hooks', description: 'Review documented hook scopes, previews, and gated writes.', icon: <Braces size={16} /> },
-  { section: 'agents', label: 'Agents', description: 'Inspect and edit scoped project agent files.', icon: <Bot size={16} /> },
-  { section: 'skills', label: 'Skills', description: 'Inspect installed skills and source paths.', icon: <MemoryStick size={16} /> },
-  { section: 'design', label: 'Design', description: 'Review the staged /design helper entry point.', icon: <Monitor size={16} /> },
-  { section: 'memory', label: 'Memory', description: 'Inspect and edit scoped project memory files.', icon: <MemoryStick size={16} /> },
-  { section: 'taste', label: 'Taste', description: 'Inspect taste profile discovery without editing internals.', icon: <Sparkles size={16} /> }
+  { group: 'Set up', section: 'mcp', label: 'MCP', description: 'Inspect servers and run explicit connect or disconnect commands.', icon: <Plug size={16} /> },
+  { group: 'Set up', section: 'hooks', label: 'Hooks', description: 'Review hook scopes, logs, dry-run diagnostics, and preview-confirmed edits.', icon: <Braces size={16} /> },
+  { group: 'Create or edit', section: 'agents', label: 'Agents', description: 'Create project agents or edit project-scoped agent files.', icon: <Bot size={16} /> },
+  { group: 'Create or edit', section: 'memory', label: 'Memory', description: 'Inspect and edit scoped project memory files.', icon: <MemoryStick size={16} /> },
+  { group: 'Create or edit', section: 'design', label: 'Design', description: 'Preview /design helper commands before sending them.', icon: <Monitor size={16} /> },
+  { group: 'Inspect', section: 'skills', label: 'Skills', description: 'Inspect installed skills and source paths.', icon: <MemoryStick size={16} /> },
+  { group: 'Inspect', section: 'taste', label: 'Taste', description: 'Inspect taste profile discovery without editing internals.', icon: <Sparkles size={16} /> }
 ]
 
 const advancedDiagnosticSections: Array<{
@@ -395,13 +440,9 @@ const advancedDiagnosticSections: Array<{
   icon: JSX.Element
 }> = [
   { section: 'data', label: 'Project state', description: 'Inspect project .commandcode paths and local adapter state.', icon: <Database size={16} /> },
-  { section: 'sessions', label: 'Sessions', description: 'Review discovered sessions, resume project transcripts, and reveal transcript files.', icon: <History size={16} /> },
   { section: 'usage', label: 'Usage', description: 'Read local headless history and Command Code usage summaries.', icon: <CreditCard size={16} /> },
-  { section: 'mcp', label: 'MCP', description: 'Inspect MCP servers and run explicit connect/disconnect commands.', icon: <Plug size={16} /> },
-  { section: 'agents', label: 'Agents', description: 'Inspect user agents and edit project-scoped agent files.', icon: <Bot size={16} /> },
-  { section: 'skills', label: 'Skills', description: 'Preview installed skills and source paths.', icon: <MemoryStick size={16} /> },
-  { section: 'memory', label: 'Memory', description: 'Inspect and edit scoped project memory files.', icon: <MemoryStick size={16} /> },
-  { section: 'taste', label: 'Taste', description: 'Inspect taste discovery without editing Command Code internals.', icon: <Sparkles size={16} /> }
+  { section: 'about', label: 'About', description: 'Confirm version, release history, update status, and local docs.', icon: <Activity size={16} /> },
+  { section: 'keyboard', label: 'Keyboard', description: 'Use shortcut references for navigation and command palette work.', icon: <Keyboard size={16} /> }
 ]
 
 export function IntegrationsSettings({
@@ -415,25 +456,30 @@ export function IntegrationsSettings({
 }): JSX.Element {
   return (
     <div className="settings-detail-page">
-      <div className="settings-page-title">Integrations</div>
+      <SettingsPageHeader item={settingsItem('integrations')} status="Grouped by operator task" scope="Command Code remains execution owner" />
       <div className="settings-card settings-card--wide">
-        <div className="settings-readonly-header">
-          <strong>Integration surfaces</strong>
-        </div>
-        <div className="settings-action-grid">
-          {integrationSections.map((item) => (
-            <button key={item.section} className="settings-action-tile" onClick={() => openSection(item.section)}>
-              <span>{item.icon}</span>
-              <strong>{item.label}</strong>
-              <small>{item.description}</small>
-            </button>
-          ))}
-        </div>
+        {(['Set up', 'Create or edit', 'Inspect'] as const).map((group) => (
+          <section key={group} className="settings-flow-section">
+            <div className="settings-readonly-header">
+              <strong>{group}</strong>
+              <span className="settings-state-pill">{integrationSections.filter((item) => item.group === group).length} tasks</span>
+            </div>
+            <div className="settings-action-grid">
+              {integrationSections.filter((item) => item.group === group).map((item) => (
+                <button key={item.section} className="settings-action-tile" onClick={() => openSection(item.section)}>
+                  <span>{item.icon}</span>
+                  <strong>{item.label}</strong>
+                  <small>{item.description}</small>
+                </button>
+              ))}
+            </div>
+          </section>
+        ))}
         <div className="settings-inline-actions">
           <button className="ghost-button native-ghost settings-inline-action" onClick={openDocs}><Keyboard size={16} /> Local docs</button>
           <button className="ghost-button native-ghost settings-inline-action" onClick={() => transport.openExternal('https://commandcode.ai/docs/reference/cli')}><Terminal size={16} /> CLI docs</button>
         </div>
-        <p className="settings-muted">This hub only routes to existing read-only Settings sections. Connect, edit, save, auth, and config mutation actions remain gated until command previews, scopes, and write destinations are explicit.</p>
+        <p className="settings-muted">Each integration page shows what is implemented now and what remains gated before any config or runtime-affecting action.</p>
       </div>
     </div>
   )
@@ -442,10 +488,10 @@ export function IntegrationsSettings({
 export function AdvancedSettings({ openSection }: { openSection: (section: SettingsSection) => void }): JSX.Element {
   return (
     <div className="settings-detail-page">
-      <div className="settings-page-title">Advanced</div>
+      <SettingsPageHeader item={settingsItem('advanced')} status="Low-level diagnostics" scope="Integration setup lives under Integrations" />
       <div className="settings-card settings-card--wide">
         <div className="settings-readonly-header">
-          <strong>Diagnostics and scoped tools</strong>
+          <strong>Diagnostics and references</strong>
         </div>
         <div className="settings-action-grid">
           {advancedDiagnosticSections.map((item) => (
@@ -456,8 +502,18 @@ export function AdvancedSettings({ openSection }: { openSection: (section: Setti
             </button>
           ))}
         </div>
-        <div className="settings-muted"><GitBranch size={16} /> These routes replace the generic Advanced modal as the primary path for diagnostics, local state, and scoped project file editors.</div>
+        <div className="settings-muted"><GitBranch size={16} /> Use this page for low-level local state and reference checks. MCP, hooks, agents, memory, skills, taste, and design now live under Integrations or Project task groups.</div>
       </div>
+    </div>
+  )
+}
+
+function SetupCheck({ label, value, state }: { label: string; value: string; state: string }): JSX.Element {
+  return (
+    <div className="settings-check-item">
+      <span>{label}</span>
+      <strong>{value}</strong>
+      <small>{state}</small>
     </div>
   )
 }

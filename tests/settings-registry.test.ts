@@ -51,6 +51,17 @@ describe('settings registry', () => {
     expect(groupedSettings().map((group) => group.label)).toEqual(['Personal', 'Workbench', 'Integrations', 'Diagnostics'])
   })
 
+  it('includes task-flow metadata for every section', () => {
+    for (const item of settingsRegistry) {
+      expect(['task', 'reference', 'diagnostic', 'hub']).toContain(item.role)
+      expect(['Setup', 'Project', 'Integrations', 'Diagnostics', 'Reference']).toContain(item.taskGroup)
+    }
+
+    expect(settingsItem('profile')).toMatchObject({ role: 'hub', taskGroup: 'Setup' })
+    expect(settingsItem('integrations')).toMatchObject({ role: 'hub', taskGroup: 'Integrations' })
+    expect(settingsItem('advanced')).toMatchObject({ label: 'Diagnostics', role: 'diagnostic' })
+  })
+
   it('falls back to profile metadata for unknown sections defensively', () => {
     expect(settingsItem('unknown' as SettingsSection).id).toBe('profile')
   })

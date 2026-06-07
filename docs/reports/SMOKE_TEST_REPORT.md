@@ -1695,3 +1695,20 @@ Scope: Settings size-awareness follow-up. The native shell height chain now cons
 | Built Electron session UI | Pass | Built Electron at `1306x768` started a Demo-mode session, preserved `terminal visibility proof` after sidebar resize, `resetToAttachOnly: false`, terminal host stayed visible, and screenshot saved to `/tmp/ccgui-session-terminal-visible-electron.png` |
 
 Scope: Session terminal visibility follow-up. `TerminalPane` no longer clears and resubscribes its xterm buffer when parent session readiness updates change callback identity, and active panes now fit/refresh after visible layout settlement. The session workspace and terminal card height chain is explicitly constrained for resized Electron windows. This package did not add renderer IPC, broaden transport, change PTY/session lifecycle ownership, scrape terminal output for private state, mutate files/config, or alter Command Code invocation semantics. Real CLI conversation output was not manually exercised in this package; PTY health was smoke-tested and the renderer fix is transport-agnostic.
+
+### 2026-06-06 Settings UX task-flow polish
+
+| Check | Result | Receipt |
+|---|---:|---|
+| Audit package TypeScript | Pass | `npm run typecheck` before commit `e6ac224` |
+| TypeScript | Pass | `npm run typecheck` through `npm run build` |
+| Focused tests | Pass | `npx vitest run tests/settings-registry.test.ts tests/command-palette-search.test.ts` -> `12/12` |
+| Unit tests | Pass | `npx vitest run` -> `174/174` |
+| Build | Pass | `npm run build`; renderer assets `index-C_I_PjPH.js` and `index-CeIUkKRo.css` |
+| Browser/API smoke | Pass | `npm run smoke:browser`; mock headless, mock session create/exit, multi-session independence, auth checks passed |
+| Built Browser route | Pass | Authenticated `http://127.0.0.1:60721/` loaded title `Command Code`; Profile, Integrations, Diagnostics, Hooks, Agents, MCP, Data, and Sessions DOM receipts passed with no console warnings/errors |
+| Built Browser screenshot | Not available | Browser backend timed out on `Page.captureScreenshot`; DOM/interaction metrics passed and Electron screenshots were captured |
+| Built Electron Settings UI | Pass | `1058x768` confirmed Profile setup checklist/recommended actions/task groups; Integrations grouped Set up/Create or edit/Inspect; Diagnostics cards limited to Project state, Usage, About, Keyboard; Hooks header/status/action visible and scrollable |
+| Electron screenshots | Pass | `/tmp/ccgui-settings-ux-profile-electron.png`, `/tmp/ccgui-settings-ux-integrations-electron.png`, `/tmp/ccgui-settings-ux-diagnostics-electron.png`, `/tmp/ccgui-settings-ux-hooks-electron.png` |
+
+Scope: Settings UX task-flow polish. Settings now has a task-flow audit report, registry UX role/group metadata, a shared page header for purpose/status/scope, a Profile overview with setup checklist and recommended next actions, grouped Integrations tasks, and a de-duplicated Diagnostics page. Dense pages receive purpose/status/scope headers before detailed cards. This package did not add runtime behavior, renderer IPC, filesystem reach, Command Code config mutation, transport calls, or session lifecycle changes.

@@ -32,6 +32,7 @@ import { TasteSettingsReadOnly } from './TasteSettings'
 import { ModelsSettings } from './ModelsSettings'
 import { McpSettings } from './McpSettings'
 import { settingsItem } from './settingsRegistry'
+import { SettingsPageHeader } from './SettingsPageHeader'
 import { DesignHelper } from '../workflows/DesignHelper'
 
 const implementedSettingsSections: SettingsSection[] = [
@@ -191,34 +192,34 @@ export function SettingsRoute(props: SettingsRouteProps): JSX.Element {
     case 'advanced':
       return <AdvancedSettings openSection={openSection} />
     case 'data':
-      return <SettingsFrame title="Data"><ProjectStateSettings transport={transport} cwd={cwd} /></SettingsFrame>
+      return <SettingsFrame section="data" scope={cwd ? 'Project scope selected' : 'No project selected'}><ProjectStateSettings transport={transport} cwd={cwd} /></SettingsFrame>
     case 'sessions':
-      return <SettingsFrame title="Sessions"><SessionsSettingsReadOnly transport={transport} cwd={cwd} onResumeSession={onResumeSession} /></SettingsFrame>
+      return <SettingsFrame section="sessions" scope={cwd ? 'Project transcripts available' : 'Choose a project to resume sessions'}><SessionsSettingsReadOnly transport={transport} cwd={cwd} onResumeSession={onResumeSession} /></SettingsFrame>
     case 'mcp':
-      return <SettingsFrame title="MCP"><McpSettings transport={transport} commandExecutable={commandExecutable} /></SettingsFrame>
+      return <SettingsFrame section="mcp" status="Command Code-owned commands"><McpSettings transport={transport} commandExecutable={commandExecutable} /></SettingsFrame>
     case 'agents':
-      return <SettingsFrame title="Agents"><AgentsSettingsReadOnly transport={transport} cwd={cwd} /></SettingsFrame>
+      return <SettingsFrame section="agents" scope={cwd ? 'Project agents editable' : 'Choose a project to create agents'}><AgentsSettingsReadOnly transport={transport} cwd={cwd} /></SettingsFrame>
     case 'skills':
-      return <SettingsFrame title="Skills"><SkillsSettingsReadOnly transport={transport} /></SettingsFrame>
+      return <SettingsFrame section="skills"><SkillsSettingsReadOnly transport={transport} /></SettingsFrame>
     case 'memory':
-      return <SettingsFrame title="Memory"><MemorySettingsReadOnly transport={transport} cwd={cwd} /></SettingsFrame>
+      return <SettingsFrame section="memory" scope={cwd ? 'Project memory editable' : 'Choose a project to edit memory'}><MemorySettingsReadOnly transport={transport} cwd={cwd} /></SettingsFrame>
     case 'taste':
-      return <SettingsFrame title="Taste"><TasteSettingsReadOnly transport={transport} /></SettingsFrame>
+      return <SettingsFrame section="taste"><TasteSettingsReadOnly transport={transport} /></SettingsFrame>
     case 'keyboard':
-      return <SettingsFrame title="Keyboard"><KeyboardSettingsReadOnly /></SettingsFrame>
+      return <SettingsFrame section="keyboard"><KeyboardSettingsReadOnly /></SettingsFrame>
     case 'notifications':
-      return <SettingsFrame title="Notifications"><NotificationsSettings /></SettingsFrame>
+      return <SettingsFrame section="notifications" status="GUI feedback preferences"><NotificationsSettings /></SettingsFrame>
     case 'terminal':
-      return <SettingsFrame title="Terminal"><TerminalSettings /></SettingsFrame>
+      return <SettingsFrame section="terminal" status="Renderer-local presentation"><TerminalSettings /></SettingsFrame>
     case 'models':
-      return <SettingsFrame title="Models"><ModelsSettings model={model} onConfigureModels={openConfigureModels} openRuntimeSettings={() => openSection('runtime')} /></SettingsFrame>
+      return <SettingsFrame section="models" status="Preview and picker guidance"><ModelsSettings model={model} onConfigureModels={openConfigureModels} openRuntimeSettings={() => openSection('runtime')} /></SettingsFrame>
     case 'design':
-      return <SettingsFrame title="Design"><DesignHelper /></SettingsFrame>
+      return <SettingsFrame section="design" status="Preview-only helper"><DesignHelper /></SettingsFrame>
     case 'hooks':
-      return <SettingsFrame title="Hooks"><HooksSettingsReadOnly transport={transport} cwd={cwd} /></SettingsFrame>
+      return <SettingsFrame section="hooks" scope={cwd ? 'Project and user hook scopes' : 'User hooks only until project is selected'}><HooksSettingsReadOnly transport={transport} cwd={cwd} /></SettingsFrame>
     case 'about':
       return (
-        <SettingsFrame title="About">
+        <SettingsFrame section="about">
           <AboutSettingsReadOnly
             updateState={updateState}
             updateVersion={updateVersion}
@@ -236,10 +237,21 @@ export function isImplementedSettingsSection(section: SettingsSection): boolean 
   return implementedSettingsSections.includes(section)
 }
 
-function SettingsFrame({ title, children }: { title: string; children: JSX.Element }): JSX.Element {
+function SettingsFrame({
+  section,
+  status,
+  scope,
+  children
+}: {
+  section: SettingsSection
+  status?: string
+  scope?: string
+  children: JSX.Element
+}): JSX.Element {
+  const item = settingsItem(section)
   return (
     <div className="settings-detail-page">
-      <div className="settings-page-title">{title}</div>
+      <SettingsPageHeader item={item} status={status} scope={scope} />
       {children}
     </div>
   )
@@ -249,7 +261,7 @@ function SettingsPlaceholder({ section }: { section: SettingsSection }): JSX.Ele
   const item = settingsItem(section)
   return (
     <div className="settings-detail-page">
-      <div className="settings-page-title">{item.label}</div>
+      <SettingsPageHeader item={item} status="Registered route" scope="Read-only placeholder" />
       <div className="settings-card settings-card--wide">
         <div className="settings-placeholder-heading">
           {item.icon}
