@@ -3,10 +3,10 @@ import { parse as parseUrl } from 'node:url'
 import { realpathSync } from 'node:fs'
 import path from 'node:path'
 import { CoreSessionManager, type PtySpawnFn } from '../core/sessions'
-import { normalizeCwd } from '../core/cli'
 import { resolveBoundaryPath } from '../shared/pathContainment'
 import {
   RequestBodyTooLargeError,
+  WorkspaceError,
   extractParams,
   extractToken,
   generateToken,
@@ -67,9 +67,28 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
     }
   }
 
-  function findWorkspaceRoot(): string | undefined {
-    for (const root of workspaceRoots.values()) return root
-    return undefined
+  // Module-private helper: turn a request-supplied cwd into the trusted
+  // canonical root stored in workspaceRoots. Exact canonical match only —
+  // a request bound to root A must never see root B. Throws WorkspaceError
+  // (400) on missing or unknown cwd; the HTTP layer maps that to a real
+  // 4xx response so /api/files/* no longer hides denials behind 200.
+  function resolveCwdToRegisteredRoot(cwd: string): string {
+    // (a) require non-empty cwd
+    if (typeof cwd !== 'string' || !cwd.trim()) {
+      throw new WorkspaceError('Access denied — workspace context required (cwd)', 400)
+    }
+    // (b) canonicalize to realpath, matching the form registerWorkspace() stores
+    let canonical: string
+    try {
+      canonical = realpathSync(path.resolve(cwd))
+    } catch {
+      canonical = path.resolve(cwd)
+    }
+    // (c) exact-match against registered roots. No "first root wins" fallback.
+    for (const root of workspaceRoots.values()) {
+      if (root === canonical) return root
+    }
+    throw new WorkspaceError(`Access denied — unknown workspace: ${cwd}`, 400)
   }
 
   function cleanupSession(sessionId: string): void {
@@ -83,18 +102,14 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
     cleanupSession(payload.sessionId)
   })
 
-  function resolveWorkspaceRoot(cwdInput?: string): { root?: string; error?: string } {
-    const activeRoot = findWorkspaceRoot()
-    if (!cwdInput?.trim()) {
-      return activeRoot ? { root: activeRoot } : { error: 'Access denied — choose a project before browsing files' }
-    }
-
-    try {
-      const normalized = normalizeCwd(cwdInput)
-      return { root: realpathSync(normalized) }
-    } catch (err) {
-      return { error: err instanceof Error ? err.message : 'Invalid project directory' }
-    }
+  // Resolver for /api/files/*, /api/agents/save, /api/memories/save, and
+  // the hook routes. Returns the canonical registered root for `cwdInput`.
+  // Throws WorkspaceError (400) when cwd is missing, empty, or does not
+  // canonical-match any registered workspace. Callers that need a 4xx
+  // response (the boundary routes) let the throw propagate; the hook
+  // internal helpers catch and convert to a body-error result.
+  function resolveWorkspaceRoot(cwdInput?: string): string {
+    return resolveCwdToRegisteredRoot(cwdInput ?? '')
   }
 
   // WS server is created after HTTP server
@@ -227,6 +242,10 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
           sendJson(res, 413, { error: 'Request body too large' })
           return
         }
+        if (err instanceof WorkspaceError) {
+          sendJson(res, err.status, { error: err.message })
+          return
+        }
         const message = err instanceof Error ? err.message : 'Internal server error'
         sendJson(res, 500, { error: message })
       }
@@ -285,6 +304,14 @@ export function createAppServer(port: number, host: string = '127.0.0.1', opts?:
       const result = await matchedHandler(ctx)
       sendJson(res, 200, result)
     } catch (err) {
+      if (err instanceof RequestBodyTooLargeError) {
+        sendJson(res, 413, { error: 'Request body too large' })
+        return
+      }
+      if (err instanceof WorkspaceError) {
+        sendJson(res, err.status, { error: err.message })
+        return
+      }
       const message = err instanceof Error ? err.message : 'Internal server error'
       sendJson(res, 500, { error: message })
     }

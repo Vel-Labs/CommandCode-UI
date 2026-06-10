@@ -22,6 +22,20 @@ export class RequestBodyTooLargeError extends Error {
   }
 }
 
+// BF-2: thrown by resolveWorkspaceRoot (and any route handler that needs to
+// refuse a workspace-bounded request). The HTTP layer's catch block maps this
+// to the carried status code (400 for missing/unknown cwd, 403 for path
+// outside the resolved workspace) so /api/files/* no longer hides access
+// denials behind an HTTP 200 + { error } body.
+export class WorkspaceError extends Error {
+  status: 400 | 403
+  constructor(message: string, status: 400 | 403) {
+    super(message)
+    this.name = 'WorkspaceError'
+    this.status = status
+  }
+}
+
 export function generateToken(): string {
   return randomBytes(32).toString('hex')
 }

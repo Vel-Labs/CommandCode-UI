@@ -2,12 +2,12 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import path from 'node:path'
 import type { FileEntry } from '../core/types'
 import { isPathUnderRoot } from '../shared/pathContainment'
-import type { RouteHandler } from './http'
+import { WorkspaceError, type RouteHandler } from './http'
 
 type AddRoute = (method: string, pattern: string, handler: RouteHandler) => void
 
 type FileRoutesOptions = {
-  resolveWorkspaceRoot: (cwdInput?: string) => { root?: string; error?: string }
+  resolveWorkspaceRoot: (cwdInput?: string) => string
 }
 
 const MAX_FILE_READ_BYTES = 1_048_576 // 1MB
@@ -16,19 +16,17 @@ export function registerFileRoutes(addRoute: AddRoute, { resolveWorkspaceRoot }:
   // File system browsing: contained to registered workspace roots.
   addRoute('POST', '/api/files/list', async ({ body }) => {
     const { dir, cwd } = body as { dir?: string; cwd?: string }
-    const workspace = resolveWorkspaceRoot(cwd)
-    if (!workspace.root) {
-      return { error: workspace.error || 'Access denied — project root is required', entries: [] }
-    }
+    // resolveWorkspaceRoot throws WorkspaceError(400) on missing/unknown cwd.
+    const root = resolveWorkspaceRoot(cwd)
 
-    const target = path.resolve(dir ?? workspace.root)
+    const target = path.resolve(dir ?? root)
 
     if (!existsSync(target) || !statSync(target).isDirectory()) {
       return { error: 'Directory not found', entries: [] }
     }
 
-    if (!isPathUnderRoot(target, workspace.root)) {
-      return { error: 'Access denied — path outside workspace root', entries: [] }
+    if (!isPathUnderRoot(target, root)) {
+      throw new WorkspaceError('Access denied — path outside workspace root', 403)
     }
 
     const entries: FileEntry[] = readdirSync(target)
@@ -55,15 +53,13 @@ export function registerFileRoutes(addRoute: AddRoute, { resolveWorkspaceRoot }:
   addRoute('POST', '/api/files/read', async ({ body }) => {
     const { filePath: fp, cwd } = body as { filePath?: string; cwd?: string }
     if (!fp) return { error: 'No path provided' }
-    const workspace = resolveWorkspaceRoot(cwd)
-    if (!workspace.root) {
-      return { error: workspace.error || 'Access denied — project root is required' }
-    }
+    // resolveWorkspaceRoot throws WorkspaceError(400) on missing/unknown cwd.
+    const root = resolveWorkspaceRoot(cwd)
 
     const resolved = path.resolve(fp)
 
-    if (!isPathUnderRoot(resolved, workspace.root)) {
-      return { error: 'Access denied — path outside workspace root' }
+    if (!isPathUnderRoot(resolved, root)) {
+      throw new WorkspaceError('Access denied — path outside workspace root', 403)
     }
 
     if (!existsSync(resolved) || statSync(resolved).isDirectory()) {

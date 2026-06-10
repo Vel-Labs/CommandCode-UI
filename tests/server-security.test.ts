@@ -23,6 +23,18 @@ function tempProject(): string {
   return dir
 }
 
+// BF-2: under the new contract, an explicit cwd must match a registered
+// workspace. Tests that exercise "explicit cwd" success paths use this
+// helper to spin up a temp project AND register it via the session route.
+async function startProjectSession(app: TestServer): Promise<string> {
+  const dir = tempProject()
+  await apiPost<{ id: string }>(app, '/api/sessions', {
+    cwd: dir,
+    useMock: true
+  })
+  return dir
+}
+
 function tempTranscriptDir(): string {
   const parent = path.join(homedir(), '.commandcode-gui-starter', 'transcripts')
   mkdirSync(parent, { recursive: true })
@@ -42,6 +54,22 @@ async function apiPost<T>(app: TestServer, route: string, body: Record<string, u
   })
   expect(res.status).toBe(200)
   return res.json() as Promise<T>
+}
+
+// BF-2: workspace-bounded routes return real 4xx status codes now (400 for
+// missing/unknown cwd, 403 for path outside the resolved workspace). Use
+// this helper when the test wants to assert on the status code itself.
+async function apiPostStatus<T>(app: TestServer, route: string, body: Record<string, unknown>): Promise<{ status: number; body: T }> {
+  const res = await fetch(`${app.url}${route}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Auth-Token': app.token
+    },
+    body: JSON.stringify(body)
+  })
+  const json = (await res.json().catch(() => ({}))) as T
+  return { status: res.status, body: json }
 }
 
 async function apiDelete(app: TestServer, route: string): Promise<void> {
@@ -86,32 +114,35 @@ describe('server filesystem boundaries', () => {
     const outsideFile = path.join(project, 'outside.txt')
     writeFileSync(outsideFile, 'secret', 'utf8')
 
-    const listed = await apiPost<{ entries: unknown[]; error?: string }>(app, '/api/files/list', { dir: project })
-    expect(listed.entries).toEqual([])
-    expect(listed.error).toContain('Access denied')
+    // BF-2: missing cwd is a 400. The route must not return a 200 with an
+    // empty/error body and must not leak the project contents.
+    const listed = await apiPostStatus<{ entries?: unknown[]; error?: string }>(app, '/api/files/list', { dir: project })
+    expect(listed.status).toBe(400)
+    expect(listed.body.error).toContain('Access denied')
 
-    const read = await apiPost<{ content?: string; error?: string }>(app, '/api/files/read', { filePath: outsideFile })
-    expect(read.content).toBeUndefined()
-    expect(read.error).toContain('Access denied')
+    const read = await apiPostStatus<{ content?: string; error?: string }>(app, '/api/files/read', { filePath: outsideFile })
+    expect(read.status).toBe(400)
+    expect(read.body.content).toBeUndefined()
+    expect(read.body.error).toContain('Access denied')
 
-    const agentSave = await apiPost<{ ok: boolean; error?: string }>(app, '/api/agents/save', {
+    const agentSave = await apiPostStatus<{ ok?: boolean; error?: string }>(app, '/api/agents/save', {
       path: path.join(project, '.commandcode', 'agents', 'agent.md'),
       content: 'agent'
     })
-    expect(agentSave.ok).toBe(false)
-    expect(agentSave.error).toContain('Access denied')
+    expect(agentSave.status).toBe(400)
+    expect(agentSave.body.error).toContain('Access denied')
 
-    const memorySave = await apiPost<{ ok: boolean; error?: string }>(app, '/api/memories/save', {
+    const memorySave = await apiPostStatus<{ ok?: boolean; error?: string }>(app, '/api/memories/save', {
       path: path.join(project, 'AGENTS.md'),
       content: 'memory'
     })
-    expect(memorySave.ok).toBe(false)
-    expect(memorySave.error).toContain('Access denied')
+    expect(memorySave.status).toBe(400)
+    expect(memorySave.body.error).toContain('Access denied')
   })
 
   it('uses explicit cwd to constrain file reads and allowed writes to that project', async () => {
     const app = await startServer()
-    const project = tempProject()
+    const project = await startProjectSession(app)
     const outside = tempProject()
     const projectFile = path.join(project, 'inside.txt')
     const outsideFile = path.join(outside, 'outside.txt')
@@ -136,12 +167,14 @@ describe('server filesystem boundaries', () => {
     expect(read.content).toBe('inside')
     expect(read.error).toBeUndefined()
 
-    const deniedRead = await apiPost<{ content?: string; error?: string }>(app, '/api/files/read', {
+    // Path outside the registered workspace -> 403 with "Access denied" body.
+    const deniedRead = await apiPostStatus<{ content?: string; error?: string }>(app, '/api/files/read', {
       cwd: project,
       filePath: outsideFile
     })
-    expect(deniedRead.content).toBeUndefined()
-    expect(deniedRead.error).toContain('Access denied')
+    expect(deniedRead.status).toBe(403)
+    expect(deniedRead.body.content).toBeUndefined()
+    expect(deniedRead.body.error).toContain('Access denied')
 
     const agentSave = await apiPost<{ ok: boolean; error?: string }>(app, '/api/agents/save', {
       cwd: project,
@@ -160,7 +193,7 @@ describe('server filesystem boundaries', () => {
 
   it('lists project agents from the same scoped root that agent saves use', async () => {
     const app = await startServer()
-    const project = tempProject()
+    const project = await startProjectSession(app)
     const agentPath = path.join(project, '.commandcode', 'agents', 'settings-smoke.md')
 
     mkdirSync(path.dirname(agentPath), { recursive: true })
@@ -184,7 +217,7 @@ describe('server filesystem boundaries', () => {
 
   it('creates the project agent directory for scoped new agent saves', async () => {
     const app = await startServer()
-    const project = tempProject()
+    const project = await startProjectSession(app)
     const agentPath = path.join(project, '.commandcode', 'agents', 'created-from-settings.md')
 
     const save = await apiPost<{ ok: boolean; error?: string }>(app, '/api/agents/save', {
@@ -209,17 +242,83 @@ describe('server filesystem boundaries', () => {
     })
 
     const activeRead = await apiPost<{ content?: string; error?: string }>(app, '/api/files/read', {
+      cwd: project,
       filePath: projectFile
     })
     expect(activeRead.content).toBe('inside')
 
     await apiDelete(app, `/api/sessions/${session.id}`)
 
-    const staleRead = await apiPost<{ content?: string; error?: string }>(app, '/api/files/read', {
+    // After session deletion the cwd is no longer a registered workspace,
+    // so /api/files/read must return 400, not 200 + body-error.
+    const staleRead = await apiPostStatus<{ content?: string; error?: string }>(app, '/api/files/read', {
+      cwd: project,
       filePath: projectFile
     })
-    expect(staleRead.content).toBeUndefined()
-    expect(staleRead.error).toContain('Access denied')
+    expect(staleRead.status).toBe(400)
+    expect(staleRead.body.content).toBeUndefined()
+    expect(staleRead.body.error).toContain('Access denied')
+  })
+
+  // BF-2 regression: with two registered workspaces, /api/files/list must
+  // never return another workspace's entries. The pre-fix resolver returned
+  // the FIRST registered root on a missing cwd and did not canonical-match —
+  // a request bound to workspace A could leak workspace B's files (and vice
+  // versa). This test pins down all four cases from the bf2-test spec.
+  it('scopes /api/files/list to the requested workspace across multiple registrations', async () => {
+    const app = await startServer()
+    const projectA = await startProjectSession(app)
+    const projectB = await startProjectSession(app)
+    const fileA = path.join(projectA, 'a-only.txt')
+    const fileB = path.join(projectB, 'b-only.txt')
+    writeFileSync(fileA, 'a', 'utf8')
+    writeFileSync(fileB, 'b', 'utf8')
+
+    // Case 1 (no-cwd, two-root): must be 400, must NOT list either project.
+    const noCwd = await apiPostStatus<{ entries?: Array<{ name: string }>; error?: string }>(
+      app, '/api/files/list', { dir: projectA }
+    )
+    expect(noCwd.status).toBe(400)
+    expect(noCwd.body.error).toContain('Access denied')
+    expect((noCwd.body.entries ?? []).some((e) => e.name === 'a-only.txt')).toBe(false)
+    expect((noCwd.body.entries ?? []).some((e) => e.name === 'b-only.txt')).toBe(false)
+
+    const noCwdB = await apiPostStatus<{ entries?: Array<{ name: string }>; error?: string }>(
+      app, '/api/files/list', { dir: projectB }
+    )
+    expect(noCwdB.status).toBe(400)
+    expect(noCwdB.body.error).toContain('Access denied')
+
+    // Case 2 (explicit cwd matches): 200 with the right entries.
+    const aListed = await apiPost<{ entries: Array<{ name: string }>; error?: string }>(
+      app, '/api/files/list', { cwd: projectA, dir: projectA }
+    )
+    expect(aListed.error).toBeUndefined()
+    expect(aListed.entries.some((e) => e.name === 'a-only.txt')).toBe(true)
+    expect(aListed.entries.some((e) => e.name === 'b-only.txt')).toBe(false)
+
+    // Case 3 (cwd=A but path is in B): 4xx (403 path-outside, or 400 unknown
+    // workspace if the resolver rejects the cross-root path earlier). MUST
+    // NOT be 200, MUST NOT list B's entries, MUST NOT be 500.
+    const cross = await apiPostStatus<{ entries?: Array<{ name: string }>; error?: string }>(
+      app, '/api/files/list', { cwd: projectA, dir: projectB }
+    )
+    expect([400, 403]).toContain(cross.status)
+    expect(cross.status).not.toBe(200)
+    expect(cross.status).not.toBe(500)
+    expect((cross.body.entries ?? []).some((e) => e.name === 'b-only.txt')).toBe(false)
+    expect(cross.body.error ?? '').toMatch(/Access denied|outside|workspace/)
+
+    // Case 4 (single workspace, regression): 200 with the entry.
+    const singleApp = await startServer()
+    const singleProject = await startProjectSession(singleApp)
+    const singleFile = path.join(singleProject, 'single.txt')
+    writeFileSync(singleFile, 's', 'utf8')
+    const singleListed = await apiPost<{ entries: Array<{ name: string }>; error?: string }>(
+      singleApp, '/api/files/list', { cwd: singleProject, dir: singleProject }
+    )
+    expect(singleListed.error).toBeUndefined()
+    expect(singleListed.entries.some((e) => e.name === 'single.txt')).toBe(true)
   })
 
   it('returns a bounded tail for oversized PTY transcript diagnostics', async () => {
@@ -261,7 +360,7 @@ describe('server filesystem boundaries', () => {
 
   it('discovers hook configs only from documented project settings scope', async () => {
     const app = await startServer()
-    const project = tempProject()
+    const project = await startProjectSession(app)
     const settingsPath = path.join(project, '.commandcode', 'settings.json')
 
     mkdirSync(path.dirname(settingsPath), { recursive: true })
@@ -289,7 +388,7 @@ describe('server filesystem boundaries', () => {
 
   it('lists and reads hook logs only from the scoped project hooks directory', async () => {
     const app = await startServer()
-    const project = tempProject()
+    const project = await startProjectSession(app)
     const hooksDir = path.join(project, '.commandcode', 'hooks')
     const logPath = path.join(hooksDir, 'audit.log')
     const ignoredPath = path.join(hooksDir, 'secret.md')
@@ -324,7 +423,7 @@ describe('server filesystem boundaries', () => {
 
   it('rejects hook log reads outside scoped hooks directory or unsupported extensions', async () => {
     const app = await startServer()
-    const project = tempProject()
+    const project = await startProjectSession(app)
     const hooksDir = path.join(project, '.commandcode', 'hooks')
     const outsidePath = path.join(project, 'outside.log')
     const unsupportedPath = path.join(hooksDir, 'secret.md')
@@ -385,7 +484,7 @@ describe('server filesystem boundaries', () => {
 
   it('reports hook config parse errors without writing or executing hooks', async () => {
     const app = await startServer()
-    const project = tempProject()
+    const project = await startProjectSession(app)
     const settingsPath = path.join(project, '.commandcode', 'settings.json')
 
     mkdirSync(path.dirname(settingsPath), { recursive: true })
@@ -419,7 +518,7 @@ describe('server filesystem boundaries', () => {
 
   it('previews hook enabled changes without writing settings files', async () => {
     const app = await startServer()
-    const project = tempProject()
+    const project = await startProjectSession(app)
     const settingsPath = path.join(project, '.commandcode', 'settings.json')
     const original = JSON.stringify({
       model: 'deepseek',
@@ -471,7 +570,7 @@ describe('server filesystem boundaries', () => {
 
   it('previews broader hook edits without writing settings files', async () => {
     const app = await startServer()
-    const project = tempProject()
+    const project = await startProjectSession(app)
     const settingsPath = path.join(project, '.commandcode', 'settings.json')
     const original = JSON.stringify({
       model: 'deepseek',
@@ -518,7 +617,7 @@ describe('server filesystem boundaries', () => {
 
   it('previews broader hook deletion without writing settings files', async () => {
     const app = await startServer()
-    const project = tempProject()
+    const project = await startProjectSession(app)
     const settingsPath = path.join(project, '.commandcode', 'settings.json')
     const original = JSON.stringify({
       hooks: {
@@ -564,7 +663,7 @@ describe('server filesystem boundaries', () => {
 
   it('applies hook enabled changes only to the scoped settings file and writes a backup', async () => {
     const app = await startServer()
-    const project = tempProject()
+    const project = await startProjectSession(app)
     const settingsPath = path.join(project, '.commandcode', 'settings.json')
     const original = JSON.stringify({
       model: 'deepseek',
@@ -601,7 +700,7 @@ describe('server filesystem boundaries', () => {
 
   it('does not write hook config when apply validation fails', async () => {
     const app = await startServer()
-    const project = tempProject()
+    const project = await startProjectSession(app)
     const settingsPath = path.join(project, '.commandcode', 'settings.json')
     const original = JSON.stringify({
       hooks: {
@@ -628,7 +727,7 @@ describe('server filesystem boundaries', () => {
 
   it('applies broader hook edits only to the scoped settings file and writes a backup', async () => {
     const app = await startServer()
-    const project = tempProject()
+    const project = await startProjectSession(app)
     const settingsPath = path.join(project, '.commandcode', 'settings.json')
     const original = JSON.stringify({
       model: 'deepseek',
@@ -672,7 +771,7 @@ describe('server filesystem boundaries', () => {
 
   it('applies broader hook deletion only to the scoped settings file and writes a backup', async () => {
     const app = await startServer()
-    const project = tempProject()
+    const project = await startProjectSession(app)
     const settingsPath = path.join(project, '.commandcode', 'settings.json')
     const original = JSON.stringify({
       hooks: {
@@ -703,7 +802,7 @@ describe('server filesystem boundaries', () => {
 
   it('does not write broader hook edits when apply validation fails', async () => {
     const app = await startServer()
-    const project = tempProject()
+    const project = await startProjectSession(app)
     const settingsPath = path.join(project, '.commandcode', 'settings.json')
     const original = JSON.stringify({
       hooks: {
@@ -773,7 +872,7 @@ describe('server local origin and request safety', () => {
 
   it('continues routing bodies at or below the request size limit', async () => {
     const app = await startServer()
-    const project = tempProject()
+    const project = await startProjectSession(app)
     const res = await fetch(`${app.url}/api/files/list`, {
       method: 'POST',
       headers: {

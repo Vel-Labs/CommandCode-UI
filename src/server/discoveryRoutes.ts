@@ -13,12 +13,12 @@ import {
   projectCommandCodeReference
 } from '../core/discovery'
 import { isPathUnderRoot, resolveBoundaryPath } from '../shared/pathContainment'
-import type { RouteHandler } from './http'
+import { WorkspaceError, type RouteHandler } from './http'
 
 type AddRoute = (method: string, pattern: string, handler: RouteHandler) => void
 
 type DiscoveryRoutesOptions = {
-  resolveWorkspaceRoot: (cwdInput?: string) => { root?: string; error?: string }
+  resolveWorkspaceRoot: (cwdInput?: string) => string
 }
 
 const ALLOWED_MEMORY_NAMES = new Set(['COMMANDCODE.md', 'AGENTS.md', 'CLAUDE.md'])
@@ -51,11 +51,11 @@ export function registerDiscoveryRoutes(addRoute: AddRoute, { resolveWorkspaceRo
   addRoute('POST', '/api/agents/save', async ({ body }) => {
     const { path: agentPath, content, cwd } = body as { path?: string; content?: string; cwd?: string }
     if (!agentPath || content == null) return { ok: false, error: 'Missing path or content' }
-    const workspace = resolveWorkspaceRoot(cwd)
-    if (!workspace.root) return { ok: false, error: workspace.error || 'Access denied — project root is required' }
+    // resolveWorkspaceRoot throws WorkspaceError(400) on missing/unknown cwd.
+    const root = resolveWorkspaceRoot(cwd)
     const resolved = path.resolve(agentPath)
-    if (!isAllowedAgentPath(resolved, workspace.root)) {
-      return { ok: false, error: 'Access denied — agent path must be under .commandcode/agents/' }
+    if (!isAllowedAgentPath(resolved, root)) {
+      throw new WorkspaceError('Access denied — agent path must be under .commandcode/agents/', 403)
     }
     const ok = saveAgent(resolved, content)
     return { ok, error: ok ? undefined : 'Failed to save agent config' }
@@ -90,11 +90,11 @@ export function registerDiscoveryRoutes(addRoute: AddRoute, { resolveWorkspaceRo
   addRoute('POST', '/api/memories/save', async ({ body }) => {
     const { path: memPath, content, cwd } = body as { path?: string; content?: string; cwd?: string }
     if (!memPath || content == null) return { ok: false, error: 'Missing path or content' }
-    const workspace = resolveWorkspaceRoot(cwd)
-    if (!workspace.root) return { ok: false, error: workspace.error || 'Access denied — project root is required' }
+    // resolveWorkspaceRoot throws WorkspaceError(400) on missing/unknown cwd.
+    const root = resolveWorkspaceRoot(cwd)
     const resolved = path.resolve(memPath)
-    if (!isAllowedMemoryPath(resolved, workspace.root)) {
-      return { ok: false, error: 'Access denied — memory only writable to COMMANDCODE.md, AGENTS.md, CLAUDE.md, or .commandcode/memory/' }
+    if (!isAllowedMemoryPath(resolved, root)) {
+      throw new WorkspaceError('Access denied — memory only writable to COMMANDCODE.md, AGENTS.md, CLAUDE.md, or .commandcode/memory/', 403)
     }
     const ok = saveMemory(resolved, content)
     return { ok, error: ok ? undefined : 'Failed to save memory file' }

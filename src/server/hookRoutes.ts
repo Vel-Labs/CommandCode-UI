@@ -31,20 +31,28 @@ import {
 type AddRoute = (method: string, pattern: string, handler: RouteHandler) => void
 
 type HookRoutesOptions = {
-  resolveWorkspaceRoot: (cwdInput?: string) => { root?: string; error?: string }
+  resolveWorkspaceRoot: (cwdInput?: string) => string
 }
 
 const MAX_FILE_READ_BYTES = 1_048_576 // 1MB
 
 export function registerHookRoutes(addRoute: AddRoute, { resolveWorkspaceRoot }: HookRoutesOptions): void {
+  // Hook routes return a structured `{ sources, hooks, errors }` envelope
+  // (and `{ ok, ... }` for read/preview/apply) that embeds per-source
+  // errors in the body. To preserve that contract under BF-2 (which makes
+  // the resolver throw 4xx on missing/unknown cwd), these helpers catch
+  // the WorkspaceError and translate it into a body-error result.
   function hookConfigPathForScope(sourceScope: HookScope, cwd?: string): { sourcePath?: string; error?: string } {
     if (sourceScope === 'user') {
       return { sourcePath: path.join(os.homedir(), '.commandcode', 'settings.json') }
     }
 
-    const workspace = resolveWorkspaceRoot(cwd)
-    if (!workspace.root) return { error: workspace.error || 'Access denied — project root is required' }
-    return { sourcePath: path.join(workspace.root, '.commandcode', 'settings.json') }
+    try {
+      const root = resolveWorkspaceRoot(cwd)
+      return { sourcePath: path.join(root, '.commandcode', 'settings.json') }
+    } catch (err) {
+      return { error: err instanceof Error ? err.message : 'Access denied — project root is required' }
+    }
   }
 
   function hookLogDirForScope(sourceScope: HookScope, cwd?: string): { dir?: string; error?: string } {
@@ -52,9 +60,12 @@ export function registerHookRoutes(addRoute: AddRoute, { resolveWorkspaceRoot }:
       return { dir: path.join(os.homedir(), '.commandcode', 'hooks') }
     }
 
-    const workspace = resolveWorkspaceRoot(cwd)
-    if (!workspace.root) return { error: workspace.error || 'Access denied — project root is required' }
-    return { dir: path.join(workspace.root, '.commandcode', 'hooks') }
+    try {
+      const root = resolveWorkspaceRoot(cwd)
+      return { dir: path.join(root, '.commandcode', 'hooks') }
+    } catch (err) {
+      return { error: err instanceof Error ? err.message : 'Access denied — project root is required' }
+    }
   }
 
   function readHookLog(body: { cwd?: string; sourceScope?: string; path?: string }): HookLogReadResult {
