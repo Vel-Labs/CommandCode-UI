@@ -11,9 +11,9 @@ All endpoints require authentication except `GET /health`. The server checks fou
 3. **Query param**: `?token=<value>` (initial page load, drops after cookie is set)
 4. **Bearer**: `Authorization: Bearer <value>` (programmatic API access)
 
-Missing/wrong token returns `401 { error: "Unauthorized" }`.
+Missing/wrong token returns `401 { "error": "Unauthorized" }`.
 
-Responses are always JSON with `Content-Type: application/json`. The server sets CORS headers (`Access-Control-Allow-Origin: *`) for localhost browser mode.
+JSON API responses use `Content-Type: application/json`. The server echoes CORS origins only for exact HTTP loopback hosts: `127.0.0.1`, `localhost`, and `::1`. Prefix lookalikes such as `localhost.evil.example` are not echoed. Oversized JSON request bodies return `413 { "error": "Request body too large" }`.
 
 ---
 
@@ -399,9 +399,27 @@ Resizes the PTY terminal dimensions.
 { "ok": true }
 ```
 
+### `POST /api/sessions/:id/stop`
+
+Requests graceful Command Code exit. Real sessions receive `/exit\r`; mock sessions use the mock `/exit` path.
+
+**Response:**
+```json
+{ "ok": true }
+```
+
+### `POST /api/sessions/:id/interrupt`
+
+Sends Ctrl-C (`\x03`) to the PTY. Mock sessions emit a visible interruption message and remain available for force stop.
+
+**Response:**
+```json
+{ "ok": true }
+```
+
 ### `DELETE /api/sessions/:id`
 
-Sends Ctrl-C (`\x03`) to the PTY. The same endpoint is used for force-kill by the session manager. The session exits naturally after the PTY process terminates.
+Force-kills and removes the session. This is the destructive fallback after graceful stop or interrupt is not enough.
 
 **Response:**
 ```json

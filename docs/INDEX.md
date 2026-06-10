@@ -27,6 +27,7 @@
 |---|---|
 | [CLI_REFERENCE.md](reference/CLI_REFERENCE.md) | Exhaustive Command Code CLI index: every `cmd` subcommand, flag, slash command, keyboard shortcut, exit ladder, doctor checks, and Windows notes |
 | [CLI_INTEGRATION_NOTES.md](reference/CLI_INTEGRATION_NOTES.md) | How Command Code CLI flags and subcommands map to GUI controls. Important limitations of headless mode vs interactive |
+| [COMMAND_CODE_STRUCTURED_EVENT_STREAM_PROPOSAL.md](reference/COMMAND_CODE_STRUCTURED_EVENT_STREAM_PROPOSAL.md) | Proposed Command Code JSON event stream contract for replacing PTY repaint parsing as native chat truth |
 | [ISSUE_MAP.md](reference/ISSUE_MAP.md) | Current upstream Command Code issues that directly influence GUI design decisions. Used as requirements, not blockers |
 | [KNOWN_LIMITATIONS.md](reference/KNOWN_LIMITATIONS.md) | Current limitations: no bundled CLI, no internal state parsing, `node-pty` rebuilds, Windows `cmd` ambiguity, headless isolation |
 | [REFERENCE_LINKS.md](reference/REFERENCE_LINKS.md) | Curated links to Command Code docs, GitHub issues, and relevant resources |

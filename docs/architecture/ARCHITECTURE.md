@@ -55,10 +55,11 @@ Electron shell
   └─ Renderer uses same-origin cookie for auth
 ```
 
-The preload bridge (`src/preload/index.ts`) exposes only three native IPC methods:
+The preload bridge (`src/preload/index.ts`) exposes only five native IPC methods:
 - `cc:choose-directory` — native folder picker dialog
 - `cc:open-external` — guarded URL opener (http/https only)
-- `cc:reveal-transcript` — show file in Finder/Explorer
+- `cc:reveal-transcript` — reveal a validated transcript file in the OS file manager
+- `cc:reveal-path` — reveal a validated project directory in the OS file manager
 - `cc:get-server-info` — returns port and token
 
 ### Browser (dev / WSL / Linux / headless)
@@ -77,19 +78,21 @@ Run `npm run dev:web` for browser dev, or `npm run serve` for the built version 
 
 Defined in `src/core/transport.ts`. The renderer never directly imports server modules — it only talks through this interface. Two implementations exist:
 
-1. **`browserAdapter.ts`**: Creates fetch/WebSocket calls to the local server. Used in both Electron and browser mode. Electron mode overlays `chooseDirectory`, `openExternal`, and `revealTranscript` with native IPC.
+1. **`browserAdapter.ts`**: Creates fetch/WebSocket calls to the local server. Used in both Electron and browser mode. Electron mode overlays `chooseDirectory`, `openExternal`, `revealTranscript`, and `revealPath` with native IPC.
 
 2. **`useTransport.ts`**: Returns the appropriate transport implementation based on whether `window.commandCode` (preload bridge) exists.
 
-### API endpoints (22 total)
+### API endpoints
 
-All endpoints are POST (except `/health` GET) and require authentication. See [API Reference](reference/API_REFERENCE.md) for full request/response shapes.
+All API endpoints require authentication except `GET /health`. Most endpoints are POST; PTY force-kill uses DELETE, and health/PTY-health are GET. See [API Reference](../reference/API_REFERENCE.md) for full request/response shapes.
 
 **Session lifecycle:**
 - `POST /api/sessions` — start a new interactive session
 - `POST /api/sessions/:id/write` — send data to session PTY
 - `POST /api/sessions/:id/resize` — resize terminal
-- `DELETE /api/sessions/:id` — stop/kill session
+- `POST /api/sessions/:id/stop` — request graceful Command Code exit (`/exit`)
+- `POST /api/sessions/:id/interrupt` — send Ctrl-C (`\x03`)
+- `DELETE /api/sessions/:id` — force-kill and remove the session
 - `WS /ws/sessions/:id` — stream PTY output (data + exit events)
 
 **CLI introspection:**
@@ -129,9 +132,10 @@ Start → startSession() → POST /api/sessions → server spawns PTY
       └─ WS broadcasts to renderer → xterm.js displays
 
 Stop ladder:
-  1. User clicks "Stop"  → POST /api/sessions/:id/write { data: "\x03" } → Ctrl-C
-  2. PTY exits           → server emits 'session:exit' → WS broadcasts
-  3. Force Stop           → POST /api/sessions/:id/kill → PTY kill()
+  1. User clicks "Stop"      → POST /api/sessions/:id/stop → writes /exit
+  2. User clicks "Interrupt" → POST /api/sessions/:id/interrupt → writes Ctrl-C
+  3. Force Stop              → DELETE /api/sessions/:id → PTY kill()
+  4. PTY exits               → server emits 'session:exit' → WS broadcasts
 ```
 
 ## Auth model
@@ -143,7 +147,13 @@ The server generates a random 64-char hex token on startup. The auth ladder chec
 3. **Query param** (`?token=...`) — initial page load, drops after cookie is set
 4. **Bearer** (`Authorization: Bearer ...`) — programmatic API access
 
-The server sets the cookie on every response, so the query param disappears after the first request.
+Tokenized initial loads set the HttpOnly cookie only after the query token is proven, then redirect to strip the token from the URL. Authenticated API/static responses refresh the cookie. `GET /health`, invalid tokens, unauthenticated responses, and `/api/token` do not set the cookie.
+
+## CORS and request limits
+
+The server echoes CORS origins only for exact HTTP loopback hosts: `127.0.0.1`, `localhost`, and `::1`. Prefix lookalikes such as `localhost.evil.example` are not echoed. Non-browser local tooling may omit an Origin header; invalid origins receive `Access-Control-Allow-Origin: null`.
+
+JSON request bodies are capped at 1 MB. Oversized bodies return `413 { "error": "Request body too large" }` instead of resetting the connection.
 
 ## Renderer component tree
 
@@ -156,7 +166,7 @@ Mock mode spawns no PTY — the server responds with pre-canned text for common 
 ## Security posture
 
 - Renderer never receives Node.js integration (`contextIsolation: true`, `nodeIntegration: false`)
-- Preload bridge exposes only four IPC methods, all guarded
+- Preload bridge exposes only five IPC methods, all guarded and native-only
 - Main process only spawns the configured `cmd` binary with controlled argument arrays
 - No arbitrary shell execution from renderer
 - Permission mode is always visible (mode rail, top-bar status pills)

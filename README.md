@@ -17,7 +17,7 @@ This app turns that workflow into a small desktop cockpit:
 - **Make risk visible:** `standard`, `auto-accept`, and `trust` access states stay on-screen instead of being hidden in configuration.
 - **Support headless work:** run non-interactive prompts from the GUI while preserving receipts and exit status.
 - **Expose health:** PTY, auth, IDE, model, and command binary checks are inspectable without scraping terminal output.
-- **Keep Command Code current:** startup performs a read-only `cmd update --check-only`, and the sidebar Update chip runs `cmd update` only when the operator clicks it.
+- **Keep Command Code current:** startup performs a read-only `cmd update --check-only`, and the sidebar Update chip runs `cmd update` only when the operator clicks it, then verifies the installed state with a follow-up check.
 - **Surface important releases:** known Command Code patch notes appear in-app after update checks or completed updates, with direct access to relevant slash commands.
 
 This is intentionally an adapter, not a fork. The GUI does not own model semantics, tool permissions, taste learning, checkpoint internals, or private Command Code APIs. Command Code remains the engine and source of execution truth.
@@ -53,11 +53,13 @@ The default theme uses the Command Code spectral grid. The Blueprint theme keeps
 - Settings page with profile, runtime, appearance, usage, integrations, hooks, MCP, agents, skills, memory, taste, notifications, terminal, keyboard, data, and advanced diagnostics sections
 - Selectable appearance themes with local persistence
 - Runtime checks for CLI, PTY health, and available Command Code updates
-- Codex-like workbench rail for IDE/Finder, environment status, repo terminal, and right sidebar controls
+- Codex-like conversation workspace for active sessions, with live PTY output projected into a full-page native timeline by default; follow-up prompts append as separate chat turns, while raw xterm is hidden under Advanced session tools for diagnostics and unsupported TUI states
+- Workbench rail for IDE/Finder, environment status, repo terminal, and right sidebar controls
 - Right inspector for files, file preview, transcript/history, docs, environment status, and IDE status, with gated workbench actions kept preview-only until their route contracts are explicit
 - `Cmd+T` / `Ctrl+T` opens another Command Code session in the same selected project
-- The composer is the primary prompt surface; Enter sends and Shift+Enter inserts a line break. Command Code selection prompts automatically enter Menu input so arrow keys and Enter go to the terminal, while the header Terminal button opens a separate shell in the repo for commands like `npm run dev`
-- `Ctrl+O` terminal expansion shortcut opens active session details in the right inspector
+- The composer is the primary prompt surface; Enter sends and Shift+Enter inserts a line break. Command Code selection prompts can render as inline approval buttons, while advanced terminal input remains available only from the diagnostic fallback. The header Terminal button opens a separate shell in the repo for commands like `npm run dev`
+- `Ctrl/Cmd+O` or `Ctrl/Cmd+0` toggles the active session thinking/transcript details in the right inspector, scoped to the current live session
+- Chat bubbles use translucent black surfaces with theme-aware user and CC accents; Appearance settings can override each accent color locally
 - Resizable left sidebar and right inspector, with collapse when dragged below the useful width
 - Product icon assets for macOS, Windows, and Linux packaging
 
@@ -80,9 +82,9 @@ npm run dev
 
 Use **Demo mode** first if you only want to validate the GUI. The normal composer path starts a **Real session** when `cmd --version`, `cmd status --json`, and the PTY health check pass. Headless work is available from the command palette as **Run headless**, which executes `cmd --print` and records the result in history.
 
-On launch, the app checks for Command Code CLI updates with `cmd update --check-only`. This is intentionally non-mutating. Use the Update chip in the lower-left sidebar to run `cmd update` when an update is available, or to manually refresh update status.
+On launch, the app checks for Command Code CLI updates with `cmd update --check-only`. This is intentionally non-mutating. Use the Update chip in the lower-left sidebar to run `cmd update` when an update is available, or to manually refresh update status. After an update run completes, the app performs a follow-up `cmd update --check-only` so the chip reflects the installed state rather than stale update output.
 
-When the installed version has known patch notes, the app shows a local release-note modal once. For Command Code `0.32.3`, the modal highlights `/configure-models`, which routes background requests such as compaction and session title generation to models of your choice.
+Release notes are presented through the same local modal every time. Curated notes are bundled for known versions, including Command Code `0.32.3` for `/configure-models` and `0.33.2` for Web Search/Web Fetch. If future CLI update output includes note-like text, the GUI formats that into the modal; if no note text is exposed, completed updates still get a consistent generated receipt and the raw output remains visible in Settings → About.
 
 The release-note modal is driven by the actual installed version returned from `cmd update --check-only`; it is not a separate hardcoded marketing surface. The copy is local release metadata keyed by version, and dismissal is saved in local storage.
 
@@ -98,7 +100,9 @@ The app treats `.commandcode` as a canonical project signal, but keeps ownership
 - `~/.commandcode/gui-preferences.json` is GUI-owned app state for the last selected project, recent projects, command binary, model defaults, appearance, dismissed release notes, and sidebar/inspector widths. This file is what keeps `npm run dev` from forgetting state when Electron starts the local server on a new port.
 - `~/.commandcode/projects/<project-slug>/` contains Command Code runtime-owned chat contexts, metadata, checkpoints, and settings.
 
-Settings → Data and Advanced → Project state show these locations and the files found in each section. Existing project chat contexts appear in the sidebar as recent chats, initially capped with Show more. Selecting one immediately starts a real Command Code PTY with `cmd --resume <session-title-or-id>` and keeps the prior transcript/history visible in the right inspector. The GUI does not append directly to runtime-owned `.jsonl` transcript or checkpoint files.
+Settings → Data and Advanced → Project state show these locations and the files found in each section. Existing project chat contexts appear in the sidebar as recent chats, initially capped with Show more. Selecting one immediately starts a real Command Code PTY with `cmd --resume <session-title-or-id>` in the main conversation workspace; the prior transcript/history remains available from the right inspector when opened explicitly. The GUI does not append directly to runtime-owned `.jsonl` transcript or checkpoint files.
+
+Live `.ansi` PTY recordings are diagnostic tails, not the source for native chat history. The transcript inspector renders `.jsonl` files as structured timelines and shows compacted, bounded PTY tails for raw terminal diagnostics so terminal repaint output does not become a wall of JSON parse errors or repeated thinking/progress frames.
 
 Workbench file mutations, IDE actions, git mutations, terminal lifecycle/profile changes, editable theme-token controls, and release-fetching behavior are gated in `docs/reports/WORKBENCH_POLISH_GATE.md`. Settings → Data surfaces those gates as preview-only status instead of exposing unscoped actions.
 
@@ -176,7 +180,7 @@ Installed Command Code CLI
 
 ## Design Decisions
 
-- **Do not parse the TUI as the source of truth.** Display terminal output faithfully and add structured state only through stable CLI/API surfaces.
+- **Do not parse the TUI as the source of truth.** The live conversation view is a presentation projection over PTY text. Structured state still comes only from stable CLI/API surfaces, and the raw terminal remains available for exact Command Code interaction.
 - **Treat headless and interactive as separate paths.** Headless is clean for automation; interactive sessions need a real PTY.
 - **Keep permissions explicit.** Risky access states should be visible in the composer and active-session header.
 - **Fail closed.** The renderer does not get broad shell capability. Main process spawning is scoped to the configured Command Code binary and controlled arguments.

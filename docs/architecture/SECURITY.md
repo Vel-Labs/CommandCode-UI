@@ -10,7 +10,10 @@ This app wraps an autonomous coding agent. Treat it like a high-trust local deve
 - Arguments are assembled from explicit UI controls.
 - No arbitrary shell command channel is exposed to the renderer.
 - File read/write routes require a selected project root and deny paths outside that root.
-- Native reveal IPC validates transcript/project paths before opening Finder.
+- Path containment uses canonical path resolution and rejects sibling-prefix and symlink-escape paths.
+- Native reveal IPC validates transcript/project paths before opening the OS file manager.
+- Localhost CORS echoes only exact HTTP loopback origins (`127.0.0.1`, `localhost`, `::1`).
+- JSON request bodies over 1 MB return structured 413 errors.
 - Risky execution modes are visible.
 
 ## Risky controls

@@ -14,10 +14,10 @@ App
    ├─ HomeWorkspace                      (centered composer-first new session view)
    ├─ TranscriptWorkspace                (fallback read-only recent context/history view)
    │  └─ TranscriptPreview               (read-only transcript fetch)
-   ├─ SessionWorkspace                   (active terminal session)
-   │  ├─ SessionHeader                   (compact title/status + workbench rail)
-   │  ├─ TabBar                          (session tabs, switch/kill)
-   │  ├─ TerminalPane                    (interactive Command Code PTY display)
+   ├─ SessionWorkspace                   (native active Command Code conversation)
+   │  ├─ SessionHeader                   (quiet title/status + Advanced tools)
+   │  ├─ LiveConversationPane            (PTY stream projected as native timeline)
+   │  ├─ TerminalPane                    (Advanced raw transcript fallback)
    │  ├─ BottomTerminalPanel             (optional separate repo shell PTY)
    │  └─ ComposerBar                     (prompt, access/session/project/model chips)
    ├─ RightInspectorPanel                (resizable optional files/file/transcript/docs/environment/IDE/advanced sidecar)
@@ -43,24 +43,24 @@ Root component. Owns all core state:
 Key flows:
 - `startSession` → transport.startSession → adds tab, sets activeId, notifies + plays chime
 - `Cmd+T` / `Ctrl+T` → starts another session in the selected project using the current composer runtime/access/model defaults
-- `openTranscriptSession` → pins history in the right inspector and immediately resumes through `cmd --resume`
+- `openTranscriptSession` → immediately resumes through `cmd --resume` and keeps the right inspector closed until the operator opens transcript/thinking details
 - `toggleShellTerminal` → starts or kills a separate shell PTY rooted at the selected project
 - `stopSession` → staged stop/interrupt/force-kill of the active Command Code PTY
 - `runHeadless` → creates job entry, calls transport.runHeadless, updates result
 - `onExit` → removes tab, notifies + plays chime; resume failures keep the transcript view open with inline failure state
-- Composer submit and command palette rows write paced keystrokes plus Enter to the current active Command Code PTY + push to command history. The composer sends on Enter and inserts line breaks on Shift+Enter. Direct terminal input is enabled automatically for detected Command Code selection prompts and can also be enabled by clicking the terminal.
+- Composer submit and command palette rows write paced keystrokes plus Enter to the current active Command Code PTY + push to command history. The composer sends on Enter and inserts line breaks on Shift+Enter. The normal session surface is a native conversation timeline; direct terminal input is available only from Advanced session tools or a terminal-required fallback.
 
 ### `SidebarShell`
 
-Primary app navigation. It owns no runtime semantics directly; it selects app views, project context, recent chats, and active sessions. Projects, Recent chats, and Active sessions are collapsible groups. Recent chats are capped by default with a Show more row; selecting one immediately resumes the selected Command Code session through the CLI while keeping the previous transcript visible in the right inspector. The sidebar width is draggable, persists to app GUI preferences, and collapses into icon-only mode when dragged below the collapse threshold.
+Primary app navigation. It owns no runtime semantics directly; it selects app views, project context, recent chats, and active sessions. Projects, Recent chats, and Active sessions are collapsible groups. Recent chats are capped by default with a Show more row; selecting one immediately resumes the selected Command Code session through the CLI without opening the right inspector by default. The sidebar width is draggable, persists to app GUI preferences, and collapses into icon-only mode when dragged below the collapse threshold.
 
-### `TabBar`
+### `LiveConversationPane`
 
-Horizontal tab row above the terminal. Props: `tabs[]`, `activeId`, `onSelect`, `onKill`. Each tab shows a status dot (green=live, purple=mock), label, and close button.
+Renders the active Command Code PTY stream as a native conversation projection. It classifies display-only events for user messages, assistant messages, compact working rows, activity rows, inline approvals, file references, terminal-required states, and session events. For resumed sessions, it waits for the current prompt echo before projecting assistant prose so an old transcript replay is not mistaken for a fresh message; if the CLI never echoes the prompt text, fresh progress/activity anchors the current turn and later assistant prose is shown. Live working rows suppress premature `Thought for...` summaries until assistant output has actually arrived, and malformed terminal control fragments are filtered out of assistant bubbles. It does not claim Command Code runtime state as structured truth; raw xterm remains an Advanced diagnostic fallback.
 
 ### `TerminalPane`
 
-Mounts xterm.js. Connects to a session's WebSocket stream via `transport.onSessionData`. Handles resize via `ResizeObserver` and sends PTY rows/cols on fit. The composer is the primary prompt surface, and the active Command Code pane is read-only by default; detected Command Code selection prompts automatically enable terminal input, and clicking the terminal or the session utility row's Menu input button can temporarily enable direct terminal input for menus, confirmations, and TUI flows. In read-only chat mode, the active PTY prompt area is visually masked so it does not compete with the composer. Menu input closes after Enter. The separate repo shell terminal is mounted with input enabled for direct commands such as `npm run dev`. Auto-follow is guarded: after terminal input or manual scroll, the app does not force `scrollToBottom()`. A manual Jump to prompt affordance appears only when output is not being followed. `Ctrl+O` is intercepted as an app-level expansion affordance when input is enabled. `Cmd+T` / `Ctrl+T` is handled by the app shell before the PTY and starts a new Command Code session in the same selected project.
+Mounts xterm.js for Advanced session diagnostics and the separate repo shell terminal. For Command Code sessions, xterm is hidden by default and is opened only through Advanced session tools or terminal-required fallback rows. It connects to a session's WebSocket stream via `transport.onSessionData`, handles resize via `ResizeObserver`, and sends PTY rows/cols on fit. The composer remains the primary prompt surface; direct terminal input is explicitly enabled only for menus, confirmations, and unsupported TUI flows. Auto-follow is guarded: after terminal input or manual scroll, the app does not force `scrollToBottom()`. A manual Jump to prompt affordance appears only when output is not being followed.
 
 ### `WorkbenchToolRail`
 
@@ -192,8 +192,8 @@ HeadlessRunner.onRun() → App.runHeadless(prompt, maxTurns, yolo)
 
 ```
 Sidebar recent chat click → App.openTranscriptSession(session)
-  → rightInspector = transcript + selectedTranscript = session
-  → App.startSession(undefined, session, keepTranscriptInspector)
+  → rightInspector = none
+  → App.startSession(undefined, session)
   → POST /api/sessions with resume title/id → cmd --resume
-  → active Command Code session receives future prompts from the composer while history remains visible in the side inspector
+  → active Command Code session receives future prompts from the composer; transcript/thinking details open only on explicit request
 ```
