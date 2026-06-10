@@ -151,13 +151,46 @@ describe('session readiness', () => {
 
     expect(states.map((state) => sessionReadinessDisplay(state).label)).toEqual([
       'attaching',
-      'replaying',
-      'running',
-      'waiting for input',
-      'response ready',
+      'attaching',
+      'thinking',
+      'input',
+      'ready',
       'completed',
-      'errored'
+      'error'
+    ])
+    expect(states.map((state) => sessionReadinessDisplay(state).symbol)).toEqual([
+      '↔',
+      '↔',
+      '•',
+      '!',
+      '✓',
+      '✓',
+      '!'
     ])
     expect(sessionReadinessDisplay(states.at(-1)!).title).toBe('boom')
+  })
+
+  it('promotes live output from attaching to thinking', () => {
+    const attached = reduceSessionReadiness(initialSessionReadiness('session-1'), { type: 'attach' }).state
+    const output = reduceSessionReadiness(attached, { type: 'output', source: 'live' })
+
+    expect(output.state.status).toBe('running')
+    expect(sessionReadinessDisplay(output.state)).toMatchObject({
+      label: 'thinking',
+      tone: 'warn',
+      symbol: '•'
+    })
+  })
+
+  it('marks promptless attached output as ready', () => {
+    const attached = reduceSessionReadiness(initialSessionReadiness('session-1'), { type: 'attach' }).state
+    const ready = reduceSessionReadiness(attached, { type: 'ready' })
+
+    expect(ready.state.status).toBe('idle')
+    expect(sessionReadinessDisplay(ready.state)).toMatchObject({
+      label: 'ready',
+      tone: 'good',
+      symbol: '✓'
+    })
   })
 })

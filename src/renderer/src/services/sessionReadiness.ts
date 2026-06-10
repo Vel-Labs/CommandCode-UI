@@ -16,6 +16,7 @@ export type SessionReadinessDisplay = {
   label: string
   tone: SessionReadinessTone
   title: string
+  symbol: string
 }
 
 export type SessionReadinessState = {
@@ -36,6 +37,7 @@ export type SessionReadinessEvent =
   | { type: 'background' }
   | { type: 'output'; source: 'live' | 'replay' }
   | { type: 'assistant-ready' }
+  | { type: 'ready' }
   | { type: 'input-required' }
   | { type: 'user-submit' }
   | { type: 'exit' }
@@ -60,23 +62,23 @@ export function initialSessionReadiness(sessionId: string): SessionReadinessStat
 export function sessionReadinessDisplay(state: SessionReadinessState): SessionReadinessDisplay {
   switch (state.status) {
     case 'attaching':
-      return { label: 'attaching', tone: 'purple', title: 'Attaching to the Command Code session' }
+      return { label: 'attaching', tone: 'warn', symbol: '↔', title: 'Attaching to the Command Code session' }
     case 'replaying':
-      return { label: 'replaying', tone: 'purple', title: 'Replaying existing session output' }
+      return { label: 'attaching', tone: 'warn', symbol: '↔', title: 'Replaying existing session output' }
     case 'waiting-for-input':
-      return { label: 'waiting for input', tone: 'warn', title: 'Command Code is waiting for operator input' }
+      return { label: 'input', tone: 'warn', symbol: '!', title: 'Command Code is waiting for operator input' }
     case 'response-ready':
-      return { label: 'response ready', tone: 'good', title: 'Command Code has a response ready' }
+      return { label: 'ready', tone: 'good', symbol: '✓', title: 'Command Code has a response ready' }
     case 'exited':
-      return { label: 'completed', tone: 'default', title: 'The session has exited' }
+      return { label: 'completed', tone: 'default', symbol: '✓', title: 'The session has exited' }
     case 'errored':
-      return { label: 'errored', tone: 'bad', title: state.errorMessage || 'The session reported an error' }
+      return { label: 'error', tone: 'bad', symbol: '!', title: state.errorMessage || 'The session reported an error' }
     case 'running':
-      if (state.unread) return { label: 'unread output', tone: 'purple', title: 'Background session has unread output' }
-      return { label: 'running', tone: 'default', title: 'Session is running' }
+      if (state.unread) return { label: 'thinking', tone: 'warn', symbol: '•', title: 'Background session has unread output' }
+      return { label: 'thinking', tone: 'warn', symbol: '•', title: 'Command Code is processing the current session' }
     case 'idle':
-      if (state.unread) return { label: 'unread output', tone: 'purple', title: 'Session has unread output' }
-      return { label: 'attached', tone: 'default', title: 'Session is attached' }
+      if (state.unread) return { label: 'ready', tone: 'good', symbol: '✓', title: 'Session has unread output' }
+      return { label: 'ready', tone: 'good', symbol: '✓', title: 'Session is attached with project and model selected' }
   }
 }
 
@@ -116,7 +118,7 @@ export function reduceSessionReadiness(
         return update(state, { status: state.status === 'idle' ? 'replaying' : state.status })
       }
       return update(state, {
-        status: state.status === 'idle' ? 'running' : state.status,
+        status: state.status === 'idle' || state.status === 'attaching' ? 'running' : state.status,
         unread: state.backgrounded ? true : state.unread
       })
     case 'assistant-ready':
@@ -130,6 +132,14 @@ export function reduceSessionReadiness(
         },
         state.backgrounded ? 'response-ready' : undefined
       )
+    case 'ready':
+      return update(state, {
+        status: 'idle',
+        unread: state.backgrounded ? true : state.unread,
+        responseReady: false,
+        inputRequired: false,
+        errorMessage: undefined
+      })
     case 'input-required':
       return update(
         state,
