@@ -18,10 +18,19 @@ export function useTransport(): TransportAPI {
       }).commandCode
 
       if (cc) {
+        t.environment = 'electron'
+        t.supportsNativeDirectoryPicker = true
+        t.supportsNativeReveal = true
         t.chooseDirectory = () => cc.chooseDirectory()
         t.openExternal = (url: string) => cc.openExternal(url)
-        t.revealTranscript = (path: string) => cc.revealTranscript(path)
-        t.revealPath = (path: string) => cc.revealPath(path)
+        t.revealTranscript = async (path: string) => {
+          await cc.revealTranscript(path)
+          return { ok: true, action: 'reveal-transcript', path }
+        }
+        t.revealPath = async (path: string) => {
+          await cc.revealPath(path)
+          return { ok: true, action: 'reveal-path', path }
+        }
       }
     }
 

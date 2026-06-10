@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import { request } from 'node:http'
+import { homedir, tmpdir } from 'node:os'
 import path from 'node:path'
 import { createAppServer } from '../src/server/index'
 
@@ -9,8 +10,8 @@ type TestServer = ReturnType<typeof createAppServer>
 const servers: TestServer[] = []
 const tempDirs: string[] = []
 
-async function startServer(): Promise<TestServer> {
-  const app = createAppServer(0)
+async function startServer(opts?: Parameters<typeof createAppServer>[2]): Promise<TestServer> {
+  const app = createAppServer(0, '127.0.0.1', opts)
   await app.start()
   servers.push(app)
   return app
@@ -18,6 +19,14 @@ async function startServer(): Promise<TestServer> {
 
 function tempProject(): string {
   const dir = mkdtempSync(path.join(tmpdir(), 'ccgui-security-'))
+  tempDirs.push(dir)
+  return dir
+}
+
+function tempTranscriptDir(): string {
+  const parent = path.join(homedir(), '.commandcode-gui-starter', 'transcripts')
+  mkdirSync(parent, { recursive: true })
+  const dir = mkdtempSync(path.join(parent, 'ccgui-security-'))
   tempDirs.push(dir)
   return dir
 }
@@ -41,6 +50,23 @@ async function apiDelete(app: TestServer, route: string): Promise<void> {
     headers: { 'X-Auth-Token': app.token }
   })
   expect(res.status).toBe(200)
+}
+
+function rawGetStatus(app: TestServer, requestPath: string): Promise<number> {
+  const url = new URL(app.url)
+  return new Promise((resolve, reject) => {
+    const req = request({
+      host: url.hostname,
+      port: url.port,
+      path: requestPath,
+      method: 'GET'
+    }, (res) => {
+      res.resume()
+      res.on('end', () => resolve(res.statusCode ?? 0))
+    })
+    req.on('error', reject)
+    req.end()
+  })
 }
 
 afterEach(async () => {
@@ -194,6 +220,43 @@ describe('server filesystem boundaries', () => {
     })
     expect(staleRead.content).toBeUndefined()
     expect(staleRead.error).toContain('Access denied')
+  })
+
+  it('returns a bounded tail for oversized PTY transcript diagnostics', async () => {
+    const app = await startServer()
+    const dir = tempTranscriptDir()
+    const transcriptPath = path.join(dir, 'large.ansi')
+    writeFileSync(transcriptPath, `${'old\n'.repeat(300_000)}latest transcript line\n`, 'utf8')
+
+    const read = await apiPost<{ content?: string; ext?: string; truncated?: boolean; error?: string }>(app, '/api/sessions/transcript', {
+      transcriptPath
+    })
+
+    expect(read.error).toBeUndefined()
+    expect(read.ext).toBe('.ansi')
+    expect(read.truncated).toBe(true)
+    expect(read.content).toContain('latest transcript line')
+    expect(Buffer.byteLength(read.content || '', 'utf8')).toBeLessThanOrEqual(262_144)
+  })
+
+  it('returns a line-aligned bounded tail for oversized JSONL transcripts', async () => {
+    const app = await startServer()
+    const dir = tempTranscriptDir()
+    const transcriptPath = path.join(dir, 'large.jsonl')
+    const oldLine = JSON.stringify({ role: 'assistant', content: 'old entry' })
+    const latestLine = JSON.stringify({ role: 'assistant', content: 'latest structured entry' })
+    writeFileSync(transcriptPath, `${`${oldLine}\n`.repeat(45_000)}${latestLine}\n`, 'utf8')
+
+    const read = await apiPost<{ content?: string; ext?: string; truncated?: boolean; error?: string }>(app, '/api/sessions/transcript', {
+      transcriptPath
+    })
+
+    expect(read.error).toBeUndefined()
+    expect(read.ext).toBe('.jsonl')
+    expect(read.truncated).toBe(true)
+    expect(read.content).toContain('latest structured entry')
+    expect(read.content?.startsWith('{')).toBe(true)
+    expect(Buffer.byteLength(read.content || '', 'utf8')).toBeLessThanOrEqual(262_144)
   })
 
   it('discovers hook configs only from documented project settings scope', async () => {
@@ -663,6 +726,88 @@ describe('server filesystem boundaries', () => {
     expect(applied.error).toContain('Hook command not found')
     expect(readFileSync(settingsPath, 'utf8')).toBe(original)
     expect(existsSync(`${settingsPath}.ccgui.bak`)).toBe(false)
+  })
+})
+
+describe('server local origin and request safety', () => {
+  it('echoes only exact localhost CORS origins', async () => {
+    const app = await startServer()
+
+    const allowed = [
+      `http://127.0.0.1:${new URL(app.url).port}`,
+      `http://localhost:${new URL(app.url).port}`,
+      `http://[::1]:${new URL(app.url).port}`
+    ]
+    for (const origin of allowed) {
+      const res = await fetch(`${app.url}/health`, { headers: { Origin: origin } })
+      expect(res.headers.get('access-control-allow-origin')).toBe(origin)
+    }
+
+    const rejected = [
+      'http://localhost.evil.example',
+      'http://127.0.0.1.evil.example',
+      'http://evil.example'
+    ]
+    for (const origin of rejected) {
+      const res = await fetch(`${app.url}/health`, { headers: { Origin: origin } })
+      expect(res.headers.get('access-control-allow-origin')).not.toBe(origin)
+    }
+  })
+
+  it('returns structured 413 JSON for oversized request bodies', async () => {
+    const app = await startServer()
+    const oversizedContent = 'x'.repeat(1_048_577)
+
+    const res = await fetch(`${app.url}/api/files/list`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Auth-Token': app.token
+      },
+      body: JSON.stringify({ cwd: tempProject(), dir: oversizedContent })
+    })
+
+    expect(res.status).toBe(413)
+    await expect(res.json()).resolves.toEqual({ error: 'Request body too large' })
+  })
+
+  it('continues routing bodies at or below the request size limit', async () => {
+    const app = await startServer()
+    const project = tempProject()
+    const res = await fetch(`${app.url}/api/files/list`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Auth-Token': app.token
+      },
+      body: JSON.stringify({ cwd: project, dir: project })
+    })
+
+    expect(res.status).toBe(200)
+    const body = await res.json() as { entries?: unknown[]; error?: string }
+    expect(body.error).toBeUndefined()
+    expect(body.entries).toEqual([])
+  })
+
+  it('keeps static assets contained to the configured renderer root', async () => {
+    const staticDir = tempProject()
+    writeFileSync(path.join(staticDir, 'index.html'), '<html>app</html>', 'utf8')
+    writeFileSync(path.join(staticDir, 'asset.js'), 'console.log("ok")', 'utf8')
+    const sibling = `${staticDir}-sibling`
+    mkdirSync(sibling)
+    tempDirs.push(sibling)
+    writeFileSync(path.join(sibling, 'asset.js'), 'console.log("escape")', 'utf8')
+
+    const app = await startServer({ staticDir })
+    const asset = await fetch(`${app.url}/asset.js?token=${app.token}`)
+    expect(asset.status).toBe(200)
+    await expect(asset.text()).resolves.toContain('ok')
+
+    const fallback = await fetch(`${app.url}/workspace?token=${app.token}`)
+    expect(fallback.status).toBe(200)
+    await expect(fallback.text()).resolves.toContain('app')
+
+    await expect(rawGetStatus(app, `/%2e%2e/${path.basename(sibling)}/asset.js?token=${app.token}`)).resolves.not.toBe(200)
   })
 })
 

@@ -3,32 +3,12 @@ import path from 'node:path'
 import { existsSync, realpathSync, statSync } from 'node:fs'
 import os from 'node:os'
 import { createAppServer } from '../server/index'
+import { isPathUnderRoot, resolveBoundaryPath } from '../shared/pathContainment'
 
 let serverToken = ''
 let serverPort = 0
 let mainWindow: BrowserWindow | null = null
 const knownProjectPaths = new Set<string>()
-
-function realOrResolved(targetPath: string): string {
-  const resolved = path.resolve(targetPath)
-  try {
-    return realpathSync(resolved)
-  } catch {
-    let current = resolved
-    const missingParts: string[] = []
-    while (!existsSync(current)) {
-      const parent = path.dirname(current)
-      if (parent === current) return resolved
-      missingParts.unshift(path.basename(current))
-      current = parent
-    }
-    try {
-      return path.join(realpathSync(current), ...missingParts)
-    } catch {
-      return resolved
-    }
-  }
-}
 
 function realExistingPath(targetPath: string): string {
   const resolved = path.resolve(targetPath)
@@ -37,12 +17,6 @@ function realExistingPath(targetPath: string): string {
   } catch {
     return resolved
   }
-}
-
-function isPathUnderRoot(targetPath: string, root: string): boolean {
-  const realTarget = realOrResolved(targetPath)
-  const realRoot = realOrResolved(root)
-  return realTarget === realRoot || realTarget.startsWith(realRoot + path.sep)
 }
 
 function isAllowedTranscriptPath(targetPath: string): boolean {
@@ -157,7 +131,7 @@ ipcMain.handle('cc:open-external', async (_event, url: string) => {
 })
 
 ipcMain.handle('cc:reveal-transcript', async (_event, transcriptPath: string) => {
-  const resolved = realExistingPath(transcriptPath)
+  const resolved = resolveBoundaryPath(transcriptPath)
   if (!isAllowedTranscriptPath(resolved) || !existsSync(resolved) || statSync(resolved).isDirectory()) {
     throw new Error('Transcript reveal denied')
   }
@@ -165,7 +139,7 @@ ipcMain.handle('cc:reveal-transcript', async (_event, transcriptPath: string) =>
 })
 
 ipcMain.handle('cc:reveal-path', async (_event, targetPath: string) => {
-  const resolved = realExistingPath(targetPath)
+  const resolved = resolveBoundaryPath(targetPath)
   if (!isProjectDirectory(resolved)) {
     throw new Error('Project reveal denied')
   }

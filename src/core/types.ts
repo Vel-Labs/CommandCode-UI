@@ -60,6 +60,8 @@ export type ProjectGuiPreferences = {
   headlessMaxTurns?: number
   headlessYolo?: boolean
   appearanceTheme?: 'cc-spectrum' | 'terminal-minimal' | 'blueprint' | 'high-contrast'
+  chatBubbleUserColor?: string
+  chatBubbleAssistantColor?: string
   updatedAt?: string
 }
 
@@ -78,6 +80,8 @@ export type AppGuiPreferences = {
   model?: string
   projectModels?: Record<string, string>
   appearanceTheme?: 'cc-spectrum' | 'terminal-minimal' | 'blueprint' | 'high-contrast'
+  chatBubbleUserColor?: string
+  chatBubbleAssistantColor?: string
   startupProjectBehavior?: 'restore-last' | 'empty'
   releaseNotesSeen?: string[]
   sidebarWidth?: number
@@ -119,6 +123,23 @@ export type SessionStartResult = {
   transcriptPath: string
 }
 
+export type StructuredTranscriptMatchResult = {
+  status: 'unbound' | 'binding' | 'bound' | 'ambiguous' | 'failed'
+  candidates: Array<{
+    sessionId: string
+    transcriptPath: string
+    mtimeMs: number
+    matchedPromptTimestamp?: string
+  }>
+  match?: {
+    sessionId: string
+    transcriptPath: string
+    mtimeMs: number
+    matchedPromptTimestamp?: string
+  }
+  error?: string
+}
+
 export type HeadlessRunOptions = {
   cwd: string
   commandExecutable?: string
@@ -158,6 +179,13 @@ export type ModelListResult = {
 export type DirectoryPickResult = {
   canceled: boolean
   path?: string
+}
+
+export type NativeRevealResult = {
+  ok: boolean
+  action: 'reveal-transcript' | 'reveal-path'
+  path: string
+  message?: string
 }
 
 export type SessionExitPayload = {

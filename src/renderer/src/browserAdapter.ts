@@ -1,4 +1,4 @@
-import type { TransportAPI, SessionDataCallback, SessionExitCallback } from '../../core/transport'
+import type { TransportAPI } from '../../core/transport'
 import type {
   AgentConfig,
   AppGuiPreferences,
@@ -17,6 +17,7 @@ import type {
   McpServer,
   MemoryFile,
   ModelListResult,
+  NativeRevealResult,
   ProjectGuiPreferences,
   ProjectGuiPreferencesResult,
   ProjectCommandCodeReference,
@@ -28,142 +29,25 @@ import type {
   WriteFileResult,
 } from '../../core/types'
 import type { PtyDoctorResult } from '../../core/ptyDoctor'
+import type { DoctorResult } from '../../core/doctor'
 import type { HookConfigDiscoveryResult, HookConfigEditApplyResult, HookConfigEditPreviewResult, HookConfigToggleApplyResult, HookConfigTogglePreviewResult } from '../../core/hooksConfig'
 import type { HookDryRunResult } from '../../core/hooksDryRun'
 import type { HookLogDiscoveryResult, HookLogReadResult } from '../../core/hooksLogs'
-
-let cachedToken = ''
-let serverUrl = ''
-
-// In Electron production mode, the main process injects token + port into window
-// before any JS loads. Read it immediately at module init time — no race.
-if (typeof window !== 'undefined') {
-  const injected = (window as unknown as { __CCGUI__?: { token: string; port: number } }).__CCGUI__
-  if (injected) {
-    cachedToken = injected.token
-    serverUrl = `http://127.0.0.1:${injected.port}`
-  }
-  // Browser dev mode: token arrives via Vite proxy from /api/token
-  // Same-origin cookie covers production (server serves HTML and API on same port)
-  if (document.cookie.includes('ccgui-token=')) {
-    const m = document.cookie.match(/ccgui-token=([^;]+)/)
-    if (m && !cachedToken) cachedToken = m[1]!
-  }
-}
-
-function getToken(): string {
-  if (typeof window === 'undefined') return ''
-  return cachedToken
-}
-
-function applyAuth(init?: RequestInit): RequestInit {
-  const token = cachedToken
-  const headers = new Headers(init?.headers)
-  if (token) headers.set('X-Auth-Token', token)
-  return { ...init, headers }
-}
-
-function apiUrl(path: string): string {
-  return serverUrl ? `${serverUrl}${path}` : path
-}
-
-function wsUrl(path: string): string {
-  if (serverUrl) {
-    const host = serverUrl.replace(/^https?:\/\//, '')
-    return `ws://${host}${path}`
-  }
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  return `${protocol}//${window.location.host}${path}`
-}
-
-async function fetchTokenFromServer(): Promise<void> {
-  if (cachedToken) return
-  try {
-    const res = await fetch('/api/token')
-    if (!res.ok) return
-    const data = await res.json() as { token?: string }
-    if (data.token) cachedToken = data.token
-  } catch { /* fail silently */ }
-}
-
-async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
-  // Browser dev mode: fetch token from server if not yet available
-  if (!cachedToken && !serverUrl) {
-    await fetchTokenFromServer()
-  }
-
-  const res = await fetch(apiUrl(path), applyAuth({
-    ...init,
-    headers: { 'Content-Type': 'application/json', ...init?.headers }
-  }))
-  if (!res.ok) {
-    const body = await res.text()
-    throw new Error(`HTTP ${res.status}: ${body}`)
-  }
-  return res.json() as Promise<T>
-}
+import { createBrowserApiClient } from './transport/browserApiClient'
+import { createBrowserSessionSocketManager } from './transport/browserSessionSocket'
 
 export function createBrowserTransport(): TransportAPI {
-  const sockets = new Map<string, WebSocket>()
-  const sessionCallbacks = new Map<string, {
-    data: Set<SessionDataCallback>
-    exit: Set<SessionExitCallback>
-  }>()
-
-  function ensureSocket(sessionId: string): WebSocket {
-    const existing = sockets.get(sessionId)
-    // Reuse CONNECTING and OPEN sockets
-    if (existing && (existing.readyState === WebSocket.CONNECTING || existing.readyState === WebSocket.OPEN)) {
-      return existing
-    }
-
-    // Only close stale sockets that are CLOSING or CLOSED
-    if (existing) {
-      try { existing.close() } catch { /* ignore */ }
-      sockets.delete(sessionId)
-    }
-
-    const token = cachedToken
-    const url = token
-      ? `${wsUrl(`/ws/sessions/${sessionId}`)}?token=${token}`
-      : wsUrl(`/ws/sessions/${sessionId}`)
-
-    const ws = new WebSocket(url)
-    sockets.set(sessionId, ws)
-
-    ws.onmessage = (event) => {
-      try {
-        const msg = JSON.parse(event.data as string)
-        const cbs = sessionCallbacks.get(sessionId)
-        if (!cbs) return
-
-        if (msg.type === 'replay' && typeof msg.data === 'string') {
-          cbs.data.forEach((cb) => cb(msg.data, { source: 'replay' }))
-        } else if (msg.type === 'data' && typeof msg.data === 'string') {
-          cbs.data.forEach((cb) => cb(msg.data, { source: 'live' }))
-        } else if (msg.type === 'exit') {
-          cbs.exit.forEach((cb) => cb(msg))
-        }
-      } catch {
-        // Ignore parse errors
-      }
-    }
-
-    ws.onclose = () => {
-      sockets.delete(sessionId)
-    }
-
-    ws.onerror = () => {
-      // Let onclose handle cleanup
-    }
-
-    return ws
-  }
+  const api = createBrowserApiClient()
+  const sessionSocket = createBrowserSessionSocketManager(api)
+  const { fetchJson } = api
 
   return {
+    environment: 'browser',
+    supportsNativeDirectoryPicker: false,
+    supportsNativeReveal: false,
+
     chooseDirectory: async () => {
-      const stored = localStorage.getItem('ccgui.cwd')
-      return { canceled: false, path: stored || '/' }
+      return { canceled: true }
     },
 
     check: async (commandExecutable?) =>
@@ -206,6 +90,9 @@ export function createBrowserTransport(): TransportAPI {
         method: 'POST',
         body: JSON.stringify({ cwd, preferences })
       }),
+
+    doctor: async () =>
+      fetchJson<DoctorResult>('/api/doctor'),
 
     ptyHealth: async () =>
       fetchJson<PtyDoctorResult>('/api/pty-health'),
@@ -257,18 +144,34 @@ export function createBrowserTransport(): TransportAPI {
       return Promise.resolve()
     },
 
-    revealTranscript: (_transcriptPath: string): Promise<void> => {
-      return Promise.resolve()
+    revealTranscript: (transcriptPath: string): Promise<NativeRevealResult> => {
+      return Promise.resolve({
+        ok: false,
+        action: 'reveal-transcript',
+        path: transcriptPath,
+        message: 'Browser mode cannot open the OS file manager. Copy the transcript path or open it from the server machine.'
+      })
     },
 
-    revealPath: (_targetPath: string): Promise<void> => {
-      return Promise.resolve()
+    revealPath: (targetPath: string): Promise<NativeRevealResult> => {
+      return Promise.resolve({
+        ok: false,
+        action: 'reveal-path',
+        path: targetPath,
+        message: 'Browser mode cannot open the OS file manager. Copy the project path or open it from the server machine.'
+      })
     },
 
     readTranscript: async (transcriptPath) =>
-      fetchJson<{ content: string; path: string; ext: string; error?: string }>('/api/sessions/transcript', {
+      fetchJson<{ content: string; path: string; ext: string; error?: string; truncated?: boolean }>('/api/sessions/transcript', {
         method: 'POST',
         body: JSON.stringify({ transcriptPath })
+      }),
+
+    matchStructuredTranscript: async (options) =>
+      fetchJson('/api/sessions/structured-transcript-match', {
+        method: 'POST',
+        body: JSON.stringify(options)
       }),
 
     listFiles: async (dir, cwd) =>
@@ -407,47 +310,8 @@ export function createBrowserTransport(): TransportAPI {
         body: JSON.stringify(options)
       }),
 
-    onSessionData: (sessionId, callback) => {
-      if (!sessionCallbacks.has(sessionId)) {
-        sessionCallbacks.set(sessionId, { data: new Set(), exit: new Set() })
-      }
-      sessionCallbacks.get(sessionId)!.data.add(callback)
-      ensureSocket(sessionId)
-      return () => {
-        const cbs = sessionCallbacks.get(sessionId)
-        if (cbs) {
-          cbs.data.delete(callback)
-          // Clean up socket when no callbacks remain
-          if (cbs.data.size === 0 && cbs.exit.size === 0) {
-            const ws = sockets.get(sessionId)
-            if (ws) {
-              try { ws.close() } catch { /* ignore */ }
-              sockets.delete(sessionId)
-            }
-          }
-        }
-      }
-    },
+    onSessionData: sessionSocket.onSessionData,
 
-    onSessionExit: (sessionId, callback) => {
-      if (!sessionCallbacks.has(sessionId)) {
-        sessionCallbacks.set(sessionId, { data: new Set(), exit: new Set() })
-      }
-      sessionCallbacks.get(sessionId)!.exit.add(callback)
-      ensureSocket(sessionId)
-      return () => {
-        const cbs = sessionCallbacks.get(sessionId)
-        if (cbs) {
-          cbs.exit.delete(callback)
-          if (cbs.data.size === 0 && cbs.exit.size === 0) {
-            const ws = sockets.get(sessionId)
-            if (ws) {
-              try { ws.close() } catch { /* ignore */ }
-              sockets.delete(sessionId)
-            }
-          }
-        }
-      }
-    }
+    onSessionExit: sessionSocket.onSessionExit
   }
 }

@@ -1,0 +1,5 @@
+> configure model
+Choose a model
+❯ kimi-k2.6
+  deepseek/deepseek-v4-pro
+  qwen3-coder

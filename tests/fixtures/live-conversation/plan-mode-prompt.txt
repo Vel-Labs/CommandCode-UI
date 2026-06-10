@@ -1,0 +1,3 @@
+> build an implementation plan
+Enter plan mode for read-only exploration and planning?
+Switch to plan mode — explore codebase and create an implementation plan

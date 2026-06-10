@@ -22,6 +22,16 @@ export const commandPaletteItems: CommandPaletteItem[] = [
 export const commandGroups: CommandPaletteItem['group'][] = ['Session', 'Planning', 'Design', 'Agents', 'Runtime', 'Project']
 
 export const releaseNotes: Record<string, ReleaseNote> = {
+  '0.33.2': {
+    eyebrow: 'New in v0.33.2',
+    title: 'Web Search + Web Fetch',
+    body: 'Command Code can now browse the web from your terminal, so current sources can supplement model training cutoffs.',
+    bullets: [
+      'Web Search returns ranked results.',
+      'Web Fetch reads full pages instead of snippets.',
+      'Training data has a cutoff. The web does not.'
+    ]
+  },
   '0.32.3': {
     eyebrow: 'New in v0.32.3',
     title: '/configure-models',

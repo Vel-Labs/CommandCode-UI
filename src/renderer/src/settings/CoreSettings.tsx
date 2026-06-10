@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
-import { Activity, Bot, Braces, CreditCard, Database, GitBranch, History, Keyboard, MemoryStick, Monitor, Plug, Settings, Sparkles, Terminal, Wrench } from 'lucide-react'
+import { Activity, Bot, Braces, CreditCard, Database, GitBranch, Keyboard, MemoryStick, Monitor, Plug, Sparkles, Terminal } from 'lucide-react'
 import type { PermissionMode } from '../../../shared/types'
 import type { PtyDoctorResult } from '../../../core/ptyDoctor'
 import type { TransportAPI } from '../../../core/transport'
 import type { UsageSummary } from '../../../core/types'
-import type { AppearanceTheme, RuntimeMode, SettingsSection } from '../appTypes'
+import type { RuntimeMode, SettingsSection } from '../appTypes'
 import type { HeadlessJob } from '../components/HeadlessHistory'
 import { AuthCard } from '../components/AuthCard'
 import { HeadlessHistory } from '../components/HeadlessHistory'
@@ -13,176 +13,6 @@ import { IdePanel } from '../components/IdePanel'
 import { ModelDropdown } from '../components/ModelDropdown'
 import { SettingsPageHeader } from './SettingsPageHeader'
 import { settingsItem } from './settingsRegistry'
-
-const appearanceOptions: Array<{
-  id: AppearanceTheme
-  name: string
-  description: string
-  swatch: string
-}> = [
-  {
-    id: 'cc-spectrum',
-    name: 'CC Spectrum',
-    description: 'Black canvas, blueprint grid, and spectral Command Code runtime texture.',
-    swatch: 'spectrum'
-  },
-  {
-    id: 'terminal-minimal',
-    name: 'Terminal Minimal',
-    description: 'Quiet dark desktop surface with the least visual motion around the composer.',
-    swatch: 'minimal'
-  },
-  {
-    id: 'blueprint',
-    name: 'Blueprint',
-    description: 'Crisp technical grid with cooler cyan and blue runtime blocks.',
-    swatch: 'blueprint'
-  },
-  {
-    id: 'high-contrast',
-    name: 'High Contrast',
-    description: 'Sharper borders, stronger text, and reduced color for long operating sessions.',
-    swatch: 'contrast'
-  }
-]
-
-const profileActions: Array<{
-  section: SettingsSection
-  label: string
-  description: string
-  icon: JSX.Element
-}> = [
-  { section: 'general', label: 'Choose Command Code binary', description: 'Confirm the CLI path and startup behavior.', icon: <Settings size={16} /> },
-  { section: 'runtime', label: 'Review runtime health', description: 'Check PTY, auth, model, permissions, and IDE state.', icon: <Wrench size={16} /> },
-  { section: 'integrations', label: 'Set up integrations', description: 'Open MCP, hooks, agents, memory, design, skills, and taste tasks.', icon: <Plug size={16} /> }
-]
-
-const settingsTaskGroups: Array<{
-  label: string
-  description: string
-  actions: Array<{ section: SettingsSection; label: string; icon: JSX.Element }>
-}> = [
-  {
-    label: 'Project tools',
-    description: 'Work with project-scoped sessions, memory, agents, and data.',
-    actions: [
-      { section: 'sessions', label: 'Sessions', icon: <History size={15} /> },
-      { section: 'memory', label: 'Memory', icon: <MemoryStick size={15} /> },
-      { section: 'agents', label: 'Agents', icon: <Bot size={15} /> },
-      { section: 'data', label: 'Data', icon: <Database size={15} /> }
-    ]
-  },
-  {
-    label: 'Integration setup',
-    description: 'Configure or inspect Command Code extension surfaces.',
-    actions: [
-      { section: 'mcp', label: 'MCP', icon: <Plug size={15} /> },
-      { section: 'hooks', label: 'Hooks', icon: <Braces size={15} /> },
-      { section: 'design', label: 'Design', icon: <Monitor size={15} /> },
-      { section: 'skills', label: 'Skills', icon: <MemoryStick size={15} /> }
-    ]
-  },
-  {
-    label: 'Reference and diagnostics',
-    description: 'Check usage, shortcuts, terminal presentation, notifications, and release state.',
-    actions: [
-      { section: 'usage', label: 'Usage', icon: <CreditCard size={15} /> },
-      { section: 'keyboard', label: 'Keyboard', icon: <Keyboard size={15} /> },
-      { section: 'terminal', label: 'Terminal', icon: <Terminal size={15} /> },
-      { section: 'about', label: 'About', icon: <Activity size={15} /> }
-    ]
-  }
-]
-
-export function ProfileSettings({
-  cwd,
-  projectLabel,
-  commandExecutable,
-  model,
-  ptyHealth,
-  permissionMode,
-  trust,
-  headlessJobs,
-  sessionCount,
-  runtimeMode,
-  openSection
-}: {
-  cwd: string
-  projectLabel: string
-  commandExecutable: string
-  model: string
-  ptyHealth: PtyDoctorResult | null
-  permissionMode: PermissionMode
-  trust: boolean
-  headlessJobs: HeadlessJob[]
-  sessionCount: number
-  runtimeMode: RuntimeMode
-  openSection: (section: SettingsSection) => void
-}): JSX.Element {
-  const runtimeHealth = ptyHealth ? (ptyHealth.healthy ? 'Healthy' : 'Unavailable') : 'Checking'
-  const completedHeadless = headlessJobs.filter((job) => job.result).length
-  const failedHeadless = headlessJobs.filter((job) => job.result && job.result.exitCode !== 0).length
-
-  return (
-    <div className="settings-profile-page">
-      <SettingsPageHeader
-        item={settingsItem('profile')}
-        status={`${runtimeHealth} PTY / ${modeLabel(runtimeMode)}`}
-        scope={cwd ? projectLabel : 'No project selected'}
-      />
-      <div className="profile-stat-strip">
-        <div><strong>{sessionCount}</strong><span>Open sessions</span></div>
-        <div><strong>{headlessJobs.length}</strong><span>Headless runs</span></div>
-        <div><strong>{completedHeadless}</strong><span>Completed runs</span></div>
-        <div><strong>{runtimeHealth}</strong><span>PTY health</span></div>
-        <div><strong>{permissionLabel(permissionMode, trust)}</strong><span>Permissions</span></div>
-      </div>
-      <div className="settings-card settings-card--wide settings-setup-card">
-        <div className="settings-readonly-header">
-          <strong>Setup checklist</strong>
-          <span className="settings-state-pill">{failedHeadless ? `${failedHeadless} failed run${failedHeadless === 1 ? '' : 's'}` : 'No failed runs'}</span>
-        </div>
-        <div className="settings-checklist-grid">
-          <SetupCheck label="Command binary" value={commandExecutable} state={commandExecutable ? 'Set' : 'Missing'} />
-          <SetupCheck label="PTY" value={ptyHealth?.shell || 'Not available'} state={runtimeHealth} />
-          <SetupCheck label="Project" value={projectLabel} state={cwd ? 'Selected' : 'Not selected'} />
-          <SetupCheck label="Model" value={model || 'Default at start'} state={model ? 'Override' : 'Default'} />
-          <SetupCheck label="Permissions" value={permissionLabel(permissionMode, trust)} state={trust || permissionMode === 'auto-accept' ? 'Risk visible' : 'Standard'} />
-        </div>
-      </div>
-      <div className="settings-card settings-card--wide profile-action-card">
-        <div className="settings-readonly-header">
-          <strong>Recommended next actions</strong>
-        </div>
-        <div className="settings-action-grid profile-action-grid">
-          {profileActions.map((item) => (
-            <button key={item.section} className="settings-action-tile" onClick={() => openSection(item.section)}>
-              <span>{item.icon}</span>
-              <strong>{item.label}</strong>
-              <small>{item.description}</small>
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="settings-task-group-grid">
-        {settingsTaskGroups.map((group) => (
-          <section key={group.label} className="settings-task-group">
-            <strong>{group.label}</strong>
-            <p>{group.description}</p>
-            <div className="settings-task-link-row">
-              {group.actions.map((action) => (
-                <button key={action.section} className="settings-task-link" onClick={() => openSection(action.section)}>
-                  {action.icon}
-                  <span>{action.label}</span>
-                </button>
-              ))}
-            </div>
-          </section>
-        ))}
-      </div>
-    </div>
-  )
-}
 
 export function GeneralSettings({
   commandExecutable,
@@ -297,50 +127,6 @@ export function RuntimeSettings({
         />
         <AuthCard transport={transport} commandExecutable={commandExecutable} cwd={cwd} />
         <IdePanel transport={transport} commandExecutable={commandExecutable} cwd={cwd} />
-      </div>
-    </div>
-  )
-}
-
-export function AppearanceSettings({
-  appearanceTheme,
-  setAppearanceTheme
-}: {
-  appearanceTheme: AppearanceTheme
-  setAppearanceTheme: (value: AppearanceTheme) => void
-}): JSX.Element {
-  return (
-    <div className="settings-detail-page">
-      <SettingsPageHeader item={settingsItem('appearance')} status="Adapter presentation only" scope="Saved as GUI preference" />
-      <div className="settings-card settings-card--wide">
-        <div className="appearance-options" role="radiogroup" aria-label="Appearance theme">
-          {appearanceOptions.map((option) => (
-            <button
-              key={option.id}
-              type="button"
-              className={`appearance-option ${appearanceTheme === option.id ? 'appearance-option--selected' : ''}`}
-              onClick={() => setAppearanceTheme(option.id)}
-              role="radio"
-              aria-checked={appearanceTheme === option.id}
-            >
-              <span className={`appearance-preview appearance-preview--${option.swatch}`} aria-hidden="true">
-                <span />
-                <span />
-                <span />
-              </span>
-              <span className="appearance-option-copy">
-                <strong>{option.name}</strong>
-                <span>{option.description}</span>
-              </span>
-            </button>
-          ))}
-        </div>
-        <SettingsDestinationNote
-          scope="GUI app and project preferences"
-          path="~/.commandcode/gui-preferences.json and <project>/.commandcode/gui-preferences.json"
-          fields="appearanceTheme"
-        />
-        <p className="settings-muted">Theme changes are saved on this machine and only affect the desktop adapter presentation. Command Code CLI behavior and permission semantics stay unchanged.</p>
       </div>
     </div>
   )
@@ -508,16 +294,6 @@ export function AdvancedSettings({ openSection }: { openSection: (section: Setti
   )
 }
 
-function SetupCheck({ label, value, state }: { label: string; value: string; state: string }): JSX.Element {
-  return (
-    <div className="settings-check-item">
-      <span>{label}</span>
-      <strong>{value}</strong>
-      <small>{state}</small>
-    </div>
-  )
-}
-
 function modeLabel(mode: RuntimeMode): string {
   return mode === 'mock' ? 'Demo mode' : 'Real session'
 }
@@ -527,7 +303,7 @@ function permissionLabel(permissionMode: PermissionMode, trust: boolean): string
   return 'Standard'
 }
 
-function SettingsDestinationNote({
+export function SettingsDestinationNote({
   scope,
   path,
   fields

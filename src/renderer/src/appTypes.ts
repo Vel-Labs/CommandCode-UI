@@ -28,6 +28,10 @@ export type SettingsSection =
   | 'advanced'
   | 'about'
 export type AppearanceTheme = 'cc-spectrum' | 'terminal-minimal' | 'blueprint' | 'high-contrast'
+export type ChatBubbleColors = {
+  user: string
+  assistant: string
+}
 export type CommandAction = 'insert' | 'send' | 'run-headless'
 export type UpdateState = 'idle' | 'checking' | 'available' | 'current' | 'updating' | 'failed'
 export type SidebarSection = 'projects' | 'recentChats' | 'activeSessions'
@@ -47,6 +51,8 @@ export type ReleaseNote = {
   body: string
   bullets: string[]
   command?: string
+  primaryLabel?: string
+  generated?: boolean
 }
 
 export type SessionTab = {
@@ -57,9 +63,13 @@ export type SessionTab = {
   stopRequested: boolean
   stopStage: 0 | 1 | 2
   transcriptPath: string
+  structuredTranscriptPath?: string
+  commandCodeSessionId?: string
+  transcriptBindingStatus: 'unbound' | 'binding' | 'bound' | 'ambiguous' | 'failed'
   projectLabel: string
   runtimeMode: RuntimeMode
   readiness: SessionReadinessState
+  lastPrompt?: string
   resumedSession?: DiscoveredSession
 }
 

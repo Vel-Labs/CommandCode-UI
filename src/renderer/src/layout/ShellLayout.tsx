@@ -18,6 +18,7 @@ import {
 import { ToastContainer } from '../components/ToastSystem'
 import type {
   AppearanceTheme,
+  ChatBubbleColors,
   PopoverKey,
   SessionTab,
   SettingsSection,
@@ -30,6 +31,7 @@ import { groupedSettings } from '../settings/settingsRegistry'
 
 export function ShellLayout({
   appearanceTheme,
+  chatBubbleColors,
   railCollapsed,
   sidebarWidth,
   rightInspectorWidth,
@@ -68,6 +70,7 @@ export function ShellLayout({
   updateLabel
 }: {
   appearanceTheme: AppearanceTheme
+  chatBubbleColors: ChatBubbleColors
   railCollapsed: boolean
   sidebarWidth: number
   rightInspectorWidth: number
@@ -124,7 +127,9 @@ export function ShellLayout({
   const visibleRecentContexts = showAllRecentChats ? filteredRecentContexts : filteredRecentContexts.slice(0, 4)
   const shellStyle = {
     '--sidebar-width': `${sidebarWidth}px`,
-    '--right-inspector-width': `${rightInspectorWidth}px`
+    '--right-inspector-width': `${rightInspectorWidth}px`,
+    '--chat-user-accent': chatBubbleColors.user,
+    '--chat-assistant-accent': chatBubbleColors.assistant
   } as CSSProperties
 
   return (
@@ -281,14 +286,19 @@ export function ShellLayout({
                       <div className="sidebar-section-body">
                         {tabs.slice(-6).reverse().map((tab) => {
                           const readiness = sessionReadinessDisplay(tab.readiness)
+                          const unreadTitle = tab.readiness.inputRequired
+                            ? 'Input needed'
+                            : tab.readiness.responseReady || tab.readiness.status === 'response-ready'
+                              ? 'Response ready'
+                              : undefined
                           return (
                             <button key={tab.id} className={`project-row ${tab.id === activeTabId ? 'project-row--active' : ''}`} onClick={() => onSelectActiveTab(tab.id)} title={`${readiness.title} - ${tab.transcriptPath}`}>
                               <Terminal size={16} />
                               <span className="sidebar-row-copy">
                                 <span className="sidebar-row-main">{tab.label}</span>
-                                <span className="sidebar-row-meta">{readiness.label} · {tab.runtimeMode === 'mock' ? 'demo' : 'real'}</span>
+                                <span className="sidebar-row-meta">{unreadTitle ? `${unreadTitle.toLowerCase()} · ` : ''}{readiness.label} · {tab.runtimeMode === 'mock' ? 'demo' : 'real'}</span>
                               </span>
-                              {tab.readiness.unread && <span className="sidebar-readiness-dot" title="Unread session output" />}
+                              {unreadTitle && <span className="sidebar-readiness-dot" title={unreadTitle} />}
                             </button>
                           )
                         })}

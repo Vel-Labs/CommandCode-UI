@@ -3,7 +3,7 @@ import type { PermissionMode } from '../../../shared/types'
 import type { PtyDoctorResult } from '../../../core/ptyDoctor'
 import type { TransportAPI } from '../../../core/transport'
 import type { DiscoveredSession } from '../../../core/types'
-import type { AppearanceTheme, RuntimeMode, SettingsSection, UpdateState } from '../appTypes'
+import type { AppearanceTheme, ChatBubbleColors, RuntimeMode, SettingsSection, UpdateState } from '../appTypes'
 import type { HeadlessJob } from '../components/HeadlessHistory'
 import { SettingsRoute } from '../settings/SettingsRoutes'
 
@@ -29,6 +29,8 @@ export function SettingsWorkspace({
   runtimeMode,
   appearanceTheme,
   setAppearanceTheme,
+  chatBubbleColors,
+  setChatBubbleColors,
   startupProjectBehavior,
   setStartupProjectBehavior,
   updateState,
@@ -61,6 +63,8 @@ export function SettingsWorkspace({
   runtimeMode: RuntimeMode
   appearanceTheme: AppearanceTheme
   setAppearanceTheme: (value: AppearanceTheme) => void
+  chatBubbleColors: ChatBubbleColors
+  setChatBubbleColors: (value: ChatBubbleColors) => void
   startupProjectBehavior: 'restore-last' | 'empty'
   setStartupProjectBehavior: (value: 'restore-last' | 'empty') => void
   updateState: UpdateState
@@ -97,6 +101,8 @@ export function SettingsWorkspace({
           runtimeMode={runtimeMode}
           appearanceTheme={appearanceTheme}
           setAppearanceTheme={setAppearanceTheme}
+          chatBubbleColors={chatBubbleColors}
+          setChatBubbleColors={setChatBubbleColors}
           startupProjectBehavior={startupProjectBehavior}
           setStartupProjectBehavior={setStartupProjectBehavior}
           updateState={updateState}

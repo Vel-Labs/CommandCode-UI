@@ -16,11 +16,12 @@ type TerminalPaneProps = {
   onInputRequest?: () => void
   onInputCommit?: () => void
   compact?: boolean
+  seamless?: boolean
   inputEnabled?: boolean
   active?: boolean
 }
 
-export function TerminalPane({ transport, sessionId, onExit, onExpandRequest, onInputRequest, onInputCommit, compact = false, inputEnabled = true, active = true }: TerminalPaneProps): JSX.Element {
+export function TerminalPane({ transport, sessionId, onExit, onExpandRequest, onInputRequest, onInputCommit, compact = false, seamless = false, inputEnabled = true, active = true }: TerminalPaneProps): JSX.Element {
   const hostRef = useRef<HTMLDivElement | null>(null)
   const terminalRef = useRef<Terminal | null>(null)
   const fitRef = useRef<FitAddon | null>(null)
@@ -107,7 +108,7 @@ export function TerminalPane({ transport, sessionId, onExit, onExpandRequest, on
       scrollOnUserInput: false,
       disableStdin: !inputEnabledRef.current,
       theme: {
-        background: '#050505',
+        background: seamless ? '#151515' : '#050505',
         foreground: '#f4f4f5',
         cursor: '#f4f4f5',
         black: '#050505',
@@ -128,9 +129,11 @@ export function TerminalPane({ transport, sessionId, onExit, onExpandRequest, on
     terminal.loadAddon(new WebLinksAddon())
     terminal.open(hostRef.current)
     fit.fit()
-    terminal.writeln('\x1b[35mCommand Code GUI\x1b[0m')
-    terminal.writeln('Start a session from the left rail, or enable Mock mode to preview the UI.')
-    terminal.writeln('')
+    if (!seamless) {
+      terminal.writeln('\x1b[35mCommand Code GUI\x1b[0m')
+      terminal.writeln('Start a session from the left rail, or enable Mock mode to preview the UI.')
+      terminal.writeln('')
+    }
 
     terminal.onData((data) => {
       if (!inputEnabledRef.current) {
@@ -178,7 +181,7 @@ export function TerminalPane({ transport, sessionId, onExit, onExpandRequest, on
       terminalRef.current = null
       fitRef.current = null
     }
-  }, [])
+  }, [seamless])
 
   useEffect(() => {
     sessionRef.current = sessionId
@@ -234,7 +237,7 @@ export function TerminalPane({ transport, sessionId, onExit, onExpandRequest, on
 
   return (
     <div
-      className={`terminal-host-wrap ${compact ? 'terminal-host-wrap--compact' : ''} ${inputEnabled ? 'terminal-host-wrap--input-enabled' : 'terminal-host-wrap--read-only'}`}
+      className={`terminal-host-wrap ${compact ? 'terminal-host-wrap--compact' : ''} ${seamless ? 'terminal-host-wrap--seamless' : ''} ${inputEnabled ? 'terminal-host-wrap--input-enabled' : 'terminal-host-wrap--read-only'}`}
       onMouseDown={() => {
         if (!inputEnabledRef.current) {
           onInputRequestRef.current?.()

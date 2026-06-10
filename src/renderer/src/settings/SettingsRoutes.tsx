@@ -3,7 +3,7 @@ import type { PermissionMode } from '../../../shared/types'
 import type { PtyDoctorResult } from '../../../core/ptyDoctor'
 import type { TransportAPI } from '../../../core/transport'
 import type { DiscoveredSession } from '../../../core/types'
-import type { AppearanceTheme, RuntimeMode, SettingsSection, UpdateState } from '../appTypes'
+import type { AppearanceTheme, ChatBubbleColors, RuntimeMode, SettingsSection, UpdateState } from '../appTypes'
 import type { HeadlessJob } from '../components/HeadlessHistory'
 import {
   ProjectStateSettings,
@@ -12,21 +12,21 @@ import {
 import { AgentsSettingsReadOnly } from './AgentsSettings'
 import {
   AdvancedSettings,
-  AppearanceSettings,
   GeneralSettings,
   IntegrationsSettings,
-  ProfileSettings,
   RuntimeSettings,
   UsageSettings
 } from './CoreSettings'
+import { AppearanceSettings } from './AppearanceSettings'
+import { ProfileSettings } from './ProfileSettings'
 import { MemorySettingsReadOnly } from './MemorySettings'
 import {
   AboutSettingsReadOnly,
-  HooksSettingsReadOnly,
   KeyboardSettingsReadOnly,
   NotificationsSettings,
   TerminalSettings
 } from './ReferenceSettings'
+import { HooksSettingsReadOnly } from './HooksSettings'
 import { SkillsSettingsReadOnly } from './SkillsSettings'
 import { TasteSettingsReadOnly } from './TasteSettings'
 import { ModelsSettings } from './ModelsSettings'
@@ -81,6 +81,8 @@ export type SettingsRouteProps = {
   runtimeMode: RuntimeMode
   appearanceTheme: AppearanceTheme
   setAppearanceTheme: (value: AppearanceTheme) => void
+  chatBubbleColors: ChatBubbleColors
+  setChatBubbleColors: (value: ChatBubbleColors) => void
   startupProjectBehavior: 'restore-last' | 'empty'
   setStartupProjectBehavior: (value: 'restore-last' | 'empty') => void
   updateState: UpdateState
@@ -116,6 +118,8 @@ export function SettingsRoute(props: SettingsRouteProps): JSX.Element {
     runtimeMode,
     appearanceTheme,
     setAppearanceTheme,
+    chatBubbleColors,
+    setChatBubbleColors,
     startupProjectBehavior,
     setStartupProjectBehavior,
     updateState,
@@ -142,6 +146,7 @@ export function SettingsRoute(props: SettingsRouteProps): JSX.Element {
           headlessJobs={headlessJobs}
           sessionCount={sessionCount}
           runtimeMode={runtimeMode}
+          transport={transport}
           openSection={openSection}
         />
       )
@@ -175,7 +180,7 @@ export function SettingsRoute(props: SettingsRouteProps): JSX.Element {
         />
       )
     case 'appearance':
-      return <AppearanceSettings appearanceTheme={appearanceTheme} setAppearanceTheme={setAppearanceTheme} />
+      return <AppearanceSettings appearanceTheme={appearanceTheme} setAppearanceTheme={setAppearanceTheme} chatBubbleColors={chatBubbleColors} setChatBubbleColors={setChatBubbleColors} />
     case 'usage':
       return (
         <UsageSettings

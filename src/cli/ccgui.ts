@@ -2,10 +2,9 @@ import { resolve } from 'node:path'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { createAppServer } from '../server/index'
-import { getCommandExecutable, checkCommandCode, commandCodeStatus, listModels } from '../core/cli'
-import { ptyDoctorAsync } from '../core/ptyDoctor'
+import { getCommandExecutable } from '../core/cli'
+import { runDoctorChecks } from '../core/doctor'
 import { exec } from 'node:child_process'
-import os from 'node:os'
 
 function usage(): void {
   console.log([
@@ -81,107 +80,25 @@ async function startServe(port: number, staticDir?: string, shouldOpen = false):
   process.on('SIGTERM', shutdown)
 }
 
-async function runDoctor(): Promise<void> {
-  let exitCode = 0
-  const passed: string[] = []
-  const failed: string[] = []
-
-  // Node.js check
-  const nodeVersion = process.version
-  const nodeMajor = parseInt(nodeVersion.slice(1).split('.')[0]!, 10)
-  console.log(`Node.js:    ${nodeVersion}`)
-  if (nodeMajor >= 20) {
-    passed.push('Node.js version')
-  } else {
-    failed.push('Node.js version (need >=20)')
-    exitCode = 1
+async function runDoctor(json = false): Promise<void> {
+  const result = await runDoctorChecks()
+  if (json) {
+    console.log(JSON.stringify(result, null, 2))
+    process.exit(result.ok ? 0 : 1)
   }
 
-  // Platform check
-  const platform = os.platform()
-  const isWin = platform === 'win32'
-  console.log(`Platform:   ${platform} (${os.release()})`)
-
-  // Command Code binary
-  const binary = getCommandExecutable()
-  console.log(`Binary:     ${binary}`)
-  const check = await checkCommandCode(binary)
-  const version = check.ok ? `v${check.version ?? 'unknown'}` : 'not found'
-
-  if (check.ok) {
-    console.log(`  Result:   ${version}`)
-    passed.push('Command Code binary')
-  } else {
-    console.log(`  Result:   FAILED (${check.stderr || check.error || 'unknown error'})`)
-    failed.push('Command Code binary')
-    exitCode = 1
+  console.log(`Node.js:    ${result.nodeVersion}`)
+  console.log(`Platform:   ${result.platform} (${result.platformRelease})`)
+  console.log(`Binary:     ${result.commandExecutable}`)
+  for (const check of result.checks) {
+    if (check.id === 'node' || check.id === 'platform' || check.id === 'windows') continue
+    const status = check.status === 'pass' ? check.detail : `FAILED (${check.detail})`
+    console.log(`${check.label.padEnd(18)} ${status}`)
+    if (check.nextStep && check.status !== 'pass') console.log(`  Next: ${check.nextStep}`)
   }
-
-  // Auth status
-  if (check.ok) {
-    const status = await commandCodeStatus(binary, process.cwd())
-    if (status.ok) {
-      console.log('Auth:       ok')
-      passed.push('Authentication')
-    } else {
-      console.log(`Auth:       not authenticated (${status.stderr || status.error || 'unknown'})`)
-      failed.push('Authentication')
-    }
-  }
-
-  // Models
-  if (check.ok) {
-    try {
-      const models = await listModels(binary, process.cwd())
-      if (models.ok && models.models.length > 0) {
-        console.log(`Models:     ${models.models.length} available (${models.models.slice(0, 3).join(', ')}${models.models.length > 3 ? '...' : ''})`)
-        passed.push('Model listing')
-      } else {
-        console.log('Models:     listing failed')
-        failed.push('Model listing')
-      }
-    } catch {
-      console.log('Models:     listing failed')
-      failed.push('Model listing')
-    }
-  }
-
-  // Windows hints
-  if (isWin) {
-    console.log('\nWindows notes:')
-    console.log('  - The `cmd` binary may collide with cmd.exe. Set COMMAND_CODE_BIN to the full shim path.')
-    console.log('  - WSL is recommended for the best experience on Windows.')
-    console.log('  - Native Windows support is experimental.')
-    console.log('  - If running in WSL, run ccgui from inside the Linux environment.')
-  }
-
-  // PTY health
-  console.log('\nPTY check:')
-  const ptyResult = await ptyDoctorAsync()
-  if (ptyResult.available) {
-    console.log(`  Available: yes`)
-    console.log(`  Shell:     ${ptyResult.shell}`)
-    if (ptyResult.healthy) {
-      console.log(`  Health:    ok`)
-      passed.push('PTY availability')
-    } else {
-      console.log(`  Health:    FAILED — ${ptyResult.error || `exit=${ptyResult.exitCode} signal=${ptyResult.signal}`}`)
-      failed.push('PTY health')
-    }
-  } else {
-    console.log(`  Available: no`)
-    console.log(`  Error:     ${ptyResult.error}`)
-    failed.push('PTY availability')
-  }
-
-  // Summary
-  console.log(`\n${passed.length} passed, ${failed.length} failed`)
-
-  if (failed.length > 0) {
-    console.log(`\nFailed checks: ${failed.join(', ')}`)
-  }
-
-  process.exit(exitCode)
+  console.log(`\n${result.passed.length} passed, ${result.failed.length} failed`)
+  if (result.failed.length > 0) console.log(`\nFailed checks: ${result.failed.join(', ')}`)
+  process.exit(result.ok ? 0 : 1)
 }
 
 async function openBrowser(port: number): Promise<void> {
@@ -218,7 +135,7 @@ switch (command) {
     break
 
   case 'doctor':
-    runDoctor()
+    runDoctor(args.includes('--json'))
     break
 
   case 'open':

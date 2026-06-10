@@ -1,0 +1,5 @@
+> explain this repository
+· Inspecting… esc to interrupt • 0s • ↓ 0
+○ Inspecting… esc to interrupt • 1s • ↓ 0
+◇ Inspecting… esc to interrupt • 2s • ↓ 0
+☆ Inspecting… esc to interrupt • 3s • ↓ 0

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { JSX, RefObject } from 'react'
 import { Folder, FolderOpen } from 'lucide-react'
 import type { PermissionMode } from '../../../shared/types'
@@ -91,6 +91,9 @@ export function AppPopovers({
   runCommand: (item: CommandPaletteItem) => Promise<void>
 }): JSX.Element | null {
   const [paletteQuery, setPaletteQuery] = useState('')
+  const [serverPathDraft, setServerPathDraft] = useState(cwd)
+  const [serverPathError, setServerPathError] = useState('')
+  const [serverPathValidating, setServerPathValidating] = useState(false)
   const paletteResults = useMemo(
     () => searchCommandPalette(commandPaletteItems, workflowRecipes, paletteQuery, settingsRegistry, recentProjects, commandPaletteDocs),
     [commandPaletteItems, paletteQuery, recentProjects]
@@ -100,13 +103,66 @@ export function AppPopovers({
   const visibleSettings = paletteResults.filter((result) => result.kind === 'settings')
   const visibleProjects = paletteResults.filter((result) => result.kind === 'project')
   const visibleDocs = paletteResults.filter((result) => result.kind === 'docs')
+  const browserProjectPicker = !transport.supportsNativeDirectoryPicker
+
+  useEffect(() => {
+    if (openPopover === 'project') {
+      setServerPathDraft(cwd)
+      setServerPathError('')
+    }
+  }, [cwd, openPopover])
+
+  async function applyServerPath(): Promise<void> {
+    const nextPath = serverPathDraft.trim()
+    if (!nextPath) {
+      setServerPathError('Enter a path on the machine running ccgui serve.')
+      return
+    }
+
+    setServerPathValidating(true)
+    setServerPathError('')
+    try {
+      const result = await transport.listFiles(nextPath, nextPath)
+      if (result.error) {
+        setServerPathError(result.error)
+        return
+      }
+      setCwd(nextPath)
+      setOpenPopover(null)
+    } catch (err) {
+      setServerPathError(err instanceof Error ? err.message : 'Project path validation failed')
+    } finally {
+      setServerPathValidating(false)
+    }
+  }
 
   return (
     <>
       {openPopover === 'project' && (
         <div ref={popoverRef} className="native-popover project-popover">
           <div className="popover-title">Project</div>
-          <button className="popover-row" onClick={() => void chooseProject()}><FolderOpen size={16} /> Choose folder...</button>
+          {browserProjectPicker ? (
+            <div className="server-path-picker">
+              <label className="field-label">Server-side project path</label>
+              <input
+                className="native-input"
+                value={serverPathDraft}
+                onChange={(event) => setServerPathDraft(event.target.value)}
+                placeholder="/home/user/project"
+                aria-label="Server-side project path"
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') void applyServerPath()
+                }}
+              />
+              <p className="popover-help">Use a path on the machine running `ccgui serve`. In WSL, enter the Linux path, not the Windows browser path.</p>
+              {serverPathError && <div className="popover-error">{serverPathError}</div>}
+              <button className="popover-row" onClick={() => void applyServerPath()} disabled={serverPathValidating}>
+                <FolderOpen size={16} /> {serverPathValidating ? 'Validating...' : 'Set server-side project path'}
+              </button>
+            </div>
+          ) : (
+            <button className="popover-row" onClick={() => void chooseProject()}><FolderOpen size={16} /> Choose folder...</button>
+          )}
           {recentProjects.map((project) => (
             <button key={project} className="popover-row" onClick={() => { setCwd(project); setOpenPopover(null) }} title={project}>
               <Folder size={16} /> {displayPath(project)}

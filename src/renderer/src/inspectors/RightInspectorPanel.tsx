@@ -8,7 +8,7 @@ import { FileBrowser } from '../components/FileBrowser'
 import { FileViewer } from '../components/FileViewer'
 import { IdePanel } from '../components/IdePanel'
 import type { RightInspector } from '../appTypes'
-import { TranscriptPreview } from '../workspaces/TranscriptWorkspace'
+import { TranscriptPreview } from '../components/TranscriptPreview'
 
 export function RightInspectorPanel({
   mode,
@@ -27,7 +27,9 @@ export function RightInspectorPanel({
   onOpenEnvironment,
   onOpenIde,
   onRevealTranscript,
-  onResizeStart
+  onRevealProject,
+  onResizeStart,
+  liveTranscript = false
 }: {
   mode: RightInspector
   transport: TransportAPI
@@ -45,7 +47,9 @@ export function RightInspectorPanel({
   onOpenEnvironment: () => void
   onOpenIde: () => void
   onRevealTranscript: () => void
+  onRevealProject: () => void
   onResizeStart: (event: ReactPointerEvent<HTMLDivElement>) => void
+  liveTranscript?: boolean
 }): JSX.Element | null {
   if (mode === 'none') return null
 
@@ -100,7 +104,7 @@ export function RightInspectorPanel({
                 <div className="inspector-button-row">
                   <button className="ghost-button native-ghost" onClick={onRevealTranscript}>Reveal transcript</button>
                 </div>
-                <TranscriptPreview transport={transport} session={transcript} cwd={cwd} onOpenArtifact={(path) => onSelectArtifact ? onSelectArtifact(path, transcript) : onSelectFile(path)} />
+                <TranscriptPreview transport={transport} session={transcript} cwd={cwd} onOpenArtifact={(path) => onSelectArtifact ? onSelectArtifact(path, transcript) : onSelectFile(path)} liveSession={liveTranscript} />
               </>
             )
             : <InspectorEmpty title="No transcript selected" detail="Open a recent context or active session transcript." />
@@ -111,7 +115,7 @@ export function RightInspectorPanel({
         {mode === 'environment' && <EnvironmentTracker transport={transport} cwd={cwd} />}
         {mode === 'ide' && (
           <div className="inspector-stack">
-            <button className="ghost-button native-ghost" onClick={() => transport.revealPath(cwd)}><FolderOpen size={16} /> Reveal project in Finder</button>
+            <button className="ghost-button native-ghost" onClick={onRevealProject} disabled={!cwd.trim()}><FolderOpen size={16} /> Reveal project</button>
             <IdePanel transport={transport} commandExecutable={commandExecutable} cwd={cwd} />
           </div>
         )}

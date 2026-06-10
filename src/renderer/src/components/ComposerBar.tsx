@@ -1,5 +1,6 @@
 import type { JSX } from 'react'
-import { ChevronDown, Folder, Play, Send, SlidersHorizontal } from 'lucide-react'
+import { ChevronDown, Folder, Paperclip, Send, Sparkles } from 'lucide-react'
+import { useState } from 'react'
 
 export function ComposerBar({
   active,
@@ -34,54 +35,72 @@ export function ComposerBar({
   onModel: () => void
   onSlash: () => void
 }): JSX.Element {
+  const [isExpanded, setIsExpanded] = useState(!active)
+  const [showAttachments, setShowAttachments] = useState(false)
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault()
+      void onSubmit()
+    }
+  }
+
   return (
-    <div className={`composer-card ${active ? 'composer-card--active' : ''}`}>
+    <div className={`composer-bar ${active ? 'composer-bar--active' : ''}`}>
       {showPlanSuggestion && (
         <div className="plan-suggestion">
-          <div>
-            <strong>Create a plan</strong>
-            <span>Use Command Code plan mode for this prompt.</span>
-          </div>
-          <button className="chip-button" onClick={() => void onPlanMode()}>Use plan mode</button>
+          <Sparkles size={14} />
+          <span>Create a plan with <strong>plan mode</strong> for this prompt</span>
+          <button className="plan-suggestion-action" onClick={() => void onPlanMode()}>Use plan mode</button>
         </div>
       )}
-      <textarea
-        className="composer-input"
-        value={prompt}
-        onChange={(event) => setPrompt(event.target.value)}
-        onFocus={onFocus}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter' && !event.shiftKey) {
-            event.preventDefault()
-            void onSubmit()
-          }
-        }}
-        placeholder="Do anything"
-        rows={active ? 2 : 3}
-      />
-      <div className="composer-toolbar">
-        <div className="composer-chip-row">
-          <button className="chip-button icon-only-chip" onClick={onSlash} title="Slash commands">
-            <SlidersHorizontal size={17} />
+
+      <div className="composer-input-wrapper">
+        <div className="composer-toolbar-top">
+          <button className="composer-toolbar-btn" onClick={onSlash} title="Slash commands">
+            <Paperclip size={16} />
           </button>
-          <button className={`chip-button ${riskyPermission ? 'chip-button--warn' : ''}`} onClick={onPermission}>
-            <span className={riskyPermission ? 'warning-dot' : 'neutral-dot'} />
-            {permissionLabel}
-            <ChevronDown size={14} />
+          <button className="composer-toolbar-btn" onClick={onPermission} title="Permission mode">
+            <span className={`permission-dot ${riskyPermission ? 'risky' : ''}`} />
+            <span className="permission-label">{permissionLabel}</span>
+            <ChevronDown size={12} />
+          </button>
+          <div className="composer-spacer" />
+          <button className="composer-toolbar-btn" onClick={onProject} title="Project">
+            <Folder size={15} />
+            <span className="project-label">{projectLabel}</span>
+            <ChevronDown size={12} />
+          </button>
+          <button className="composer-toolbar-btn" onClick={onModel} title="Model">
+            <span className="model-label">{modelLabel}</span>
+            <ChevronDown size={12} />
           </button>
         </div>
-        <div className="composer-chip-row composer-chip-row--right">
-          <button className="chip-button" onClick={onProject}>
-            <Folder size={15} />
-            {projectLabel}
-            <ChevronDown size={14} />
-          </button>
-          <button className="chip-button" onClick={onModel}>
-            {modelLabel}
-            <ChevronDown size={14} />
-          </button>
-          <button className="composer-send" onClick={() => void onSubmit()} title={active ? 'Send (Enter)' : 'Start (Enter)'}>
-            {active ? <Send size={18} /> : <Play size={18} />}
+
+        <textarea
+          className="composer-input"
+          value={prompt}
+          onChange={(event) => setPrompt(event.target.value)}
+          onFocus={onFocus}
+          onKeyDown={handleKeyDown}
+          placeholder={active ? "Message Command Code…" : "What would you like to do?"}
+          rows={isExpanded ? 4 : 1}
+          style={{ height: isExpanded ? 'auto' : '44px' }}
+          onClick={() => setIsExpanded(true)}
+        />
+
+        <div className="composer-footer">
+          <div className="composer-hint">
+            <kbd>Enter</kbd> to send • <kbd>Shift+Enter</kbd> for new line
+          </div>
+          <button
+            className="composer-send"
+            onClick={() => void onSubmit()}
+            disabled={!prompt.trim()}
+            title="Send (Enter)"
+            aria-label="Send message"
+          >
+            <Send size={18} />
           </button>
         </div>
       </div>

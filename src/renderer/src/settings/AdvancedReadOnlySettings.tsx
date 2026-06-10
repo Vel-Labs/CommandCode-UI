@@ -112,6 +112,7 @@ export function SessionsSettingsReadOnly({
 }): JSX.Element {
   const [sessions, setSessions] = useState<DiscoveredSession[]>([])
   const [loading, setLoading] = useState(false)
+  const [revealFallback, setRevealFallback] = useState('')
 
   const load = async (): Promise<void> => {
     setLoading(true)
@@ -126,9 +127,24 @@ export function SessionsSettingsReadOnly({
 
   useEffect(() => { void load() }, [cwd])
 
+  async function revealTranscript(transcriptPath: string): Promise<void> {
+    const result = await transport.revealTranscript(transcriptPath)
+    if (result.ok) {
+      setRevealFallback('')
+      return
+    }
+    try {
+      await navigator.clipboard?.writeText(result.path)
+      setRevealFallback(`${result.message || 'Native reveal is not available in this shell'} Path copied: ${result.path}`)
+    } catch {
+      setRevealFallback(`${result.message || 'Native reveal is not available in this shell'} Transcript path: ${result.path}`)
+    }
+  }
+
   return (
     <SettingsReadOnlyCard title={`Discovered sessions (${sessions.length})`} loading={loading} onRefresh={load}>
-      <p className="settings-muted">Session discovery uses Command Code transcript stores. Resume starts a new Command Code session with the selected project transcript; Reveal opens the transcript path through the existing adapter file-access bridge.</p>
+      <p className="settings-muted">Session discovery uses Command Code transcript stores. Resume starts a new Command Code session with the selected project transcript; Reveal opens the transcript path through the existing adapter file-access bridge when native reveal is available.</p>
+      {revealFallback && <div className="settings-warning">{revealFallback}</div>}
       {sessions.map((session) => (
         <div key={session.id} className="settings-readonly-row">
           <strong>{session.title || session.id}</strong>
@@ -136,7 +152,7 @@ export function SessionsSettingsReadOnly({
           <code className="settings-readonly-path">{session.transcriptPath}</code>
           <div className="settings-inline-actions">
             <button className="ghost-button native-ghost settings-inline-action" onClick={() => void onResumeSession(session)} disabled={session.source !== 'project'}>Resume</button>
-            <button className="ghost-button native-ghost settings-inline-action" onClick={() => void transport.revealTranscript(session.transcriptPath)}>Reveal</button>
+            <button className="ghost-button native-ghost settings-inline-action" onClick={() => void revealTranscript(session.transcriptPath)}>Reveal</button>
           </div>
         </div>
       ))}

@@ -1,0 +1,3 @@
+> run the failing command
+BASH (npm run definitely-missing)
+Command failed with exit code 1.

@@ -1,0 +1,3 @@
+Press Enter to open browser login
+  Enter authentication token after login
+  Esc to cancel

@@ -1,0 +1,3 @@
+Choose an installation method
+❯ 1. Install Command Code
+  2. Cancel

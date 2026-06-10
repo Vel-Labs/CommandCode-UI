@@ -1,5 +1,6 @@
-import { existsSync, realpathSync, statSync } from 'node:fs'
+import { existsSync, statSync } from 'node:fs'
 import path from 'node:path'
+import { isPathUnderRoot, resolveBoundaryPath } from '../shared/pathContainment'
 
 export type ArtifactKind = 'markdown' | 'html' | 'text' | 'ansi' | 'image' | 'json' | 'pdf' | 'code' | 'unknown'
 export type ArtifactRejectionReason = 'outside-allowed-roots' | 'missing-workspace-root' | 'directory' | 'duplicate'
@@ -105,33 +106,6 @@ function findAllowedRoot(filePath: string, allowedRoots: string[]): string | und
     if (isPathUnderRoot(filePath, root)) return resolveBoundaryPath(root)
   }
   return undefined
-}
-
-function isPathUnderRoot(filePath: string, root: string): boolean {
-  const realTarget = resolveBoundaryPath(filePath)
-  const realRoot = resolveBoundaryPath(root)
-  return realTarget === realRoot || realTarget.startsWith(realRoot + path.sep)
-}
-
-function resolveBoundaryPath(filePath: string): string {
-  const resolved = path.resolve(filePath)
-  try {
-    return realpathSync(resolved)
-  } catch {
-    let current = resolved
-    const missingParts: string[] = []
-    while (!existsSync(current)) {
-      const parent = path.dirname(current)
-      if (parent === current) return resolved
-      missingParts.unshift(path.basename(current))
-      current = parent
-    }
-    try {
-      return path.join(realpathSync(current), ...missingParts)
-    } catch {
-      return resolved
-    }
-  }
 }
 
 function hasSupportedExtension(filePath: string): boolean {

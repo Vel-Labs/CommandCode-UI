@@ -17,6 +17,7 @@ import type {
   McpServer,
   MemoryFile,
   ModelListResult,
+  NativeRevealResult,
   ProjectGuiPreferences,
   ProjectGuiPreferencesResult,
   ProjectCommandCodeReference,
@@ -24,11 +25,13 @@ import type {
   SessionStartOptions,
   SessionStartResult,
   SkillEntry,
+  StructuredTranscriptMatchResult,
   TastePackage,
   UsageSummary,
   WriteFileResult,
 } from './types'
 import type { PtyDoctorResult } from './ptyDoctor'
+import type { DoctorResult } from './doctor'
 import type {
   HookCommandUpdate,
   HookConfigDiscoveryResult,
@@ -48,6 +51,9 @@ export type SessionExitCallback = (payload: SessionExitPayload) => void
 export type Unsubscribe = () => void
 
 export type TransportAPI = {
+  environment: 'browser' | 'electron'
+  supportsNativeDirectoryPicker: boolean
+  supportsNativeReveal: boolean
   chooseDirectory: () => Promise<DirectoryPickResult>
   check: (commandExecutable?: string) => Promise<CommandCodeCheck>
   status: (commandExecutable?: string, cwd?: string) => Promise<CommandCodeStatus>
@@ -56,6 +62,7 @@ export type TransportAPI = {
   saveAppPreferences: (preferences: AppGuiPreferences) => Promise<AppGuiPreferencesResult>
   loadProjectPreferences: (cwd: string) => Promise<ProjectGuiPreferencesResult>
   saveProjectPreferences: (cwd: string, preferences: ProjectGuiPreferences) => Promise<ProjectGuiPreferencesResult>
+  doctor: () => Promise<DoctorResult>
   ptyHealth: () => Promise<PtyDoctorResult>
   listModels: (commandExecutable?: string, cwd?: string) => Promise<ModelListResult>
   startSession: (options: SessionStartOptions) => Promise<SessionStartResult>
@@ -67,9 +74,15 @@ export type TransportAPI = {
   kill: (sessionId: string) => Promise<void>
   runHeadless: (options: HeadlessRunOptions) => Promise<HeadlessRunResult>
   openExternal: (url: string) => Promise<void>
-  revealTranscript: (transcriptPath: string) => Promise<void>
-  revealPath: (targetPath: string) => Promise<void>
-  readTranscript: (transcriptPath: string) => Promise<{ content: string; path: string; ext: string; error?: string }>
+  revealTranscript: (transcriptPath: string) => Promise<NativeRevealResult>
+  revealPath: (targetPath: string) => Promise<NativeRevealResult>
+  readTranscript: (transcriptPath: string) => Promise<{ content: string; path: string; ext: string; error?: string; truncated?: boolean }>
+  matchStructuredTranscript: (options: {
+    cwd: string
+    prompt: string
+    submittedAtMs: number
+    startedAfterMs?: number
+  }) => Promise<StructuredTranscriptMatchResult>
   listFiles: (dir: string, cwd?: string) => Promise<{ entries: FileEntry[]; dir: string; error?: string }>
   readFile: (filePath: string, cwd?: string) => Promise<{ content: string; path: string; ext: string; error?: string }>
   ideStatus: (commandExecutable?: string, cwd?: string) => Promise<IdeStatusResult>

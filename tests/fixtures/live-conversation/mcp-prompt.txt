@@ -1,0 +1,5 @@
+> configure mcp
+Select MCP server
+❯ filesystem
+  browser
+  Cancel

@@ -9,6 +9,7 @@ type SessionTab = {
   model?: string
   stopRequested: boolean
   transcriptPath: string
+  transcriptBindingStatus?: 'unbound' | 'binding' | 'bound' | 'ambiguous' | 'failed'
   readiness: SessionReadinessState
 }
 
@@ -26,18 +27,24 @@ export function TabBar({ tabs, activeId, onSelect, onKill }: TabBarProps): JSX.E
     <div className="tab-bar">
       {tabs.map((tab) => {
         const readiness = sessionReadinessDisplay(tab.readiness)
+        const unread = unreadLabel(tab.readiness)
+        const binding = bindingLabel(tab.transcriptBindingStatus)
         return (
           <button
             key={tab.id}
-            className={`tab ${tab.id === activeId ? 'tab--active' : ''}`}
+            className={`tab ${tab.id === activeId ? 'tab--active' : ''} ${tab.readiness.status === 'waiting-for-input' ? 'tab--input-required' : ''}`}
             onClick={() => onSelect(tab.id)}
-            title={readiness.title}
+            title={[readiness.title, binding?.title].filter(Boolean).join(' · ')}
           >
-            <span className={`tab-dot ${tab.mock ? 'tab-dot--mock' : 'tab-dot--live'}`} />
+            <span className={`tab-dot tab-dot--${readiness.tone}`} />
             <span className="tab-label">{tab.label}</span>
             <span className="tab-model">{sessionModelLabel({ model: tab.model })}</span>
-            <span className={`tab-readiness tab-readiness--${readiness.tone}`}>{readiness.label}</span>
-            {tab.readiness.unread && readiness.label !== 'unread output' && <span className="tab-readiness tab-readiness--purple">new</span>}
+            <span className={`tab-readiness tab-readiness--${readiness.tone}`}>
+              <span className="tab-readiness-symbol" aria-hidden="true">{readiness.symbol}</span>
+              {readiness.label}
+            </span>
+            {binding && <span className={`tab-readiness tab-readiness--${binding.tone}`}>{binding.label}</span>}
+            {unread && <span className={`tab-readiness tab-readiness--${unread.tone}`}>{unread.label}</span>}
             <span
               className="tab-close"
               onClick={(e) => {
@@ -52,4 +59,18 @@ export function TabBar({ tabs, activeId, onSelect, onKill }: TabBarProps): JSX.E
       })}
     </div>
   )
+}
+
+function unreadLabel(readiness: SessionReadinessState): { label: string; tone: 'purple' | 'warn' } | undefined {
+  if (!readiness.unread) return undefined
+  if (readiness.inputRequired) return { label: 'input needed', tone: 'warn' }
+  if (readiness.responseReady || readiness.status === 'response-ready') return { label: 'response ready', tone: 'purple' }
+  return undefined
+}
+
+function bindingLabel(status: SessionTab['transcriptBindingStatus']): { label: string; tone: 'default' | 'warn' | 'bad'; title: string } | undefined {
+  if (!status || status === 'unbound' || status === 'bound') return undefined
+  if (status === 'binding') return { label: 'binding', tone: 'warn', title: 'Associating this GUI session with a Command Code JSONL transcript' }
+  if (status === 'ambiguous') return { label: 'ambiguous', tone: 'warn', title: 'Multiple Command Code transcripts match this prompt' }
+  return { label: 'binding failed', tone: 'bad', title: 'The GUI could not associate this session with a Command Code transcript' }
 }

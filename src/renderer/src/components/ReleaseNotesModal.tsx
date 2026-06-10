@@ -1,17 +1,17 @@
 import type { JSX } from 'react'
-import { Route, Sparkles, X } from 'lucide-react'
+import { Sparkles, TerminalSquare, X } from 'lucide-react'
 import type { ReleaseNote } from '../appTypes'
 
 export function ReleaseNotesModal({
   version,
   note,
   onClose,
-  onConfigureModels
+  onRunCommand
 }: {
   version: string
   note: ReleaseNote
   onClose: () => void
-  onConfigureModels: () => Promise<void>
+  onRunCommand: (command: string) => Promise<void>
 }): JSX.Element {
   return (
     <div className="release-modal-backdrop" role="presentation" onClick={onClose}>
@@ -25,13 +25,13 @@ export function ReleaseNotesModal({
         </ul>
         <div className="release-actions">
           {note.command && (
-            <button className="primary-button release-primary" onClick={() => void onConfigureModels()}>
-              <Route size={16} /> Open {note.command}
+            <button className="primary-button release-primary" onClick={() => void onRunCommand(note.command!)}>
+              <TerminalSquare size={16} /> {note.primaryLabel || `Open ${note.command}`}
             </button>
           )}
           <button className="ghost-button native-ghost" onClick={onClose}>Not now</button>
         </div>
-        <div className="release-footnote">Command Code {version} is installed. These notes are stored locally after dismissal.</div>
+        <div className="release-footnote">Command Code {version} is installed. {note.generated ? 'These notes were formatted from update output and are stored locally after dismissal.' : 'These notes are stored locally after dismissal.'}</div>
       </section>
     </div>
   )
