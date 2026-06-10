@@ -34,3 +34,7 @@ ROADMAP_DOGFOOD_UPDATE.md
 release/
 build/*.zip
 build/icon.iconset/
+
+# Local tool runtime (mavis agent, OpenCode embedded environment)
+.mavis/
+.opencode/
