@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import type { SessionExitPayload } from '../../../shared/types'
 import type { DiscoveredSession } from '../../../core/types'
 import { buildPtySubmitChunks } from '../../../shared/ptyInput'
@@ -13,7 +14,10 @@ import { commandPaletteItems } from '../commandPalette'
 import { PTY_KEYSTROKE_DELAY_MS, markReleaseNoteSeen } from '../services/appStorage'
 import type { UseSessionActionsOptions } from './useSessionActionsTypes'
 
-let tabCounter = 1
+export const makeSessionLabelCounter = (): { next: () => number } => {
+  let n = 1
+  return { next: () => n++ }
+}
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => window.setTimeout(resolve, ms))
@@ -59,6 +63,7 @@ export function useSessionActions({
   headlessYolo
 }: UseSessionActionsOptions) {
   const cwdReady = Boolean(cwd.trim()) || useMock
+  const labelCounterRef = useRef(makeSessionLabelCounter())
 
   const updateTab = (id: string, update: Partial<SessionTab>) => {
     setTabs((prev) => prev.map((t) => t.id === id ? { ...t, ...update } : t))
@@ -146,7 +151,7 @@ export function useSessionActions({
         useMock: shouldUseMock
       })
 
-      const label = resume ? `resume ${tabCounter++}` : `session ${tabCounter++}`
+      const label = resume ? `resume ${labelCounterRef.current.next()}` : `session ${labelCounterRef.current.next()}`
       const readiness = createAttachedReadiness(result.id)
       const newTab: SessionTab = {
         id: result.id,
