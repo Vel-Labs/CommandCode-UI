@@ -1,6 +1,7 @@
 import { EventEmitter } from 'node:events'
 import { randomUUID } from 'node:crypto'
-import { existsSync, mkdirSync, appendFileSync } from 'node:fs'
+import { existsSync, mkdirSync } from 'node:fs'
+import { appendFile } from 'node:fs/promises'
 import path from 'node:path'
 import os from 'node:os'
 import type { IPty } from 'node-pty'
@@ -35,8 +36,13 @@ export type SessionEvents = {
 export class CoreSessionManager extends EventEmitter<SessionEvents> {
   private readonly sessions = new Map<string, SessionRecord>()
   private readonly replayBuffers = new Map<string, string>()
+  private readonly transcriptBuffers = new Map<string, string>()
+  private readonly transcriptFlushTimers = new Map<string, NodeJS.Timeout>()
+  private readonly transcriptWrites = new Map<string, Promise<void>>()
   private readonly ptyFactory?: PtySpawnFn
   private static readonly MAX_REPLAY_BYTES = 262_144 // 256KB
+  private static readonly TRANSCRIPT_FLUSH_BYTES = 32_768
+  private static readonly TRANSCRIPT_FLUSH_INTERVAL_MS = 100
 
   constructor(ptyFactory?: PtySpawnFn) {
     super()
@@ -128,6 +134,7 @@ export class CoreSessionManager extends EventEmitter<SessionEvents> {
     if (record.mock) {
       if (record.mockTimer) clearTimeout(record.mockTimer)
       this.replayBuffers.delete(id)
+      this.flushTranscript(record)
       this.emitExit(record, 0, null)
       this.sessions.delete(id)
       return
@@ -136,6 +143,7 @@ export class CoreSessionManager extends EventEmitter<SessionEvents> {
     try {
       record.terminal?.kill()
     } finally {
+      this.flushTranscript(record)
       this.sessions.delete(id)
       this.replayBuffers.delete(id)
     }
@@ -286,6 +294,7 @@ export class CoreSessionManager extends EventEmitter<SessionEvents> {
     const payload: SessionExitPayload = { sessionId: record.id, exitCode, signal }
     this.sessions.delete(record.id)
     this.replayBuffers.delete(record.id)
+    this.flushTranscript(record)
     this.emit('session:exit', payload)
   }
 
@@ -296,10 +305,53 @@ export class CoreSessionManager extends EventEmitter<SessionEvents> {
   }
 
   private appendTranscript(record: SessionRecord, data: string): void {
-    try {
-      appendFileSync(record.transcriptPath, data)
-    } catch {
-      // Transcript persistence should never crash the session.
+    const buffered = (this.transcriptBuffers.get(record.id) || '') + data
+    this.transcriptBuffers.set(record.id, buffered)
+
+    if (Buffer.byteLength(buffered, 'utf8') >= CoreSessionManager.TRANSCRIPT_FLUSH_BYTES) {
+      this.flushTranscript(record)
+      return
     }
+
+    if (!this.transcriptFlushTimers.has(record.id)) {
+      const timer = setTimeout(() => {
+        this.transcriptFlushTimers.delete(record.id)
+        this.flushTranscript(record)
+      }, CoreSessionManager.TRANSCRIPT_FLUSH_INTERVAL_MS)
+      this.transcriptFlushTimers.set(record.id, timer)
+    }
+  }
+
+  private flushTranscript(record: SessionRecord): void {
+    const timer = this.transcriptFlushTimers.get(record.id)
+    if (timer) {
+      clearTimeout(timer)
+      this.transcriptFlushTimers.delete(record.id)
+    }
+
+    const data = this.transcriptBuffers.get(record.id)
+    if (!data) return
+    this.transcriptBuffers.delete(record.id)
+
+    const previous = this.transcriptWrites.get(record.id) ?? Promise.resolve()
+    const write = previous
+      .catch(() => undefined)
+      .then(() => appendFile(record.transcriptPath, data))
+      .catch((err) => {
+        this.emit('session:error', record.id, err instanceof Error ? err : new Error(String(err)))
+      })
+      .finally(() => {
+        if (this.transcriptWrites.get(record.id) === write) {
+          this.transcriptWrites.delete(record.id)
+        }
+      })
+    this.transcriptWrites.set(record.id, write)
+  }
+
+  async flushTranscriptsForTesting(): Promise<void> {
+    for (const record of this.sessions.values()) {
+      this.flushTranscript(record)
+    }
+    await Promise.all(this.transcriptWrites.values())
   }
 }

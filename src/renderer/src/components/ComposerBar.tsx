@@ -78,14 +78,13 @@ export function ComposerBar({
         </div>
 
         <textarea
-          className="composer-input"
+          className={`composer-input ${isExpanded ? 'composer-input--expanded' : 'composer-input--collapsed'}`}
           value={prompt}
           onChange={(event) => setPrompt(event.target.value)}
           onFocus={onFocus}
           onKeyDown={handleKeyDown}
           placeholder={active ? "Message Command Code…" : "What would you like to do?"}
           rows={isExpanded ? 4 : 1}
-          style={{ height: isExpanded ? 'auto' : '44px' }}
           onClick={() => setIsExpanded(true)}
         />
 

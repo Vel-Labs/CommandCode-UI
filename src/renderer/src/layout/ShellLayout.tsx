@@ -302,6 +302,11 @@ export function ShellLayout({
                             </button>
                           )
                         })}
+                        {tabs.length > 6 && (
+                          <div className="sidebar-overflow-row">
+                            {tabs.length - 6} more live {tabs.length - 6 === 1 ? 'session' : 'sessions'} in the tab bar
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

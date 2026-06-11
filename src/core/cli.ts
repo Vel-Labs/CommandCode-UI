@@ -27,7 +27,10 @@ export function getCommandExecutable(input?: string): string {
 }
 
 export function normalizeCwd(input?: string): string {
-  const candidate = input?.trim() ? input : os.homedir()
+  const candidate = input?.trim()
+  if (!candidate) {
+    throw new Error('Project directory is required')
+  }
   const resolved = path.resolve(candidate)
 
   if (!existsSync(resolved)) {

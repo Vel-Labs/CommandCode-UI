@@ -1,4 +1,5 @@
 import type { JSX } from 'react'
+import { Folder } from 'lucide-react'
 import type { GitEnvironmentStatus } from '../../../core/types'
 import type { PtyDoctorResult } from '../../../core/ptyDoctor'
 import type { RuntimeMode } from '../appTypes'
@@ -45,10 +46,18 @@ export function HomeWorkspace({
   gitStatus: GitEnvironmentStatus | null
   gitStatusLoading: boolean
 }): JSX.Element {
+  const hasProject = projectLabel.trim() && !projectLabel.toLowerCase().startsWith('no project')
+
   return (
     <section className="home-workspace" aria-label="New session">
       <div className="home-composer-wrap">
         <h1>What should Command Code do?</h1>
+        {!hasProject && (
+          <button className="home-project-hint" onClick={onProject} type="button">
+            <Folder size={16} />
+            <span>Choose a project directory to start a real session.</span>
+          </button>
+        )}
         <ComposerBar
           active={false}
           prompt={prompt}

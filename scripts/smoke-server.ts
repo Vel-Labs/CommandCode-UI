@@ -61,14 +61,14 @@ async function main() {
   const statusRes = await fetch(tokenUrl('/api/status'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ commandExecutable: 'cmd' })
+    body: JSON.stringify({ commandExecutable: 'cmd', cwd: process.cwd() })
   })
   console.log('POST /api/status:', statusRes.status)
 
   const updateRes = await fetch(tokenUrl('/api/update'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ commandExecutable: 'cmd', checkOnly: true })
+    body: JSON.stringify({ commandExecutable: 'cmd', cwd: process.cwd(), checkOnly: true })
   })
   const update = await updateRes.json() as Record<string, unknown>
   console.log('POST /api/update (checkOnly):', updateRes.status, `checkOnly=${update.checkOnly} ok=${update.ok}`)

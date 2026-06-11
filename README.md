@@ -80,7 +80,7 @@ npm install
 npm run dev
 ```
 
-Use **Demo mode** first if you only want to validate the GUI. The normal composer path starts a **Real session** when `cmd --version`, `cmd status --json`, and the PTY health check pass. Headless work is available from the command palette as **Run headless**, which executes `cmd --print` and records the result in history.
+Use **Demo mode** first if you only want to validate the GUI. The normal composer path starts a **Real session** when a project directory is selected, `cmd --version`, `cmd status --json`, and the PTY health check pass. Headless work is available from the command palette as **Run headless**, which executes `cmd --print` and records the result in history. Runtime commands now require an explicit project directory; the GUI does not silently fall back to your home directory when project context is missing.
 
 On launch, the app checks for Command Code CLI updates with `cmd update --check-only`. This is intentionally non-mutating. Use the Update chip in the lower-left sidebar to run `cmd update` when an update is available, or to manually refresh update status. After an update run completes, the app performs a follow-up `cmd update --check-only` so the chip reflects the installed state rather than stale update output.
 

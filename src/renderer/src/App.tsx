@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { JSX } from 'react'
 import type { PermissionMode } from '../../shared/types'
 import type { AppGuiPreferences, DiscoveredSession } from '../../core/types'
@@ -293,6 +293,14 @@ export function App(): JSX.Element {
     headlessMaxTurns,
     headlessYolo
   })
+  const shortcutHandlersRef = useRef({
+    openNewProjectSession,
+    openTerminalExpansion
+  })
+  shortcutHandlersRef.current = {
+    openNewProjectSession,
+    openTerminalExpansion
+  }
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
@@ -300,15 +308,15 @@ export function App(): JSX.Element {
       if (!shortcut) return
       event.preventDefault()
       if (shortcut === 'new-session') {
-        openNewProjectSession()
+        shortcutHandlersRef.current.openNewProjectSession()
         return
       }
-      openTerminalExpansion()
+      shortcutHandlersRef.current.openTerminalExpansion()
     }
 
     window.addEventListener('keydown', onKeyDown, true)
     return () => window.removeEventListener('keydown', onKeyDown, true)
-  })
+  }, [])
 
   return (
     <AppChrome

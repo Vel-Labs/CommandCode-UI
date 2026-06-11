@@ -4,6 +4,7 @@ import { CoreSessionManager } from '../src/core/sessions'
 import { buildPtySubmitChunks } from '../src/shared/ptyInput'
 import { looksLikeCliSelectionPrompt, stripAnsi } from '../src/shared/terminalPrompts'
 import os from 'node:os'
+import { readFileSync } from 'node:fs'
 
 describe('getCommandExecutable', () => {
   it('returns "cmd" when no input provided', () => {
@@ -37,9 +38,8 @@ describe('normalizeCwd', () => {
     expect(() => normalizeCwd('/this/path/does/not/exist/abc123')).toThrow('does not exist')
   })
 
-  it('defaults to home dir when input is empty', () => {
-    const result = normalizeCwd('')
-    expect(result).toBe(os.homedir())
+  it('throws when input is empty', () => {
+    expect(() => normalizeCwd('')).toThrow('Project directory is required')
   })
 })
 
@@ -260,5 +260,17 @@ describe('CoreSessionManager session metadata', () => {
 
     manager.forceKill(first.id)
     manager.forceKill(third.id)
+  })
+
+  it('flushes transcript output asynchronously without blocking session replay', async () => {
+    const manager = new CoreSessionManager()
+    const result = manager.start({ cwd: os.homedir(), useMock: true })
+
+    expect(manager.getReplay(result.id)).toContain('Command Code GUI mock session')
+
+    await manager.flushTranscriptsForTesting()
+    expect(readFileSync(result.transcriptPath, 'utf8')).toContain('Command Code GUI mock session')
+
+    manager.forceKill(result.id)
   })
 })

@@ -899,6 +899,17 @@ textarea:focus {
   overflow-x: auto;
   padding-left: 4px;
   border-bottom: 1px solid rgba(214, 190, 133, 0.24);
+  scrollbar-width: thin;
+  mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 28px), transparent 100%);
+}
+
+.tab-bar::-webkit-scrollbar {
+  height: 4px;
+}
+
+.tab-bar::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(214, 190, 133, 0.42);
 }
 
 .tab {
@@ -2400,6 +2411,13 @@ input[type="range"]::-webkit-slider-thumb {
   font-size: 12px;
 }
 
+.sidebar-overflow-row {
+  padding: 6px 8px 2px 34px;
+  color: #8f8f96;
+  font-size: 11px;
+  line-height: 1.25;
+}
+
 .project-row {
   display: flex;
   align-items: center;
@@ -2624,6 +2642,24 @@ input[type="range"]::-webkit-slider-thumb {
   letter-spacing: 0;
   line-height: 1.15;
   text-align: center;
+}
+
+.home-project-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: -34px 0 18px;
+  padding: 8px 10px;
+  border: 1px solid rgba(250, 204, 21, 0.26);
+  border-radius: 8px;
+  color: #fde68a;
+  background: rgba(113, 63, 18, 0.2);
+  font-size: 13px;
+}
+
+.home-project-hint:hover {
+  border-color: rgba(250, 204, 21, 0.42);
+  background: rgba(113, 63, 18, 0.32);
 }
 
 .composer-card {
@@ -3470,6 +3506,14 @@ input[type="range"]::-webkit-slider-thumb {
   background: rgba(255, 255, 255, 0.045);
   font-size: 13px;
   line-height: 1.25;
+}
+
+.native-chat-working,
+.live-waiting-row {
+  border-style: dashed;
+  border-color: rgba(96, 165, 250, 0.34);
+  color: #bfdbfe;
+  background: rgba(30, 64, 175, 0.12);
 }
 
 .live-waiting-spinner {
@@ -5596,6 +5640,12 @@ input[type="range"]::-webkit-slider-thumb {
   font-size: 13px;
 }
 
+.native-chat-working {
+  border: 1px dashed rgba(96, 165, 250, 0.34);
+  color: #bfdbfe;
+  background: rgba(30, 64, 175, 0.12);
+}
+
 .native-chat-thinking {
   border-radius: 999px;
   border: 1px solid transparent;
@@ -5819,6 +5869,19 @@ input[type="range"]::-webkit-slider-thumb {
   padding: 8px 12px 12px;
   min-height: 44px;
   font-family: inherit;
+}
+
+.composer-input--collapsed {
+  height: 44px;
+  min-height: 44px;
+  max-height: 44px;
+  overflow: hidden;
+}
+
+.composer-input--expanded {
+  min-height: 86px;
+  max-height: 180px;
+  overflow-y: auto;
 }
 
 .composer-input::placeholder {
