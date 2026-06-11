@@ -24,6 +24,7 @@ import type {
   SessionExitPayload,
   SessionStartOptions,
   SessionStartResult,
+  SessionTelemetrySnapshot,
   SkillEntry,
   StructuredTranscriptMatchResult,
   TastePackage,
@@ -48,6 +49,8 @@ import type { HookLogDiscoveryResult, HookLogReadResult } from './hooksLogs'
 export type SessionDataSource = 'live' | 'replay'
 export type SessionDataCallback = (data: string, metadata: { source: SessionDataSource }) => void
 export type SessionExitCallback = (payload: SessionExitPayload) => void
+export type SessionTelemetryCallback = (snapshot: SessionTelemetrySnapshot) => void
+export type SessionErrorCallback = (message: string) => void
 export type Unsubscribe = () => void
 
 export type TransportAPI = {
@@ -147,4 +150,6 @@ export type TransportAPI = {
   }) => Promise<HookConfigToggleApplyResult>
   onSessionData: (sessionId: string, callback: SessionDataCallback) => Unsubscribe
   onSessionExit: (sessionId: string, callback: SessionExitCallback) => Unsubscribe
+  onSessionTelemetry: (sessionId: string, callback: SessionTelemetryCallback) => Unsubscribe
+  onSessionError: (sessionId: string, callback: SessionErrorCallback) => Unsubscribe
 }

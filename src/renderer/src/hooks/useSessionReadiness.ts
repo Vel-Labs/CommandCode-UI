@@ -61,17 +61,25 @@ export function useSessionReadiness({
 
   useEffect(() => {
     if (!tabIds) return
-    const unsubscribers = tabs.map((tab) => transport.onSessionData(tab.id, (_data, metadata) => {
-      const currentTab = tabsRef.current.find((item) => item.id === tab.id) || tab
-      const event: SessionReadinessEvent = metadata.source === 'replay' || currentTab.lastPrompt
-        ? { type: 'output', source: metadata.source === 'replay' ? 'replay' : 'live' }
-        : { type: 'ready' }
-      applySessionReadinessEvent(tab.id, event)
-    }))
+    const unsubscribers = tabs.flatMap((tab) => [
+      transport.onSessionData(tab.id, (_data, metadata) => {
+        const currentTab = tabsRef.current.find((item) => item.id === tab.id) || tab
+        const event: SessionReadinessEvent = metadata.source === 'replay' || currentTab.lastPrompt
+          ? { type: 'output', source: metadata.source === 'replay' ? 'replay' : 'live' }
+          : { type: 'ready' }
+        applySessionReadinessEvent(tab.id, event)
+      }),
+      transport.onSessionTelemetry(tab.id, (telemetry) => {
+        setTabs((prev) => prev.map((item) => item.id === tab.id ? { ...item, telemetry } : item))
+      }),
+      transport.onSessionError(tab.id, (message) => {
+        applySessionReadinessEvent(tab.id, { type: 'error', message })
+      })
+    ])
     return () => {
       unsubscribers.forEach((unsubscribe) => unsubscribe())
     }
-  }, [applySessionReadinessEvent, tabIds, transport])
+  }, [applySessionReadinessEvent, setTabs, tabIds, transport])
 
   return {
     applySessionReadinessEvent,

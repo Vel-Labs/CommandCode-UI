@@ -12,6 +12,7 @@ export type {
   ProjectCommandCodeFile,
   SessionStartOptions,
   SessionStartResult,
+  SessionTelemetrySnapshot,
   HeadlessRunOptions,
   HeadlessRunResult,
   ModelListResult,

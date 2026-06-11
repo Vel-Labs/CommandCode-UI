@@ -273,4 +273,35 @@ describe('CoreSessionManager session metadata', () => {
 
     manager.forceKill(result.id)
   })
+
+  it('emits stream telemetry for input, output, and exit state', async () => {
+    const manager = new CoreSessionManager()
+    const telemetry: Array<{ inputChunks: number; outputChunks: number; exitCode?: number | null }> = []
+    const exits: string[] = []
+    manager.on('session:telemetry', (_sessionId, snapshot) => {
+      telemetry.push({
+        inputChunks: snapshot.inputChunks,
+        outputChunks: snapshot.outputChunks,
+        exitCode: snapshot.exitCode
+      })
+    })
+    manager.on('session:exit', (payload) => exits.push(payload.sessionId))
+
+    const result = manager.start({ cwd: os.homedir(), useMock: true, model: 'deepseek-v4-pro' })
+    expect(result.telemetry).toMatchObject({
+      command: 'cmd',
+      model: 'deepseek-v4-pro',
+      inputChunks: 0
+    })
+
+    manager.write(result.id, 'hello')
+    manager.write(result.id, '/exit\r')
+
+    await manager.flushTranscriptsForTesting()
+
+    expect(exits).toContain(result.id)
+    expect(telemetry.some((snapshot) => snapshot.inputChunks >= 1)).toBe(true)
+    expect(telemetry.some((snapshot) => snapshot.outputChunks >= 1)).toBe(true)
+    expect(telemetry.at(-1)?.exitCode).toBe(0)
+  })
 })

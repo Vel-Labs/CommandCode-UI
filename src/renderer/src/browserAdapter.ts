@@ -312,6 +312,10 @@ export function createBrowserTransport(): TransportAPI {
 
     onSessionData: sessionSocket.onSessionData,
 
-    onSessionExit: sessionSocket.onSessionExit
+    onSessionExit: sessionSocket.onSessionExit,
+
+    onSessionTelemetry: sessionSocket.onSessionTelemetry,
+
+    onSessionError: sessionSocket.onSessionError
   }
 }

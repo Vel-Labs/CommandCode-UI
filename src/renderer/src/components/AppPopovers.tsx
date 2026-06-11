@@ -200,7 +200,21 @@ export function AppPopovers({
             <button className="ghost-button native-ghost" onClick={openDocs}>Docs</button>
           </div>
           <label className="checkbox-row"><input type="checkbox" checked={skipOnboarding} onChange={(event) => setSkipOnboarding(event.target.checked)} /> Skip onboarding</label>
-          <label className="checkbox-row"><input type="checkbox" checked={runtimeMode === 'mock'} onChange={(event) => setRuntimeMode(event.target.checked ? 'mock' : 'real-session')} disabled={!ptyHealth?.healthy && runtimeMode === 'mock'} /> Use Demo mode</label>
+          <div className="runtime-mode-control" aria-label="Runtime mode">
+            <button
+              className={`runtime-mode-option ${runtimeMode === 'real-session' ? 'runtime-mode-option--active' : ''}`}
+              onClick={() => setRuntimeMode('real-session')}
+              disabled={!ptyHealth?.healthy}
+            >
+              Real session
+            </button>
+            <button
+              className={`runtime-mode-option ${runtimeMode === 'mock' ? 'runtime-mode-option--active' : ''}`}
+              onClick={() => setRuntimeMode('mock')}
+            >
+              Demo mode
+            </button>
+          </div>
           <label className="checkbox-row"><input type="checkbox" checked={headlessYolo} onChange={(event) => setHeadlessYolo(event.target.checked)} /> Allow write tools in headless commands</label>
           <label className="field-label">Headless max turns</label>
           <input className="native-input" type="number" min={1} max={100} value={headlessMaxTurns} onChange={(event) => setHeadlessMaxTurns(Number(event.target.value) || 1)} />

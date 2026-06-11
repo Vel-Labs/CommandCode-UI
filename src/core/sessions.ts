@@ -5,7 +5,7 @@ import { appendFile } from 'node:fs/promises'
 import path from 'node:path'
 import os from 'node:os'
 import type { IPty } from 'node-pty'
-import type { SessionStartOptions, SessionStartResult, SessionExitPayload } from './types'
+import type { SessionStartOptions, SessionStartResult, SessionExitPayload, SessionTelemetrySnapshot } from './types'
 import { buildInteractiveArgs, getCommandExecutable, normalizeCwd } from './cli'
 
 export type PtySpawnFn = (command: string, args: string[], options: {
@@ -25,12 +25,14 @@ type SessionRecord = {
   model?: string
   transcriptPath: string
   mockTimer?: NodeJS.Timeout
+  telemetry: SessionTelemetrySnapshot
 }
 
 export type SessionEvents = {
   'session:data': [sessionId: string, data: string]
   'session:exit': [payload: SessionExitPayload]
   'session:error': [sessionId: string, error: Error]
+  'session:telemetry': [sessionId: string, snapshot: SessionTelemetrySnapshot]
 }
 
 export class CoreSessionManager extends EventEmitter<SessionEvents> {
@@ -64,7 +66,22 @@ export class CoreSessionManager extends EventEmitter<SessionEvents> {
       cwd,
       mock: Boolean(options.useMock),
       model: options.model?.trim() || undefined,
-      transcriptPath
+      transcriptPath,
+      telemetry: {
+        sessionId: id,
+        command,
+        args,
+        cwd,
+        mock: Boolean(options.useMock),
+        model: options.model?.trim() || undefined,
+        transcriptPath,
+        startedAtMs: Date.now(),
+        inputChunks: 0,
+        inputBytes: 0,
+        outputChunks: 0,
+        outputBytes: 0,
+        transcriptWriteErrors: 0
+      }
     }
 
     this.sessions.set(id, record)
@@ -79,12 +96,15 @@ export class CoreSessionManager extends EventEmitter<SessionEvents> {
       this.sessions.delete(record.id)
     }
 
-    return { id, command, args, cwd, mock: record.mock, model: record.model, transcriptPath }
+    this.emitTelemetry(record)
+    return { id, command, args, cwd, mock: record.mock, model: record.model, transcriptPath, telemetry: this.getTelemetry(id) }
   }
 
   write(id: string, data: string): void {
     const record = this.sessions.get(id)
     if (!record) return
+
+    this.recordInput(record, data)
 
     if (record.mock) {
       this.writeMock(record, data)
@@ -155,6 +175,11 @@ export class CoreSessionManager extends EventEmitter<SessionEvents> {
       return buffer
     }
     return undefined
+  }
+
+  getTelemetry(id: string): SessionTelemetrySnapshot | undefined {
+    const record = this.sessions.get(id)
+    return record ? { ...record.telemetry, args: [...record.telemetry.args] } : undefined
   }
 
   isActive(id: string): boolean {
@@ -280,6 +305,9 @@ export class CoreSessionManager extends EventEmitter<SessionEvents> {
 
   private emitData(record: SessionRecord, data: string): void {
     this.appendTranscript(record, data)
+    record.telemetry.outputChunks += 1
+    record.telemetry.outputBytes += Buffer.byteLength(data, 'utf8')
+    record.telemetry.lastOutputAtMs = Date.now()
     // Append to replay buffer (ring-buffer truncation from the front)
     let buffer = this.replayBuffers.get(record.id) || ''
     buffer += data
@@ -288,13 +316,17 @@ export class CoreSessionManager extends EventEmitter<SessionEvents> {
     }
     this.replayBuffers.set(record.id, buffer)
     this.emit('session:data', record.id, data)
+    this.emitTelemetry(record)
   }
 
   private emitExit(record: SessionRecord, exitCode: number | null, signal: number | string | null): void {
     const payload: SessionExitPayload = { sessionId: record.id, exitCode, signal }
+    record.telemetry.exitCode = exitCode
+    record.telemetry.signal = signal
     this.sessions.delete(record.id)
     this.replayBuffers.delete(record.id)
     this.flushTranscript(record)
+    this.emitTelemetry(record)
     this.emit('session:exit', payload)
   }
 
@@ -338,7 +370,9 @@ export class CoreSessionManager extends EventEmitter<SessionEvents> {
       .catch(() => undefined)
       .then(() => appendFile(record.transcriptPath, data))
       .catch((err) => {
+        record.telemetry.transcriptWriteErrors += 1
         this.emit('session:error', record.id, err instanceof Error ? err : new Error(String(err)))
+        this.emitTelemetry(record)
       })
       .finally(() => {
         if (this.transcriptWrites.get(record.id) === write) {
@@ -353,5 +387,16 @@ export class CoreSessionManager extends EventEmitter<SessionEvents> {
       this.flushTranscript(record)
     }
     await Promise.all(this.transcriptWrites.values())
+  }
+
+  private recordInput(record: SessionRecord, data: string): void {
+    record.telemetry.inputChunks += 1
+    record.telemetry.inputBytes += Buffer.byteLength(data, 'utf8')
+    record.telemetry.lastInputAtMs = Date.now()
+    this.emitTelemetry(record)
+  }
+
+  private emitTelemetry(record: SessionRecord): void {
+    this.emit('session:telemetry', record.id, { ...record.telemetry, args: [...record.telemetry.args] })
   }
 }

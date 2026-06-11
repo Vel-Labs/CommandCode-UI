@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
 import { FileText, MoreHorizontal, Square, TerminalSquare, X } from 'lucide-react'
 import type { SessionExitPayload } from '../../../shared/types'
-import type { GitEnvironmentStatus } from '../../../core/types'
+import type { GitEnvironmentStatus, SessionTelemetrySnapshot } from '../../../core/types'
 import type { PtyDoctorResult } from '../../../core/ptyDoctor'
 import type { TransportAPI } from '../../../core/transport'
 import type { SessionTab } from '../appTypes'
@@ -128,6 +128,7 @@ export function SessionWorkspace({
             {activeReadiness && <StatusPill label={activeReadiness.label} tone={activeReadiness.tone} size="sm" />}
             <StatusPill label={permissionLabel} tone={permissionTone} size="sm" />
           </div>
+          {activeTab?.telemetry && <SessionTelemetryStrip telemetry={activeTab.telemetry} />}
         </div>
         <div className="native-session-actions">
           <button className="ghost-button native-ghost" onClick={() => void onStopSession()} title="Stop active session" disabled={!isStreaming}>
@@ -236,6 +237,36 @@ export function SessionWorkspace({
       </div>
     </section>
   )
+}
+
+function SessionTelemetryStrip({ telemetry }: { telemetry: SessionTelemetrySnapshot }): JSX.Element {
+  const lastEvent = telemetry.lastOutputAtMs || telemetry.lastInputAtMs || telemetry.startedAtMs
+  const ageSeconds = Math.max(0, Math.floor((Date.now() - lastEvent) / 1000))
+  const direction = telemetry.lastOutputAtMs && (!telemetry.lastInputAtMs || telemetry.lastOutputAtMs >= telemetry.lastInputAtMs)
+    ? 'output'
+    : telemetry.lastInputAtMs
+      ? 'input'
+      : 'started'
+  const exit = telemetry.exitCode !== undefined || telemetry.signal !== undefined
+    ? `exit ${telemetry.exitCode ?? telemetry.signal ?? 'done'}`
+    : 'live'
+
+  return (
+    <div className="native-session-telemetry" aria-label="Session stream telemetry">
+      <span title={`${telemetry.command} ${telemetry.args.join(' ')}`}>{telemetry.command}</span>
+      <span>{telemetry.inputChunks} in / {formatBytes(telemetry.inputBytes)}</span>
+      <span>{telemetry.outputChunks} out / {formatBytes(telemetry.outputBytes)}</span>
+      <span>{direction} {ageSeconds}s ago</span>
+      <span>{exit}</span>
+      {telemetry.transcriptWriteErrors > 0 && <span className="native-session-telemetry-error">{telemetry.transcriptWriteErrors} transcript errors</span>}
+    </div>
+  )
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes >= 1_048_576) return `${(bytes / 1_048_576).toFixed(1)} MB`
+  if (bytes >= 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${bytes} B`
 }
 
 function SessionExitBridge({

@@ -189,8 +189,8 @@ export function useGuiPreferences(options: UseGuiPreferencesOptions): GuiPrefere
             setModel(prefs.model)
             localStorage.setItem('ccgui.model', prefs.model)
           }
-          if (prefs.runtimeMode === 'real-session') {
-            setRuntimeModeState('real-session')
+          if (prefs.runtimeMode === 'real-session' || prefs.runtimeMode === 'mock') {
+            setRuntimeModeState(prefs.runtimeMode)
           }
           if (prefs.permissionMode === 'standard' || prefs.permissionMode === 'plan' || prefs.permissionMode === 'auto-accept') {
             setPermissionMode(prefs.permissionMode)
@@ -225,7 +225,7 @@ export function useGuiPreferences(options: UseGuiPreferencesOptions): GuiPrefere
       version: 1,
       projectPath: cwd,
       model,
-      runtimeMode: runtimeMode === 'mock' ? 'real-session' : runtimeMode,
+      runtimeMode,
       permissionMode,
       trust,
       skipOnboarding,

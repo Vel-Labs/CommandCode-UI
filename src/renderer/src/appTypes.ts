@@ -1,4 +1,4 @@
-import type { DiscoveredSession } from '../../core/types'
+import type { DiscoveredSession, SessionTelemetrySnapshot } from '../../core/types'
 import type { SessionReadinessState } from './services/sessionReadiness'
 
 export type WorkspaceView = 'home' | 'session' | 'transcript' | 'settings'
@@ -69,6 +69,7 @@ export type SessionTab = {
   projectLabel: string
   runtimeMode: RuntimeMode
   readiness: SessionReadinessState
+  telemetry?: SessionTelemetrySnapshot
   lastPrompt?: string
   resumedSession?: DiscoveredSession
 }

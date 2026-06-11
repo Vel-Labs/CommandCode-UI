@@ -2,7 +2,7 @@ import type { Server } from 'node:http'
 import { parse as parseUrl } from 'node:url'
 import { WebSocketServer, WebSocket } from 'ws'
 import type { CoreSessionManager } from '../core/sessions'
-import type { SessionExitPayload } from '../core/types'
+import type { SessionExitPayload, SessionTelemetrySnapshot } from '../core/types'
 import { extractParams, extractToken } from './http'
 
 type SessionWebSocketOptions = {
@@ -42,6 +42,10 @@ export function createSessionWebSocketServer({
     if (replay && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ type: 'replay', data: replay }))
     }
+    const telemetry = sessionManager.getTelemetry(sessionId)
+    if (telemetry && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'telemetry', telemetry }))
+    }
 
     const onData = (sid: string, data: string) => {
       if (sid !== sessionId) return
@@ -58,13 +62,31 @@ export function createSessionWebSocketServer({
       cleanup()
     }
 
+    const onError = (sid: string, error: Error) => {
+      if (sid !== sessionId) return
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'error', message: error.message }))
+      }
+    }
+
+    const onTelemetry = (sid: string, snapshot: SessionTelemetrySnapshot) => {
+      if (sid !== sessionId) return
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'telemetry', telemetry: snapshot }))
+      }
+    }
+
     const cleanup = () => {
       sessionManager.off('session:data', onData)
       sessionManager.off('session:exit', onExit)
+      sessionManager.off('session:error', onError)
+      sessionManager.off('session:telemetry', onTelemetry)
     }
 
     sessionManager.on('session:data', onData)
     sessionManager.on('session:exit', onExit)
+    sessionManager.on('session:error', onError)
+    sessionManager.on('session:telemetry', onTelemetry)
 
     ws.on('close', cleanup)
     ws.on('error', cleanup)

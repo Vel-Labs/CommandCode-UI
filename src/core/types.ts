@@ -121,6 +121,27 @@ export type SessionStartResult = {
   mock: boolean
   model?: string
   transcriptPath: string
+  telemetry?: SessionTelemetrySnapshot
+}
+
+export type SessionTelemetrySnapshot = {
+  sessionId: string
+  command: string
+  args: string[]
+  cwd: string
+  mock: boolean
+  model?: string
+  transcriptPath: string
+  startedAtMs: number
+  lastInputAtMs?: number
+  lastOutputAtMs?: number
+  inputChunks: number
+  inputBytes: number
+  outputChunks: number
+  outputBytes: number
+  transcriptWriteErrors: number
+  exitCode?: number | null
+  signal?: number | string | null
 }
 
 export type StructuredTranscriptMatchResult = {

@@ -167,6 +167,7 @@ export function useSessionActions({
         projectLabel,
         runtimeMode: effectiveRuntimeMode,
         readiness,
+        telemetry: result.telemetry,
         lastPrompt: initialPrompt?.trim() || undefined,
         resumedSession: resumeSession
       }
