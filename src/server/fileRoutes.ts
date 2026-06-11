@@ -21,12 +21,12 @@ export function registerFileRoutes(addRoute: AddRoute, { resolveWorkspaceRoot }:
 
     const target = path.resolve(dir ?? root)
 
-    if (!existsSync(target) || !statSync(target).isDirectory()) {
-      return { error: 'Directory not found', entries: [] }
-    }
-
     if (!isPathUnderRoot(target, root)) {
       throw new WorkspaceError('Access denied — path outside workspace root', 403)
+    }
+
+    if (!existsSync(target) || !statSync(target).isDirectory()) {
+      return { error: 'Directory not found', entries: [] }
     }
 
     const entries: FileEntry[] = readdirSync(target)

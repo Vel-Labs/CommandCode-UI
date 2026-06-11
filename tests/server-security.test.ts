@@ -321,6 +321,21 @@ describe('server filesystem boundaries', () => {
     expect(singleListed.entries.some((e) => e.name === 'single.txt')).toBe(true)
   })
 
+  it('rejects nonexistent list targets outside the scoped workspace before existence checks', async () => {
+    const app = await startServer()
+    const project = await startProjectSession(app)
+    const sibling = `${project}-sibling`
+    const missingOutside = path.join(sibling, 'missing')
+
+    const res = await apiPostStatus<{ entries?: Array<{ name: string }>; error?: string }>(
+      app, '/api/files/list', { cwd: project, dir: missingOutside }
+    )
+
+    expect(res.status).toBe(403)
+    expect(res.body.entries).toBeUndefined()
+    expect(res.body.error).toContain('Access denied')
+  })
+
   it('returns a bounded tail for oversized PTY transcript diagnostics', async () => {
     const app = await startServer()
     const dir = tempTranscriptDir()
