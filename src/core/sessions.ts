@@ -210,8 +210,7 @@ export class CoreSessionManager extends EventEmitter<SessionEvents> {
     record.terminal = terminal
 
     terminal.onData((data) => {
-      this.appendTranscript(record, data)
-      this.emit('session:data', record.id, data)
+      this.emitData(record, data)
     })
 
     terminal.onExit(({ exitCode, signal }) => {

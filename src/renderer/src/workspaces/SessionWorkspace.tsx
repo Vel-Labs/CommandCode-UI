@@ -240,8 +240,19 @@ export function SessionWorkspace({
 }
 
 function SessionTelemetryStrip({ telemetry }: { telemetry: SessionTelemetrySnapshot }): JSX.Element {
+  const [nowMs, setNowMs] = useState(() => Date.now())
+
+  useEffect(() => {
+    if (telemetry.exitCode !== undefined || telemetry.signal !== undefined) {
+      setNowMs(Date.now())
+      return
+    }
+    const timer = window.setInterval(() => setNowMs(Date.now()), 1000)
+    return () => window.clearInterval(timer)
+  }, [telemetry.exitCode, telemetry.signal, telemetry.sessionId])
+
   const lastEvent = telemetry.lastOutputAtMs || telemetry.lastInputAtMs || telemetry.startedAtMs
-  const ageSeconds = Math.max(0, Math.floor((Date.now() - lastEvent) / 1000))
+  const ageSeconds = Math.max(0, Math.floor((nowMs - lastEvent) / 1000))
   const direction = telemetry.lastOutputAtMs && (!telemetry.lastInputAtMs || telemetry.lastOutputAtMs >= telemetry.lastInputAtMs)
     ? 'output'
     : telemetry.lastInputAtMs
@@ -250,6 +261,13 @@ function SessionTelemetryStrip({ telemetry }: { telemetry: SessionTelemetrySnaps
   const exit = telemetry.exitCode !== undefined || telemetry.signal !== undefined
     ? `exit ${telemetry.exitCode ?? telemetry.signal ?? 'done'}`
     : 'live'
+  const streamHealth = exit !== 'live'
+    ? 'closed'
+    : ageSeconds >= 60
+      ? 'stale'
+      : ageSeconds >= 15
+        ? 'quiet'
+        : 'active'
 
   return (
     <div className="native-session-telemetry" aria-label="Session stream telemetry">
@@ -257,6 +275,7 @@ function SessionTelemetryStrip({ telemetry }: { telemetry: SessionTelemetrySnaps
       <span>{telemetry.inputChunks} in / {formatBytes(telemetry.inputBytes)}</span>
       <span>{telemetry.outputChunks} out / {formatBytes(telemetry.outputBytes)}</span>
       <span>{direction} {ageSeconds}s ago</span>
+      <span className={`native-session-telemetry-health native-session-telemetry-health--${streamHealth}`}>{streamHealth}</span>
       <span>{exit}</span>
       {telemetry.transcriptWriteErrors > 0 && <span className="native-session-telemetry-error">{telemetry.transcriptWriteErrors} transcript errors</span>}
     </div>

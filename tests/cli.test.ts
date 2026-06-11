@@ -1,10 +1,45 @@
 import { describe, it, expect } from 'vitest'
 import { buildInteractiveArgs, buildHeadlessArgs, getCommandExecutable, normalizeCwd } from '../src/core/cli'
-import { CoreSessionManager } from '../src/core/sessions'
+import { CoreSessionManager, type PtySpawnFn } from '../src/core/sessions'
 import { buildPtySubmitChunks } from '../src/shared/ptyInput'
 import { looksLikeCliSelectionPrompt, stripAnsi } from '../src/shared/terminalPrompts'
 import os from 'node:os'
 import { readFileSync } from 'node:fs'
+import type { IPty } from 'node-pty'
+
+class FakePty {
+  private dataHandler: ((data: string) => void) | undefined
+  private exitHandler: ((payload: { exitCode: number; signal?: number | string }) => void) | undefined
+  readonly writes: string[] = []
+
+  onData(handler: (data: string) => void): void {
+    this.dataHandler = handler
+  }
+
+  onExit(handler: (payload: { exitCode: number; signal?: number | string }) => void): void {
+    this.exitHandler = handler
+  }
+
+  write(data: string): void {
+    this.writes.push(data)
+  }
+
+  resize(): void {
+    // No-op for tests.
+  }
+
+  kill(): void {
+    this.exitHandler?.({ exitCode: 0 })
+  }
+
+  emitData(data: string): void {
+    this.dataHandler?.(data)
+  }
+
+  emitExit(exitCode = 0): void {
+    this.exitHandler?.({ exitCode })
+  }
+}
 
 describe('getCommandExecutable', () => {
   it('returns "cmd" when no input provided', () => {
@@ -302,6 +337,32 @@ describe('CoreSessionManager session metadata', () => {
     expect(exits).toContain(result.id)
     expect(telemetry.some((snapshot) => snapshot.inputChunks >= 1)).toBe(true)
     expect(telemetry.some((snapshot) => snapshot.outputChunks >= 1)).toBe(true)
+    expect(telemetry.at(-1)?.exitCode).toBe(0)
+  })
+
+  it('routes real PTY output through replay and stream telemetry', async () => {
+    const fakePty = new FakePty()
+    const ptyFactory: PtySpawnFn = () => fakePty as unknown as IPty
+    const manager = new CoreSessionManager(ptyFactory)
+    const telemetry: Array<{ outputChunks: number; outputBytes: number; exitCode?: number | null }> = []
+    manager.on('session:telemetry', (_sessionId, snapshot) => {
+      telemetry.push({
+        outputChunks: snapshot.outputChunks,
+        outputBytes: snapshot.outputBytes,
+        exitCode: snapshot.exitCode
+      })
+    })
+
+    const result = manager.start({ cwd: os.homedir(), commandExecutable: 'cmd', model: 'deepseek-v4-pro' })
+    fakePty.emitData('real output from pty\r\n')
+
+    expect(manager.getReplay(result.id)).toContain('real output from pty')
+    fakePty.emitExit(0)
+
+    await manager.flushTranscriptsForTesting()
+
+    expect(readFileSync(result.transcriptPath, 'utf8')).toContain('real output from pty')
+    expect(telemetry.some((snapshot) => snapshot.outputChunks >= 1 && snapshot.outputBytes > 0)).toBe(true)
     expect(telemetry.at(-1)?.exitCode).toBe(0)
   })
 })

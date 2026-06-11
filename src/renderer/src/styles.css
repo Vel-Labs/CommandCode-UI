@@ -5506,6 +5506,23 @@ input[type="range"]::-webkit-slider-thumb {
   color: rgba(125, 211, 252, 0.38);
 }
 
+.native-session-telemetry-health {
+  font-weight: 700;
+}
+
+.native-session-telemetry-health--active {
+  color: #86efac;
+}
+
+.native-session-telemetry-health--quiet {
+  color: #facc15;
+}
+
+.native-session-telemetry-health--stale,
+.native-session-telemetry-health--closed {
+  color: #fda4af;
+}
+
 .native-session-telemetry-error {
   color: #fda4af;
 }

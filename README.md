@@ -54,7 +54,7 @@ The default theme uses the Command Code spectral grid. The Blueprint theme keeps
 - Selectable appearance themes with local persistence
 - Runtime checks for CLI, PTY health, and available Command Code updates
 - Codex-like conversation workspace for active sessions, with live PTY output projected into a full-page native timeline by default; follow-up prompts append as separate chat turns, while raw xterm is hidden under Advanced session tools for diagnostics and unsupported TUI states
-- Native stream telemetry for active sessions: command identity, input/output chunk and byte counts, last stream event age, exit state, and transcript write errors are shown from the GUI-owned PTY/WebSocket layer without inventing Command Code-internal state
+- Native stream telemetry for active sessions: command identity, input/output chunk and byte counts, last stream event age, stream freshness, exit state, and transcript write errors are shown from the GUI-owned PTY/WebSocket layer without inventing Command Code-internal state
 - Workbench rail for IDE/Finder, environment status, repo terminal, and right sidebar controls
 - Right inspector for files, file preview, transcript/history, docs, environment status, and IDE status, with gated workbench actions kept preview-only until their route contracts are explicit
 - `Cmd+T` / `Ctrl+T` opens another Command Code session in the same selected project
@@ -105,7 +105,7 @@ Settings → Data and Advanced → Project state show these locations and the fi
 
 Live `.ansi` PTY recordings are diagnostic tails, not the source for native chat history. The transcript inspector renders `.jsonl` files as structured timelines and shows compacted, bounded PTY tails for raw terminal diagnostics so terminal repaint output does not become a wall of JSON parse errors or repeated thinking/progress frames.
 
-Active-session stream telemetry is adapter-owned instrumentation. It reports what the GUI can prove about the PTY/WebSocket path: command, arguments, project, input/output byte and chunk counts, last input/output timestamp, transcript write errors, and exit state. It does not replace structured Command Code transcripts or infer private agent state from terminal output.
+Active-session stream telemetry is adapter-owned instrumentation. It reports what the GUI can prove about the PTY/WebSocket path: command, arguments, project, input/output byte and chunk counts, last input/output timestamp, stream freshness, transcript write errors, and exit state. It does not replace structured Command Code transcripts or infer private agent state from terminal output.
 
 Workbench file mutations, IDE actions, git mutations, terminal lifecycle/profile changes, editable theme-token controls, and release-fetching behavior are gated in `docs/reports/WORKBENCH_POLISH_GATE.md`. Settings → Data surfaces those gates as preview-only status instead of exposing unscoped actions.
 
