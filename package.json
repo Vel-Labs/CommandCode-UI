@@ -34,7 +34,8 @@
     "smoke:headless": "tsx scripts/smoke-headless.ts",
     "smoke:server": "tsx scripts/smoke-server.ts",
     "smoke:browser": "tsx scripts/smoke-browser.ts",
-    "smoke:pty": "tsx scripts/smoke-pty.ts"
+    "smoke:pty": "tsx scripts/smoke-pty.ts",
+    "smoke:real-session": "tsx scripts/smoke-real-session-receipt.ts"
   },
   "dependencies": {
     "@xterm/addon-fit": "^0.10.0",

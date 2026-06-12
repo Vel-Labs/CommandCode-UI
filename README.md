@@ -199,7 +199,10 @@ npm run build
 npm run smoke:browser
 npm run smoke:headless
 npm run smoke:pty
+npm run smoke:real-session -- --model deepseek-v4-pro
 ```
+
+`smoke:real-session` starts a bounded real Command Code session through the GUI server, attaches over the same session WebSocket used by the renderer, sends `/exit` as the write-path proof, and writes a JSON receipt under `/tmp` by default. It validates GUI-owned transport facts such as real-session startup, replay/data frames, telemetry frames, output byte/chunk counters, input byte/chunk counters, and cleanup; it does not assert on model prose quality.
 
 ## Docs
 
