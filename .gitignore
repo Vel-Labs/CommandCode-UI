@@ -19,6 +19,7 @@ pnpm-debug.log*
 .commandcode/taste/
 .commandcode/design/
 .commandcode/gui-preferences.json
+docs/spark_files/
 docs/roadmaps/
 CODEX_KICKOFF_PROMPT.md
 CODEX_CROSS_PLATFORM_PIVOT_PROMPT.md
